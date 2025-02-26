@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\UserController;
@@ -40,21 +41,5 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}/delete', [PortalController::class, 'delete']);
     });
 
-    /**
-     * Rotas que necessitam informar o slug do portal
-    */
-    Route::prefix('{slug_portal}')->group(function () {
-
-        /**
-         * Controller DepartmentController
-        */
-        Route::prefix('department')->group(function () {
-            Route::get('/', [DepartmentController::class, 'index']);
-            Route::get('/{id}', [DepartmentController::class, 'show']);
-            Route::post('/create', [DepartmentController::class, 'create']);
-            Route::put('/{id}/update', [DepartmentController::class, 'update']);
-            Route::delete('/{id}/delete', [DepartmentController::class, 'delete']);
-        });
-
-    });
+    Route::post('/service', [ServiceController::class, 'handleService']);;
 });
