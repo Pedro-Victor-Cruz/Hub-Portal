@@ -56,6 +56,7 @@
     }
   }
 
+
   textarea {
     &[resize="none"] {
       resize: none;
@@ -97,6 +98,41 @@
     &.success {
       color: var(--success-color);
     }
+  }
+}
+
+// input sugestão
+.input-with-suggestions {
+  position: relative;
+  width: 100%;
+}
+
+.suggestions-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.input-with-suggestions input {
+  width: 100%;
+}
+
+.suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f1f1f1;
   }
 }
 

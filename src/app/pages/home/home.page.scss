@@ -1,0 +1,223 @@
+:host {
+  display: block;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+}
+
+.dashboard-container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin: 0;
+  }
+
+  .date-filter {
+    select {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: white;
+      font-size: 0.9rem;
+      margin-left: 0.5rem;
+    }
+  }
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      i {
+        font-size: 2rem;
+        padding: 1rem;
+        border-radius: 50%;
+        background: #f0f7ff;
+        color: #2196f3;
+      }
+
+      .card-info {
+        h3 {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .number {
+          font-size: 1.8rem;
+          font-weight: bold;
+          color: #2c3e50;
+          margin: 0;
+        }
+
+        .trend {
+          font-size: 0.8rem;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+
+          &.positive {
+            color: #4caf50;
+          }
+
+          &.negative {
+            color: #f44336;
+          }
+
+          i {
+            font-size: 0.8rem;
+            padding: 0;
+            background: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+    h3 {
+      font-size: 1.1rem;
+      color: #2c3e50;
+      margin: 0 0 1rem 0;
+    }
+
+    div {
+      height: 300px;
+    }
+  }
+}
+
+.recent-tickets {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+  h3 {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin: 0 0 1rem 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      font-weight: 600;
+      color: #666;
+    }
+
+    td {
+      color: #2c3e50;
+    }
+
+    .status, .priority {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .status {
+      &.pending {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+      &.resolved {
+        background: #e8f5e9;
+        color: #4caf50;
+      }
+      &.in-progress {
+        background: #e3f2fd;
+        color: #2196f3;
+      }
+    }
+
+    .priority {
+      &.high {
+        background: #ffebee;
+        color: #f44336;
+      }
+      &.medium {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+      &.low {
+        background: #e8f5e9;
+        color: #4caf50;
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  :host {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-tickets {
+    overflow-x: auto;
+
+    table {
+      min-width: 700px;
+    }
+  }
+}
+

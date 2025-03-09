@@ -1,0 +1,76 @@
+<ub-content title="Gerenciar departamento" [loading]="loadingPage" [showBackButton]="true" (back)="back()">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="p-fluid p-formgrid grid">
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="Título"
+          placeholder="Digite o título da notícia"
+          formControlName="title"
+          [error]="FormErrorHandlerService.getError('title', errors)"
+          (blur)="createSlug($event)"
+        ></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="Subtítulo"
+          placeholder="Digite o subtítulo da notícia"
+          formControlName="subtitle"
+          [error]="FormErrorHandlerService.getError('subtitle', errors)"
+        ></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="Slug"
+          placeholder="Digite o slug da notícia"
+          helpText="O slug é utilizado para identificar a notícia na URL"
+          formControlName="slug"
+          [error]="FormErrorHandlerService.getError('slug', errors)"
+        ></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="Resumo"
+          placeholder="Digite o resumo da notícia"
+          formControlName="excerpt"
+          [error]="FormErrorHandlerService.getError('excerpt', errors)"
+        ></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-toggle-switch formControlName="featured" label="Destaque" helpText="Destacar notícia"
+        ></ub-toggle-switch>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-toggle-switch formControlName="status" label="Publicado" helpText="Se a notícia está publicada"
+        ></ub-toggle-switch>
+      </div>
+      <div class="col-12">
+        <ub-editor
+          label="Conteúdo"
+          placeholder="Digite o conteúdo da notícia"
+          formControlName="content"
+          [error]="FormErrorHandlerService.getError('content', errors)"
+        ></ub-editor>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-input [suggestions]="suggestionsCategories"
+          label="Categoria"
+          placeholder="Digite a categoria da notícia"
+          formControlName="category"
+          [error]="FormErrorHandlerService.getError('category', errors)"
+        ></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-image
+          label="Imagem"
+          formControlName="image"
+          [imageUrl]="imageUrl"
+          (removeImage)="onRemoveImage()"
+          [error]="FormErrorHandlerService.getError('image', errors)"
+        ></ub-image>
+      </div>
+    </div>
+    <div class="flex justify-content-end">
+      <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
+    </div>
+  </form>
+</ub-content>

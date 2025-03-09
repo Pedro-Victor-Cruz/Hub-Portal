@@ -7,9 +7,10 @@ interface Tab {
   path: string;
   icon?: string;
   description?: string;
+  type?: string;
 }
 
-interface TabOpen extends Tab {
+export interface TabOpen extends Tab {
   id: string;
 }
 
@@ -19,9 +20,10 @@ interface TabOpen extends Tab {
 export class LayoutService {
   private availableRoutes: Tab[] = [
     {
-      title: 'Departamentos',
-      path: '/departamentos',
-      icon: 'bx bx-building',
+      title: 'Blog',
+      path: '/blogs',
+      icon: 'bx bx-news',
+      type: 'blog'
     },
   ];
   private open_tabs: TabOpen[] = [];

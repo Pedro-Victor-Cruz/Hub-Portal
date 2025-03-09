@@ -1,15 +1,12 @@
-import { Routes } from '@angular/router';
-import { FormPage } from './pages/form/form.page';
-import { UsersPage } from './pages/users/users.page';
-import { HomePage } from './pages/home/home.page';
-import { ProfilePage } from './pages/profile/profile.page';
-import { LoginPage } from './pages/auth/login/login.page';
-import { RegisterPage } from './pages/auth/register/register.page';
-import { AuthGuard } from './security/auth.guard';
+import {Routes} from '@angular/router';
+import {HomePage} from './pages/home/home.page';
+import {ProfilePage} from './pages/profile/profile.page';
+import {LoginPage} from './pages/auth/login/login.page';
+import {RegisterPage} from './pages/auth/register/register.page';
+import {AuthGuard} from './security/auth.guard';
 import {NavbarComponent} from './layout/navbar/navbar.component';
-import {PortalsPage} from './pages/portals/portals.page';
-import {DepartmentsPage} from './pages/departments/departments.page';
-import {ManageDepartmentPage} from './pages/departments/manage/manage-department.page';
+import {BlogsPage} from './pages/blogs/blogs.page';
+import {ManageBlogPage} from './pages/blogs/manage/manage-blog.page';
 
 export const routes: Routes = [
   {
@@ -44,19 +41,19 @@ export const routes: Routes = [
         component: ProfilePage,
       },
       {
-        path: 'departamentos',
+        path: 'blogs',
         children: [
           {
             path: "",
-            component: DepartmentsPage
+            component: BlogsPage
           },
           {
             path: "gerenciar",
-            component: ManageDepartmentPage
+            component: ManageBlogPage
           },
           {
             path: "gerenciar/:id",
-            component: ManageDepartmentPage
+            component: ManageBlogPage
           }
         ]
       }

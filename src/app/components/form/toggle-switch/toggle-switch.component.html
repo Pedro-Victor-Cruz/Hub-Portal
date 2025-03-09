@@ -1,0 +1,12 @@
+<ub-base-input [label]="label" [helpText]="helpText" [error]="error" [success]="success">
+  <label class="toggle-switch">
+    <input
+      type="checkbox"
+      [checked]="value"
+      [disabled]="disabled"
+      (change)="onChangeEvent($event)"
+      (click)="onClick($event)"
+    />
+    <span class="slider"></span>
+  </label>
+</ub-base-input>

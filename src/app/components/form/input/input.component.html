@@ -4,14 +4,22 @@
   [error]="error"
   [success]="success"
 >
-  <input
-    [type]="type"
-    [placeholder]="placeholder"
-    [value]="value"
-    (blur)="onBlur($event)"
-    (input)="onInput($event)"
-    (change)="onChangeEvent($event)"
-    (click)="onClick($event)"
-    [class.error]="error"
-  />
+  <div class="input-with-suggestions">
+    <input
+      #inputElement
+      [type]="type"
+      [placeholder]="placeholder"
+      [value]="value"
+      (blur)="onBlur($event)"
+      (input)="onInput($event)"
+      (change)="onChangeEvent($event)"
+      (click)="onClick($event)"
+      [class.error]="error"
+    />
+    <div class="suggestions-container" *ngIf="showSuggestions && suggestions.length > 0">
+      <div *ngFor="let suggestion of filteredSuggestions" class="suggestion" (mousedown)="selectSuggestion(suggestion)">
+        {{ suggestion }}
+      </div>
+    </div>
+  </div>
 </ub-base-input>

@@ -2,7 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {ToastComponent} from './components/toast/toast.component';
 import {ConfirmationModalComponent} from './components/confirmation-modal/confirmation-modal.component';
-import {PortalService} from './services/portal.service';
 import {AuthService} from './security/auth.service';
 
 @Component({
@@ -31,5 +30,5 @@ export class AppComponent implements OnInit {
       this.auth.refreshUserData();
     }
   }
-  
+
 }

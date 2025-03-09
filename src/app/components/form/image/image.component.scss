@@ -1,0 +1,54 @@
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .image-preview {
+    position: relative;
+    max-width: 100%;
+    margin-top: 1rem;
+    border: 1px solid #ddd; // Adiciona uma borda ao redor do preview
+    border-radius: 8px; // Bordas arredondadas
+    overflow: hidden; // Garante que a imagem não ultrapasse o container
+    background-color: #f9f9f9; // Fundo claro para o container
+    padding: 0.5rem; // Espaçamento interno
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); // Sombra suave
+
+    img {
+      display: block; // Remove espaços extras abaixo da imagem
+      max-width: 100%; // Limita a largura ao tamanho do container
+      max-height: 300px; // Define uma altura máxima para a imagem
+      width: auto; // Mantém a proporção da imagem
+      height: auto; // Mantém a proporção da imagem
+      border-radius: 4px; // Bordas arredondadas para a imagem
+      object-fit: contain; // Garante que a imagem se ajuste sem distorção
+      margin: 0 auto; // Centraliza a imagem horizontalmente
+    }
+
+    .remove-button {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.9); // Fundo branco semi-transparente
+      border: none;
+      border-radius: 50%;
+      padding: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s, transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Sombra suave no botão
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 1); // Fundo branco sólido ao passar o mouse
+        transform: scale(1.1); // Efeito de escala ao passar o mouse
+      }
+
+      i {
+        font-size: 1.2rem;
+        color: #ff6b6b; // Cor do ícone
+      }
+    }
+  }
+}

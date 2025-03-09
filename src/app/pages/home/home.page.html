@@ -1,1 +1,124 @@
-<p>home works!</p>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>Painel de Controle</h1>
+    <div class="date-filter">
+      <span>Período: </span>
+      <select>
+        <option>Últimos 7 dias</option>
+        <option>Últimos 30 dias</option>
+        <option>Este mês</option>
+        <option>Este ano</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Cards de resumo -->
+  <div class="summary-cards">
+    <div class="card">
+      <div class="card-content">
+        <i class="pi pi-ticket"></i>
+        <div class="card-info">
+          <h3>Total de Chamados</h3>
+          <p class="number">248</p>
+          <span class="trend positive">+12% <i class="pi pi-arrow-up"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <i class="pi pi-check-circle"></i>
+        <div class="card-info">
+          <h3>Chamados Resolvidos</h3>
+          <p class="number">186</p>
+          <span class="trend positive">+8% <i class="pi pi-arrow-up"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <i class="pi pi-clock"></i>
+        <div class="card-info">
+          <h3>Tempo Médio</h3>
+          <p class="number">4.2h</p>
+          <span class="trend negative">+15% <i class="pi pi-arrow-up"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <i class="pi pi-users"></i>
+        <div class="card-info">
+          <h3>Satisfação</h3>
+          <p class="number">94%</p>
+          <span class="trend positive">+2% <i class="pi pi-arrow-up"></i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Chamados por Categoria</h3>
+      <div #chartCategories></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Tendência de Chamados</h3>
+      <div #chartTrend></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Status dos Chamados</h3>
+      <div #chartStatus></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Prioridade dos Chamados</h3>
+      <div #chartPriority></div>
+    </div>
+  </div>
+
+  <!-- Tabela de Últimos Chamados -->
+  <div class="recent-tickets">
+    <h3>Últimos Chamados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Status</th>
+          <th>Prioridade</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>#1234</td>
+          <td>Problema com impressora</td>
+          <td><span class="status pending">Pendente</span></td>
+          <td><span class="priority high">Alta</span></td>
+          <td>23/03/2024</td>
+        </tr>
+        <tr>
+          <td>#1233</td>
+          <td>Acesso ao sistema</td>
+          <td><span class="status resolved">Resolvido</span></td>
+          <td><span class="priority medium">Média</span></td>
+          <td>23/03/2024</td>
+        </tr>
+        <tr>
+          <td>#1232</td>
+          <td>Atualização de software</td>
+          <td><span class="status in-progress">Em andamento</span></td>
+          <td><span class="priority low">Baixa</span></td>
+          <td>22/03/2024</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

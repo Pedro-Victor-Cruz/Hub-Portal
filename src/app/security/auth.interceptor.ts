@@ -31,6 +31,7 @@ export class AuthInterceptor implements HttpInterceptor {
         // Verifica se o erro é 401 (não autorizado) e se há um refresh token
         console.log("AuthInterceptor -> intercept -> error", error)
         if (error.status === 401 && this.authService.getRefreshToken()) {
+          console.log("AuthInterceptor -> intercept -> error", this.authService.getRefreshToken())
           return this.authService.refreshToken().pipe(
             switchMap(() => {
               const newToken = this.authService.getToken();

@@ -1,8 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ContentComponent} from '../../components/content/content.component';
 import {TableComponent, TableConfig} from '../../components/table/table.component';
-import {DepartmentService} from '../../services/department.service';
-import {Department} from '../../models/user';
+import {BlogService} from '../../services/blog.service';
 
 @Component({
   selector: 'app-departments',
@@ -10,15 +9,15 @@ import {Department} from '../../models/user';
     ContentComponent,
     TableComponent
   ],
-  templateUrl: './departments.page.html',
+  templateUrl: './blogs.page.html',
   standalone: true,
-  styleUrl: './departments.page.scss'
+  styleUrl: './blogs.page.scss'
 })
-export class DepartmentsPage implements OnInit {
+export class BlogsPage implements OnInit {
 
   protected loading = false;
 
-  data: Department[] = [];
+  data: any[] = [];
   configTable: TableConfig = {
     cols: [
       {
@@ -26,16 +25,20 @@ export class DepartmentsPage implements OnInit {
         path: "id"
       },
       {
-        name: "Departamento",
-        path: "name"
+        name: "Título",
+        path: "title"
       },
       {
-        name: "Principal",
-        path: "is_default_text"
+        name: "Subtítulo",
+        path: "subtitle"
       },
       {
-        name: "Slug",
-        path: "slug"
+        name: "Resumo",
+        path: "excerpt",
+      },
+      {
+        name: "Categoria",
+        path: "category",
       }
     ],
     showAddButton: true,
@@ -44,7 +47,7 @@ export class DepartmentsPage implements OnInit {
   };
 
   constructor(
-    private departmentService: DepartmentService
+    private blogService: BlogService
   ) {}
 
   ngOnInit() {
@@ -53,15 +56,15 @@ export class DepartmentsPage implements OnInit {
 
   load() {
     this.loading = true;
-    this.departmentService.getDepartments().then(result => {
+    this.blogService.getBlogs().then(result => {
       this.data = result;
-      console.log(this.data);
     }).finally(() => this.loading = false);
+
   }
 
   delete(event: any) {
     this.loading = true;
-    this.departmentService.deleteDepartment(event.id).then(response => {
+    this.blogService.deleteBlog(event.id).then(response => {
       this.load();
     }).finally(() => this.loading = false);
   }

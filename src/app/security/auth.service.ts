@@ -4,8 +4,8 @@ import {Router} from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {catchError, tap} from 'rxjs/operators';
-import {Department, Portal, User} from '../models/user';
 import {LayoutService} from '../layout/layout.service';
+import {User} from '../models/user';
 
 @Injectable({
   providedIn: 'root',
@@ -17,8 +17,7 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
   private user: User | null = null;
-  private currentPortal: Portal | null = null;
-  private currentDepartment: Department | null = null;
+  private currentUser: User | null = null;
 
   constructor(
     private http: HttpClient,
@@ -27,12 +26,6 @@ export class AuthService {
   ) {
     const user = localStorage.getItem('user');
     if (user) this.user = JSON.parse(user);
-
-    const portal = localStorage.getItem('currentPortal');
-    if (portal) this.currentPortal = JSON.parse(portal);
-
-    const department = localStorage.getItem('currentDepartment');
-    if (department) this.currentDepartment = JSON.parse(department);
   }
 
   // Verifica se o usuário está autenticado
@@ -53,7 +46,6 @@ export class AuthService {
       );
       this.storeUser(response.data.user);
       this.isAuthenticatedSubject.next(true);
-      this.handlePortalsAfterLogin();
       this.router.navigate(['/home']);
     } catch (error) {
       console.error('Login failed', error);
@@ -61,56 +53,10 @@ export class AuthService {
     }
   }
 
-  // Lógica após o login
-  private handlePortalsAfterLogin(): void {
-    const portals = this.user?.portals || [];
-
-    if (portals.length === 0) {
-    } else if (portals.length === 1) {
-      this.setCurrentPortal(portals[0]);
-    } else {
-      // Redireciona para a página de portais para seleção
-      this.router.navigate(['/portais']);
-    }
-  }
-
-  // Define o portal atual
-  setCurrentPortal(portal: Portal): void {
-    this.currentPortal = portal;
-    localStorage.setItem('currentPortal', JSON.stringify(portal));
-
-    const departments = portal.departments || [];
-    const departmentDefault = departments.find((department) => department.is_default);
-
-    if (departmentDefault) {
-      this.setCurrentDepartment(departmentDefault);
-    }
-  }
-
-  getCurrentPortal(): Portal | null {
-    return this.currentPortal;
-  }
-
-  // Define o departamento atual
-  setCurrentDepartment(department: Department): void {
-    this.currentDepartment = department;
-    localStorage.setItem('currentDepartment', JSON.stringify(department));
-  }
-
-  getCurrentDepartment(): Department | null {
-    return this.currentDepartment;
-  }
-
-  getDepartments(): Department[] {
-    return this.currentPortal?.departments || [];
-  }
-
-
   // Atualiza os dados do usuário
   public refreshUserData(): void {
     this.http.get(`${environment.api}/profile`).subscribe((response: any) => {
       this.storeUser(response.data);
-      this.handlePortalsAfterLogin();
     });
   }
 
@@ -122,7 +68,6 @@ export class AuthService {
       );
       this.storeTokens(response.data.access_token, response.data.refresh_token, response.data.access_token_expires_in);
       this.isAuthenticatedSubject.next(true);
-      this.handlePortalsAfterLogin();
       this.router.navigate(['/home']);
     } catch (error) {
       console.error('Registration failed', error);
@@ -148,6 +93,7 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
+    console.log("AuthService -> refreshToken -> refreshToken", refreshToken)
     return this.http.post(`${environment.api}/auth/refresh`, {}, {
       headers: {
         Token: refreshToken
@@ -214,5 +160,9 @@ export class AuthService {
   // Verifica se há um token armazenado
   private hasToken(): boolean {
     return !!this.getToken();
+  }
+
+  getCurrentUser(): User | null {
+    return this.currentUser;
   }
 }
