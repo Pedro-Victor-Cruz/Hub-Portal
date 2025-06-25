@@ -1,0 +1,66 @@
+<ub-content title="Gerenciar empresa" [loading]="loadingPage" [showBackButton]="true" (back)="back()">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="p-fluid p-formgrid grid">
+
+      <!-- Campos principais -->
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="Nome"
+          placeholder="Digite o nome da empresa"
+          formControlName="name"
+          [error]="FormErrorHandlerService.getError('name', errors)"
+        ></ub-input>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="E-mail"
+          placeholder="Digite o email da empresa"
+          formControlName="email"
+          type="email"
+          [error]="FormErrorHandlerService.getError('email', errors)"
+        ></ub-input>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <ub-inputmask
+          label="CNPJ"
+          placeholder="Digite o CNPJ da empresa"
+          formControlName="cnpj"
+          mask="99.999.999/9999-99"
+          [error]="FormErrorHandlerService.getError('cnpj', errors)"
+        ></ub-inputmask>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <ub-dropdown
+          label="Usuário Responsável"
+          formControlName="responsible_user_id"
+          [options]="users"
+          optionLabel="name"
+          optionValue="id"
+          [clearable]="true"
+          [error]="FormErrorHandlerService.getError('responsible_user_id', errors)"
+        ></ub-dropdown>
+      </div>
+
+    </div>
+
+
+    <!-- Botão de Salvar -->
+    <div class="flex justify-content-end">
+      <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
+    </div>
+  </form>
+
+  <ng-container *ngIf="idCompany">
+    <ub-tabs>
+
+      <ub-tab label="Configurações ERP">
+        <erp-settings [companyId]="idCompany" [(loading)]="loading"></erp-settings>
+      </ub-tab>
+
+    </ub-tabs>
+  </ng-container>
+
+</ub-content>

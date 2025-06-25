@@ -1,0 +1,52 @@
+<div class="pagination">
+  <div class="pagination-info">
+    Mostrando <span class="pagination-numbers">{{from}} - {{to}}</span> de <span class="pagination-total">{{total}}</span> itens
+  </div>
+
+  <div class="pagination-nav">
+    <button class="pagination-button pagination-first"
+            [disabled]="currentPage === 1"
+            (click)="changePage(1)">
+      &laquo;
+    </button>
+
+    <button class="pagination-button pagination-prev"
+            [disabled]="currentPage === 1"
+            (click)="changePage(currentPage - 1)">
+      &lsaquo;
+    </button>
+
+    <div class="pagination-pages">
+      <button *ngFor="let page of getPages()"
+              class="pagination-page"
+              [class.active]="page === currentPage"
+              (click)="changePage(page)">
+        {{page}}
+      </button>
+
+      <span class="pagination-ellipsis" *ngIf="showEllipsisStart">...</span>
+      <span class="pagination-ellipsis" *ngIf="showEllipsisEnd">...</span>
+    </div>
+
+    <button class="pagination-button pagination-next"
+            [disabled]="currentPage === lastPage"
+            (click)="changePage(currentPage + 1)">
+      &rsaquo;
+    </button>
+
+    <button class="pagination-button pagination-last"
+            [disabled]="currentPage === lastPage"
+            (click)="changePage(lastPage)">
+      &raquo;
+    </button>
+  </div>
+
+  <div class="pagination-size">
+    <label for="perPage">Itens:</label>
+    <select id="perPage" class="pagination-select"
+            [(ngModel)]="perPage"
+            (change)="onPerPageChange()">
+      <option *ngFor="let opt of perPageOptions" [value]="opt">{{opt}}</option>
+    </select>
+  </div>
+</div>

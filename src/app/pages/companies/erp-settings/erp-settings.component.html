@@ -1,0 +1,70 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="p-fluid p-formgrid grid">
+
+    <div class="col-12 md:col-6">
+      <ub-dropdown
+        [options]="optionsErpName"
+        label="ERP"
+        placeholder="Selecione o ERP"
+        formControlName="erp_name"
+        [error]="FormErrorHandlerService.getError('erp_name', errors)"
+      ></ub-dropdown>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-dropdown
+        [options]="optionsAuthType"
+        label="Tipo de Autenticação"
+        placeholder="Selecione o tipo de autenticação"
+        formControlName="auth_type"
+        [error]="FormErrorHandlerService.getError('auth_type', errors)"
+      ></ub-dropdown>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-input
+        label="Username"
+        placeholder="Digite o username de login"
+        helpText="Digite o username que será utilizado para login caso houver"
+        formControlName="username"
+        [error]="FormErrorHandlerService.getError('username', errors)"
+      ></ub-input>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-password
+        label="Senha (Secret-Key)"
+        placeholder="Digite a senha de login"
+        helpText="Digite a senha que será utilizada para login caso houver"
+        formControlName="secret_key"
+        [error]="FormErrorHandlerService.getError('secret_key', errors)"
+      ></ub-password>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-input
+        label="URL Base (Host)"
+        placeholder="Digite a URL base do ERP"
+        helpText="Digite a URL base do ERP, ex: https://erp.exemplo.com"
+        formControlName="base_url"
+        [error]="FormErrorHandlerService.getError('base_url', errors)"
+      ></ub-input>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-input
+        label="Token de Acesso"
+        placeholder="Digite o token de acesso"
+        helpText="Digite o token de acesso do ERP, utilizado para autenticação"
+        formControlName="token"
+        [error]="FormErrorHandlerService.getError('token', errors)"
+      ></ub-input>
+    </div>
+
+  </div>
+
+  <!-- Botão de Salvar -->
+  <div class="flex justify-content-end">
+    <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
+  </div>
+</form>

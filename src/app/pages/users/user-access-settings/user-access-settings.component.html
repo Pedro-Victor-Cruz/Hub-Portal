@@ -1,0 +1,28 @@
+<div>
+  <div class="mb-2" *hasPermission="'permission_group.assign'">
+    <ub-dropdown
+      label="Grupo de Acesso"
+      placeholder="Selecione o grupo de acesso do usuário"
+      helpText="Selecione o grupo de acesso ao qual o usuário pertence"
+      [clearable]="true"
+      [options]="groups"
+      optionLabel="description"
+      optionValue="id"
+      [(value)]="groupId">
+    </ub-dropdown>
+  </div>
+  <div class="mb-2">
+    <ub-folder-view
+      [data]="permissions"
+      [selectable]="true"
+      [folderConfig]="folderPermissionsConfig"
+      primaryKey="name"
+      [(selectedItems)]="selectedPermissions">
+    </ub-folder-view>
+  </div>
+  <div class="d-flex justify-content-end align-items-center">
+    <ub-button type="button" [loading]="loadingAction" [disabled]="!groupId && selectedPermissions.length === 0"
+      (click)="save()">Salvar</ub-button>
+
+  </div>
+</div>

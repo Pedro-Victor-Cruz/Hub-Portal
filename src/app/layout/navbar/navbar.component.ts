@@ -106,4 +106,10 @@ export class NavbarComponent implements OnInit, AfterViewInit {
       this.isUserMenuOpen = false;
     }
   }
+
+  groupDescription() {
+    const user = this.auth.getUser();
+    if (user && user.group) return user.group.description;
+    return "";
+  }
 }

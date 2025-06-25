@@ -56,7 +56,7 @@ export class RegisterPage implements OnInit {
     this.loading = true;
     this.auth.register(this.registerForm.value).then(response => {
       this.toast.success('Cadastro realizado com sucesso!');
-    }, err => this.errors = this.utils.handleErrorsForm(err, this.registerForm, this.errors))
+    }, err => this.errors = this.utils.handleErrorsForm(err, this.registerForm))
       .finally(() => this.loading = false);
   }
 

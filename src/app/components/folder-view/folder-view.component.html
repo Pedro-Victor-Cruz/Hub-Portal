@@ -1,0 +1,91 @@
+<div class="folder-explorer">
+  <!-- Barra de ferramentas -->
+  <div class="toolbar">
+    <div class="search-box">
+      <i class='bx bx-search'></i>
+      <input type="text" [(ngModel)]="searchQuery"
+             [placeholder]="placeholder"
+             (input)="filterItems()">
+    </div>
+    <div class="actions">
+      <button class="action-btn" (click)="expandAll()" title="Expandir tudo">
+        <i class='bx bx-expand'></i>
+      </button>
+      <button class="action-btn" (click)="collapseAll()" title="Recolher tudo">
+        <i class='bx bx-collapse'></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista de pastas -->
+  <div class="folder-tree">
+    <ng-container *ngFor="let item of filteredItems; trackBy: trackByItemId">
+      <div class="folder-item"
+           [class.expanded]="item.expanded"
+           [class.highlight]="item.highlight">
+
+        <!-- Cabeçalho da pasta -->
+        <div class="folder-header" (click)="toggleExpand(item)">
+          <div class="folder-indicator"
+               [style.margin-left.px]="getIndentLevel(item) * 12">
+            <i class='bx'
+               [class.bx-chevron-right]="!item.expanded && hasChildren(item)"
+               [class.bx-chevron-down]="item.expanded && hasChildren(item)"
+               *ngIf="hasChildren(item)"></i>
+          </div>
+
+          <div class="folder-checkbox" *ngIf="selectable">
+            <input type="checkbox"
+                   [checked]="isSelected(item)"
+                   (click)="$event.stopPropagation()"
+                   (change)="toggleSelection(item, $event)">
+          </div>
+
+          <div class="folder-icon">
+            <i class='bx'
+               [class]="item.isGroup ? (item.expanded ? 'bx-folder-open' : 'bx-folder') : item.icon || 'bx-file'">
+            </i>
+          </div>
+
+          <div class="folder-info">
+            <span class="folder-name">{{ item.name }}</span>
+            <span class="folder-meta" *ngIf="item.meta">{{ item.meta }}</span>
+          </div>
+        </div>
+
+        <!-- Conteúdo da pasta -->
+        <div class="folder-content" *ngIf="item.expanded && hasChildren(item)">
+          <div class="folder-child"
+               *ngFor="let child of item.children; trackBy: trackByItemId"
+               [class.highlight]="child.highlight"
+               (click)="selectable ? toggleSelection(child, $event) : selectItem(child)">
+
+            <div class="child-indent"
+                 [style.margin-left.px]="getIndentLevel(child) * 12"></div>
+
+            <div class="child-checkbox" *ngIf="selectable">
+              <input type="checkbox"
+                     [checked]="isSelected(child)"
+                     (click)="$event.stopPropagation()"
+                     (change)="toggleSelection(child, $event)">
+            </div>
+
+            <div class="child-icon">
+              <i class='bx' [class]="child.icon || 'bx-file'"></i>
+            </div>
+
+            <div class="child-info">
+              <span class="child-name">{{ child.name }}</span>
+              <span class="child-desc" *ngIf="child.description">{{ child.description }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="empty-state" *ngIf="filteredItems.length === 0">
+      <i class='bx bx-search-alt'></i>
+      <p>Nenhum resultado encontrado para "{{ searchQuery }}"</p>
+    </div>
+  </div>
+</div>

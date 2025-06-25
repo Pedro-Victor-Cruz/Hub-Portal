@@ -1,4 +1,14 @@
-import {Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, Output} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnInit,
+  Output, SimpleChanges
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { BaseInputComponent } from '../base-input.component';
 import { NgForOf, NgIf } from '@angular/common';
@@ -18,18 +28,20 @@ import { FormsModule } from '@angular/forms';
     },
   ],
 })
-export class DropdownComponent implements ControlValueAccessor {
+export class DropdownComponent implements ControlValueAccessor, OnInit, OnChanges {
   @Input() label: string = '';
   @Input() helpText: string = '';
   @Input() options: any[] = [];
   @Input() optionLabel: string = 'label';
+  @Input() optionDescription: string | undefined = undefined;
   @Input() optionValue: string = 'value';
   @Input() placeholder: string = 'Selecione uma opção';
   @Input() filter: boolean = true; // Habilita ou desabilita o filtro
-  @Input() value: string = '';
+  @Input() clearable: boolean = false; // Habilita ou desabilita a opção de limpar seleção
   @Input() error: string = '';
   @Input() success: string = '';
-  @Output() valueChange = new EventEmitter<string>();
+  @Input() value: string | null = null;
+  @Output() valueChange = new EventEmitter<string | null>();
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();
 
@@ -46,6 +58,16 @@ export class DropdownComponent implements ControlValueAccessor {
   ngOnInit(): void {
     this.filteredOptions = this.options;
     this.updateSelectedOptionLabel();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['options'] && changes['options'].currentValue) {
+      this.filteredOptions = changes['options'].currentValue;
+      this.updateSelectedOptionLabel();
+    }
+    if (changes['value'] && changes['value'].currentValue) {
+      this.writeValue(changes['value'].currentValue);
+    }
   }
 
   writeValue(value: string): void {
@@ -83,11 +105,25 @@ export class DropdownComponent implements ControlValueAccessor {
     );
   }
 
+  clearSelection(event: Event): void {
+    event.stopPropagation(); // Previne a abertura do dropdown
+    this.value = '';
+    this.selectedOptionLabel = '';
+    this.onChange(this.value);
+    this.valueChange.emit(this.value);
+    this.isOpen = false;
+  }
+
   updateSelectedOptionLabel(): void {
+    console.log("Novo updateSelectedOptionLabel chamado com value:", this.value);
+    if ((this.value === undefined || this.value === null || this.value === '') && this.clearable) {
+      this.selectedOptionLabel = '';
+      return;
+    }
     const selectedOption = this.options.find(
       (option) => option[this.optionValue] === this.value
     );
-    this.selectedOptionLabel = selectedOption ? selectedOption[this.optionLabel] : '';
+    this.selectedOptionLabel = selectedOption ? selectedOption[this.optionLabel] : this.placeholder;
   }
 
   @HostListener('document:click', ['$event'])

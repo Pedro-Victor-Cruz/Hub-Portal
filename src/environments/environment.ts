@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  api: 'https://uaibits.com.br/api',
+  api: 'http://localhost:8080/API-Forca-De-Vendas/public/api',
 };
 
 /*

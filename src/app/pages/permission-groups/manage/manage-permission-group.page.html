@@ -1,0 +1,72 @@
+<ub-content title="Gerenciar usuário" [loading]="loading" [showBackButton]="true" (back)="back()">
+
+  <div class="p-fluid p-formgrid grid">
+
+    <div class="col-12 md:col-6">
+      <ub-input
+        label="Descrição"
+        placeholder="Digite a descrição do grupo de permissões"
+        helpText="Essa descrição será exibida para os usuários"
+        [(ngModel)]="form.description"
+        (blur)="createName($event)"
+        [error]="FormErrorHandlerService.getError('description', errors)"
+      ></ub-input>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-input
+        label="Nome"
+        placeholder="Digite o nome do grupo de permissões"
+        helpText="Exemplo vendedor, gerente, etc."
+        [(ngModel)]="form.name"
+        [error]="FormErrorHandlerService.getError('name', errors)"
+        (blur)="formatName($event)"
+      ></ub-input>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <ub-dropdown
+        label="Empresa"
+        placeholder="Selecione a empresa do grupo de permissões"
+        helpText="Vincule o grupo a uma empresa"
+        [clearable]="true"
+        [options]="companies"
+        optionLabel="name"
+        optionValue="id"
+        [error]="FormErrorHandlerService.getError('company_id', errors)"
+        [(value)]="form.company_id">
+      </ub-dropdown>
+    </div>
+
+    <div class="col-12 md:col-6" *ngIf="accessLevels.length > 1">
+      <ub-dropdown
+        label="Nível de Acesso"
+        placeholder="Selecione o nível de acesso do grupo"
+        helpText="Defina o nível de acesso do grupo"
+        [clearable]="true"
+        [options]="accessLevels"
+        optionLabel="label"
+        optionDescription="description"
+        optionValue="value"
+        [error]="FormErrorHandlerService.getError('access_level', errors)"
+        [(value)]="form.access_level">
+      </ub-dropdown>
+    </div>
+
+    <div class="col-12">
+      <ub-folder-view
+        [data]="permissions"
+        [selectable]="true"
+        [folderConfig]="folderPermissionsConfig"
+        primaryKey="name"
+        [(selectedItems)]="form.permissions">
+      </ub-folder-view>
+    </div>
+
+    <div class="flex justify-content-end">
+      <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>
+    </div>
+  </div>
+
+
+</ub-content>

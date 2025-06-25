@@ -58,7 +58,7 @@ export class LoginPage implements OnInit {
     this.loading = true;
     this.auth.login(this.loginForm.value).then(response => {
       this.toast.success('Login efetuado com sucesso!');
-    }, error => this.errors = this.utils.handleErrorsForm(error, this.loginForm, this.errors))
+    }, error => this.errors = this.utils.handleErrorsForm(error, this.loginForm))
       .finally(() => this.loading = false);
   }
 

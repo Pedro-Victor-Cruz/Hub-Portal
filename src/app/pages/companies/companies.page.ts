@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {TableComponent, TableConfig} from '../../components/table/table.component';
-import {ServiceService} from '../../services/service.service';
+import {CompanyService} from '../../services/company.service';
 import {ContentComponent} from '../../components/content/content.component';
 
 @Component({
@@ -9,11 +9,11 @@ import {ContentComponent} from '../../components/content/content.component';
     ContentComponent,
     TableComponent
   ],
-  templateUrl: './services.page.html',
+  templateUrl: './companies.page.html',
   standalone: true,
-  styleUrl: './services.page.scss'
+  styleUrl: './companies.page.scss'
 })
-export class ServicesPage implements OnInit {
+export class CompaniesPage implements OnInit {
 
   protected loading = false;
   data: any[] = [];
@@ -24,12 +24,16 @@ export class ServicesPage implements OnInit {
         path: "id"
       },
       {
-        name: "Título",
-        path: "title"
+        name: "Nome",
+        path: "name"
       },
       {
-        name: "Subtítulo",
-        path: "subtitle"
+        name: "E-mail",
+        path: "email"
+      },
+      {
+        name: "CNPJ",
+        path: "cnpj",
       }
     ],
     showAddButton: true,
@@ -38,7 +42,7 @@ export class ServicesPage implements OnInit {
   };
 
   constructor(
-    private serviceService: ServiceService
+    private companyService: CompanyService
   ) {}
 
   ngOnInit() {
@@ -47,14 +51,14 @@ export class ServicesPage implements OnInit {
 
   load() {
     this.loading = true;
-    this.serviceService.getServices().then(result => {
+    this.companyService.getCompanies().then(result => {
       this.data = result;
     }).finally(() => this.loading = false);
   }
 
   delete(event: any) {
     this.loading = true;
-    this.serviceService.deleteService(event.id).then(() => {
+    this.companyService.deleteCompany(event.id).then(() => {
       this.load();
     }).finally(() => this.loading = false);
   }

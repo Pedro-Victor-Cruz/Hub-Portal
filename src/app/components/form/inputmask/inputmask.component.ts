@@ -25,7 +25,7 @@ export class InputmaskComponent implements ControlValueAccessor {
   @Input() error: string = '';
   @Input() success: string = '';
   @Input() mask: string = ''; // Padrão de máscara (ex: "999.999.999-99|99-999-999/9999-99")
-  @Input() returnRawValue: boolean = false; // Define se o valor retornado será com ou sem máscara
+  @Input() returnRawValue: boolean = true; // Define se o valor retornado será com ou sem máscara
   @Output() valueChange = new EventEmitter<string>();
   @Output() input = new EventEmitter<Event>();
   @Output() change = new EventEmitter<Event>();

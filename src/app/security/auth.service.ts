@@ -164,4 +164,18 @@ export class AuthService {
   getCurrentUser(): User | null {
     return this.currentUser;
   }
+
+  hasPermission(permission: string | string[]): boolean {
+
+    if (Array.isArray(permission) && permission.length === 0 || !permission || permission === '') return true;
+
+    if (!this.user || !this.user.permissions) {
+      return false;
+    }
+
+    const permissions = Array.isArray(permission) ? permission : [permission];
+    return permissions.every(perm =>
+      this.user!.permissions.some(userPerm => userPerm.name === perm && userPerm.is_active)
+    );
+  }
 }

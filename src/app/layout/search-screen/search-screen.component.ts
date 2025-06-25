@@ -4,6 +4,8 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ClickOutsideDirective} from '../../directives/click-outside.directive';
 import {Router} from '@angular/router';
 import {LayoutService} from '../layout.service';
+import {HasPermissionDirective} from '../../directives/has-permission.directive';
+import {AuthService} from '../../security/auth.service';
 
 @Component({
   selector: 'search-screen',
@@ -21,11 +23,11 @@ export class SearchScreenComponent {
 
   searchQuery: string = '';
   isSearchActive = false;
-  isGridHovered = false;
 
   constructor(
     private router: Router,
-    protected layoutService: LayoutService
+    protected layoutService: LayoutService,
+    private auth: AuthService
   ) {
   }
 
@@ -34,43 +36,21 @@ export class SearchScreenComponent {
    */
   searchResults() {
     return this.layoutService.getAvailableRoutes().filter(route =>
-      route.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+      route.title.toLowerCase().includes(this.searchQuery.toLowerCase()) && this.auth.hasPermission(route.permission || '')
     );
   }
-
-  // Exemplo de apps/páginas
-  apps = [
-    { path: '/home', title: 'Home', icon: 'bx bx-home' },
-    { path: '/about', title: 'About', icon: 'bx bx-info-circle' },
-    { path: '/contact', title: 'Contact', icon: 'bx bx-envelope' },
-    { path: '/settings', title: 'Settings', icon: 'bx bx-cog' },
-    { path: '/profile', title: 'Profile', icon: 'bx bx-user' },
-  ];
-
-  // Filtra os apps com base na busca
-  filteredApps() {
-    return this.apps.filter(app =>
-      app.title.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
-  }
-
 
   navigate(path: string) {
     this.router.navigate([path]);
+    this.isSearchActive = false; // Fecha a busca após a navegação
   }
 
   // Alterna a visibilidade da busca
   toggleSearch() {
     this.isSearchActive = !this.isSearchActive;
-    console.log('toggleSearch');
   }
 
-  // Efeito de hover no ícone de grid
-  hoverGridIcon() {
-    this.isGridHovered = true;
-  }
+  handleSearch() {
 
-  unhoverGridIcon() {
-    this.isGridHovered = false;
   }
 }

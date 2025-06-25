@@ -15,7 +15,7 @@ export class FormErrorHandlerService {
    * @returns Um objeto com as mensagens de erro.
    */
   public static getErrorMessages(
-    form: FormGroup,
+    form: FormGroup | null,
     apiErrors: { [key: string]: string[] } = {},
     submitted: boolean = false
   ): { [key: string]: string } {
@@ -40,8 +40,7 @@ export class FormErrorHandlerService {
       }
     };
 
-    // Coleta erros do FormGroup principal
-    collectErrors(form);
+    if (form) collectErrors(form);
 
     // Adiciona erros da API
     if (apiErrors && Object.keys(apiErrors).length > 0) {

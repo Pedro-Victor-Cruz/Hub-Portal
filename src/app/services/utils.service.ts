@@ -68,7 +68,7 @@ export class Utils {
     return phone.replace(/\D/g, '');
   }
 
-  public handleErrorsForm(error: any, form: any, errors: any) {
+  public handleErrorsForm(error: any, form: any) {
     if (error.error.message === 'Validation error') {
       return  FormErrorHandlerService.getErrorMessages(form, error.error.errors);
     } else {

@@ -5,10 +5,14 @@ import {LoginPage} from './pages/auth/login/login.page';
 import {RegisterPage} from './pages/auth/register/register.page';
 import {AuthGuard} from './security/auth.guard';
 import {NavbarComponent} from './layout/navbar/navbar.component';
-import {BlogsPage} from './pages/blogs/blogs.page';
-import {ManageBlogPage} from './pages/blogs/manage/manage-blog.page';
-import {ServicesPage} from './pages/services/services.page';
-import {ManageServicePage} from './pages/services/manage/manage-service.page';
+import {UsersPage} from './pages/users/users-page.component';
+import {ManageUserPage} from './pages/users/manage/manage-user.page';
+import {PermissionGuard} from './security/permission.guard';
+import {CompaniesPage} from './pages/companies/companies.page';
+import {ManageCompanyPage} from './pages/companies/manage/manage-company.page';
+import {PermissionsPage} from './pages/permissions/permissions.page';
+import {PermissionGroupsPage} from './pages/permission-groups/permission-groups.page';
+import {ManagePermissionGroupPage} from './pages/permission-groups/manage/manage-permission-group.page';
 
 export const routes: Routes = [
   {
@@ -43,36 +47,96 @@ export const routes: Routes = [
         component: ProfilePage,
       },
       {
-        path: 'blogs',
+        path: 'users',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'user.view',
+        },
         children: [
           {
             path: "",
-            component: BlogsPage
+            component: UsersPage
           },
           {
-            path: "gerenciar",
-            component: ManageBlogPage
+            path: "manage",
+            component: ManageUserPage,
+            data: {
+              permission: 'user.create',
+            }
           },
           {
-            path: "gerenciar/:id",
-            component: ManageBlogPage
+            path: "manage/:id",
+            component: ManageUserPage,
+            data: {
+              permission: 'user.edit',
+            }
           }
         ]
       },
       {
-        path: 'servicos',
+        path: 'companies',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'company.view',
+        },
         children: [
           {
             path: "",
-            component: ServicesPage
+            component: CompaniesPage
           },
           {
-            path: "gerenciar",
-            component: ManageServicePage
+            path: "manage",
+            component: ManageCompanyPage,
+            data: {
+              permission: 'company.create',
+            }
           },
           {
-            path: "gerenciar/:id",
-            component: ManageServicePage
+            path: "manage/:id",
+            component: ManageCompanyPage,
+            data: {
+              permission: 'company.edit',
+            }
+          }
+        ]
+      },
+      {
+        path: 'permissions',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'permission.view',
+        },
+        children: [
+          {
+            path: "",
+            component: PermissionsPage
+          }
+        ]
+      },
+      {
+        path: 'groups',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'permission_group.view',
+        },
+        children: [
+          {
+            path: "",
+            component: PermissionGroupsPage
+          },
+          {
+            path: "manage",
+            component: ManagePermissionGroupPage,
+            data: {
+              permission: 'permission_group.create',
+            }
+          },
+          {
+            path: "manage/:id",
+            component: ManagePermissionGroupPage,
+            data: {
+              permission: 'permission_group.edit',
+            }
           }
         ]
       }

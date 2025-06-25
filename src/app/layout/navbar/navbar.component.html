@@ -8,13 +8,13 @@
           <i class="bx bx-menu"></i>
         </button>
         <a class="logo" routerLink="/home">
-          <i class="bx bx-code-alt"></i>
-          <span>UaiBits</span>
+          <i class="bx bx-code-alt logo-icon"></i>
+          <span class="logo-text">Força De Vendas</span>
         </a>
       </div>
 
-      <!-- Abas (Tabs) -->
-      <div class="tabs-container" [class.mobile]="isMobile">
+      <!-- Abas (Tabs) - Visível apenas em desktop -->
+      <div class="tabs-container" *ngIf="!isMobile">
         <div class="tabs-wrapper">
           <div class="tabs-scroll" #tabsScroll>
             <ng-container *ngFor="let tab of layoutService.getOpenTabs()">
@@ -28,7 +28,6 @@
                     <i class="bx bx-x"></i>
                   </button>
                 </div>
-                <div class="tab-indicator"></div>
               </div>
             </ng-container>
           </div>
@@ -47,17 +46,21 @@
 
       <!-- Ações e Perfil -->
       <div class="nav-end">
-        <!-- Busca -->
-        <div class="search-wrapper">
+        <!-- Busca - Oculto em mobile -->
+        <div class="search-wrapper" *ngIf="!isMobile">
           <search-screen></search-screen>
         </div>
 
         <!-- Menu do Usuário -->
-        <div class="user-menu" (click)="toggleUserMenu()">
+        <div class="user-menu" [class.open]="isUserMenuOpen" (click)="toggleUserMenu()">
           <div class="user-avatar">
             <i class="bx bx-user"></i>
           </div>
-          <i class="bx bx-chevron-down"></i>
+          <div class="user-info" *ngIf="!isMobile">
+            <span class="user-name">{{ auth.getUser() ? auth.getUser()?.name : 'Não Autenticado' }}</span>
+            <span class="user-role">{{ groupDescription() }}</span>
+          </div>
+          <i class="bx bx-chevron-down user-menu-arrow"></i>
 
           <!-- Menu Dropdown -->
           <div class="user-dropdown" *ngIf="isUserMenuOpen">
@@ -89,14 +92,14 @@
 <!-- Menu Mobile -->
 <div class="mobile-menu" [class.active]="isMobileMenuOpen" *ngIf="isMobile">
   <div class="mobile-menu-header">
-    <h3>Menu</h3>
+    <h3>Abas Abertas</h3>
     <button class="close-button" (click)="toggleMobileMenu()">
       <i class="bx bx-x"></i>
     </button>
   </div>
 
   <div class="mobile-tabs">
-    <h4>Abas Abertas</h4>
+    <h4>Navegação</h4>
     <div class="mobile-tabs-list">
       <ng-container *ngFor="let tab of layoutService.getOpenTabs()">
         <div class="mobile-tab"

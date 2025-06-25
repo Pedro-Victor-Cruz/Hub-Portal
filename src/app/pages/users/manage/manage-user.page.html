@@ -1,0 +1,74 @@
+<ub-content title="Gerenciar usuário" [loading]="loadingPage" [showBackButton]="true" (back)="back()">
+  <ub-tabs>
+    <ub-tab label="Configurações">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="p-fluid p-formgrid grid">
+
+          <div class="col-12 md:col-6">
+            <ub-input
+              label="Nome"
+              placeholder="Digite o nome do usuário"
+              formControlName="name"
+              [error]="FormErrorHandlerService.getError('name', errors)"
+            ></ub-input>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <ub-input
+              label="E-mail"
+              placeholder="Digite o email do usuário"
+              formControlName="email"
+              type="email"
+              [error]="FormErrorHandlerService.getError('email', errors)"
+            ></ub-input>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <ub-password
+              label="Nova senha"
+              placeholder="Digite a nova senha do usuário"
+              formControlName="password"
+              [error]="FormErrorHandlerService.getError('password', errors)"
+            ></ub-password>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <ub-password
+              label="Confirmar senha"
+              placeholder="Confirme a nova senha do usuário"
+              formControlName="confirm_password"
+              [error]="FormErrorHandlerService.getError('confirm_password', errors)"
+            ></ub-password>
+          </div>
+
+          <div class="col-12 md:col-6" *hasPermission="'company.assign_user'">
+            <ub-dropdown
+              label="Empresa"
+              placeholder="Selecione a empresa do usuário"
+              formControlName="company_id"
+              optionValue="id"
+              optionLabel="name"
+              [clearable]="true"
+              [options]="companies"
+              [error]="FormErrorHandlerService.getError('company_id', errors)"
+            ></ub-dropdown>
+          </div>
+
+        </div>
+
+        <div class="flex justify-content-end">
+          <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
+        </div>
+      </form>
+    </ub-tab>
+
+    <ub-tab label="Acessos" *ngIf="idUser">
+      <user-access-settings
+        [userId]="idUser"
+        [companyId]="form.get('company_id')?.value"
+        [(loading)]="loadingPage"
+      ></user-access-settings>
+    </ub-tab>
+
+  </ub-tabs>
+</ub-content>

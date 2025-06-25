@@ -7,6 +7,7 @@ interface Tab {
   path: string;
   icon?: string;
   description?: string;
+  permission?: string;
 }
 
 export interface TabOpen extends Tab {
@@ -19,14 +20,28 @@ export interface TabOpen extends Tab {
 export class LayoutService {
   private availableRoutes: Tab[] = [
     {
-      title: 'Blog',
-      path: '/blogs',
-      icon: 'bx bx-news',
+      title: 'Usuários',
+      path: '/users',
+      icon: 'bx bx-user',
+      permission: 'user.view'
     },
     {
-      title: "Serviços",
-      path: "/servicos",
-      icon: "bx bx-cog",
+      title: 'Empresas',
+      path: '/companies',
+      icon: 'bx bx-building',
+      permission: 'company.view'
+    },
+    {
+      title: 'Permissões',
+      path: '/permissions',
+      icon: 'bx bx-lock',
+      permission: 'permission.view'
+    },
+    {
+      title: 'Grupos',
+      path: '/groups',
+      icon: 'bx bx-group',
+      permission: 'permission_group.view'
     }
   ];
   private open_tabs: TabOpen[] = [];

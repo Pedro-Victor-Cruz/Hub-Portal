@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import { NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../form/button/button.component';
@@ -7,6 +7,7 @@ import {MultiselectComponent} from '../form/multiselect/multiselect.component';
 import {Action, ActionButtonComponent} from '../form/actionbutton/actionbutton.component';
 import {ConfirmationService} from '../confirmation-modal/confirmation-modal.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Pagination, PaginationComponent} from '../pagination/pagination.component';
 
 export interface TableConfig {
   cols: ColumnConfig[]; // Configurações das colunas
@@ -25,18 +26,22 @@ export interface ColumnConfig {
 
 @Component({
   selector: 'ub-table',
-  imports: [NgIf, NgForOf, FormsModule, ButtonComponent, InputComponent, MultiselectComponent, ButtonComponent, ActionButtonComponent],
+  imports: [NgIf, NgForOf, FormsModule, ButtonComponent, InputComponent, MultiselectComponent, ButtonComponent, ActionButtonComponent, PaginationComponent],
   templateUrl: './table.component.html',
   standalone: true,
   styleUrl: './table.component.scss',
 })
-export class TableComponent implements OnChanges {
+export class TableComponent implements OnChanges, OnInit {
+
   @Input({required: true}) config!: TableConfig;
   @Input({required: true}) data: any[] = [];
   @Input() pk: string = 'id';
+  @Input() paginate?: Pagination;
+
   @Output() deleteEvent = new EventEmitter<any>();
   @Output() selectEvent = new EventEmitter<any[]>();
   @Output() reloadEvent = new EventEmitter<void>();
+  @Output() paginationChange = new EventEmitter<{page: number, perPage: number}>();
 
   selectedItems: any[] = [];
   filterPopupVisible = false;
@@ -73,7 +78,17 @@ export class TableComponent implements OnChanges {
     this.filteredData = [...this.data];
     this.selectedColumns = this.config.cols.map(col => col.path);
 
-    console.log(this.filteredData)
+    // Observa mudanças nos queryParams para atualizar a paginação
+    this.route.queryParams.subscribe(params => {
+      if (this.paginate && (params['page'] || params['per_page'])) {
+        const page = params['page'] ? parseInt(params['page']) : this.paginate.current_page;
+        const perPage = params['per_page'] ? parseInt(params['per_page']) : this.paginate.per_page;
+
+        if (page !== this.paginate?.current_page || perPage !== this.paginate?.per_page) {
+          this.paginationChange.emit({page, perPage});
+        }
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -144,10 +159,29 @@ export class TableComponent implements OnChanges {
   }
 
   edit(item: any) {
-    this.router.navigate(['gerenciar', item[this.pk]], { relativeTo: this.route });
+    this.router.navigate(['manage', item[this.pk]], { relativeTo: this.route });
   }
 
   create() {
-    this.router.navigate(['gerenciar'], { relativeTo: this.route });
+    this.router.navigate(['manage'], { relativeTo: this.route });
+  }
+
+  onPageChange(page: number): void {
+    this.updateUrl({ page });
+    this.paginationChange.emit({page, perPage: this.paginate?.per_page || 15});
+  }
+
+  onPerPageChange(perPage: number): void {
+    this.updateUrl({ page: 1, per_page: perPage });
+    this.paginationChange.emit({page: 1, perPage});
+  }
+
+  private updateUrl(params: {page?: number, per_page?: number}): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: params,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 }

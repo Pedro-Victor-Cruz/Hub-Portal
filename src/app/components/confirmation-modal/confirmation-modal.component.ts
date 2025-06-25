@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {ConfirmationService} from './confirmation-modal.service';
 import {NgIf} from '@angular/common';
 import {ButtonComponent} from '../form/button/button.component';
@@ -13,15 +13,16 @@ import {ButtonComponent} from '../form/button/button.component';
   standalone: true,
   styleUrl: './confirmation-modal.component.scss'
 })
-export class ConfirmationModalComponent {
+export class ConfirmationModalComponent implements OnDestroy {
 
   isVisible = false;
   message: string = 'Você deseja prosseguir com essa ação?';
   acceptText: string = 'Confirmar';
   cancelText: string = 'Cancelar';
+  subscription: any;
 
   constructor(private confirmationService: ConfirmationService) {
-    this.confirmationService.showModal$.subscribe((config) => {
+    this.subscription = this.confirmationService.showModal$.subscribe((config) => {
       if (config) {
         this.message = config.message;
         this.acceptText = config.acceptText;
@@ -41,4 +42,9 @@ export class ConfirmationModalComponent {
     this.confirmationService.cancel();
   }
 
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
 }

@@ -21,32 +21,29 @@ export class AuthGuard implements CanActivate {
   ): Observable<boolean> {
     // Verifica se o usuário está autenticado
     if (this.authService.isAuthenticated()) {
-      return of(true); // Usuário autenticado, permite o acesso
+      return of(true);
     }
 
-    // Se o token estiver expirado, tenta renovar o token
+    // Se o token estiver expirado, tenta renovar
     if (this.authService.getRefreshToken()) {
       return this.authService.refreshToken().pipe(
-        map(() => {
-          // Token renovado com sucesso, permite o acesso
-          return true;
-        }),
+        switchMap(async () => this.authService.refreshUserData()),
+        map(() => true),
         catchError(() => {
-          // Falha ao renovar o token, redireciona para o login
-          this.authService.logout();
-          this.router.navigate(['/auth/logar'], {
-            queryParams: { returnUrl: state.url },
-          });
+          this.handleUnauthorized(state);
           return of(false);
         })
       );
     }
 
-    // Se não houver refresh token, redireciona para o login
+    this.handleUnauthorized(state);
+    return of(false);
+  }
+
+  private handleUnauthorized(state: RouterStateSnapshot): void {
     this.authService.logout();
     this.router.navigate(['/auth/logar'], {
       queryParams: { returnUrl: state.url },
     });
-    return of(false);
   }
 }

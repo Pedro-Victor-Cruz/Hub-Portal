@@ -5,14 +5,16 @@
   [success]="success"
 >
   <div class="dropdown-container">
-    <div
-      class="dropdown-header"
-      [class.open]="isOpen"
-      (click)="toggleDropdown()"
-    >
+    <div class="dropdown-header" [class.open]="isOpen" (click)="toggleDropdown()">
       <span *ngIf="!selectedOptionLabel">{{ placeholder }}</span>
       <span *ngIf="selectedOptionLabel">{{ selectedOptionLabel }}</span>
-      <i class='bx bxs-chevron-down dropdown-icon'></i>
+
+      <div class="dropdown-icons">
+        <i *ngIf="clearable && value"
+           class='bx bx-x clear-icon'
+           (click)="clearSelection($event)"></i>
+        <i class='bx bxs-chevron-down dropdown-icon'></i>
+      </div>
     </div>
     <div class="dropdown-content" *ngIf="isOpen">
       <input
@@ -24,13 +26,11 @@
         (input)="onFilterChange()"
       />
       <div class="options-list">
-        <div
-          *ngFor="let option of filteredOptions"
-          class="option"
+        <div *ngFor="let option of filteredOptions" class="option"
           (click)="selectOption(option)"
-          [class.selected]="option[optionValue] === value"
-        >
-          {{ option[optionLabel] }}
+          [class.selected]="option[optionValue] === value">
+          <span>{{ option[optionLabel] }}</span>
+          <small *ngIf="optionDescription && option[optionDescription]">{{option[optionDescription]}}</small>
         </div>
       </div>
     </div>

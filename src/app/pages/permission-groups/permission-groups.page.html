@@ -1,0 +1,3 @@
+<ub-content title="Grupos" [loading]="loading">
+  <ub-table [config]="configTable" [data]="groups" (reloadEvent)="loadGroups()" (deleteEvent)="delete($event)"></ub-table>
+</ub-content>

@@ -1,19 +1,18 @@
 import {Component, OnInit} from '@angular/core';
 import {ContentComponent} from '../../components/content/content.component';
 import {TableComponent, TableConfig} from '../../components/table/table.component';
-import {BlogService} from '../../services/blog.service';
+import {UserService} from '../../services/user.service';
 
 @Component({
-  selector: 'app-departments',
   imports: [
     ContentComponent,
     TableComponent
   ],
-  templateUrl: './blogs.page.html',
+  templateUrl: './users-page.component.html',
   standalone: true,
-  styleUrl: './blogs.page.scss'
+  styleUrl: './users-page.component.scss'
 })
-export class BlogsPage implements OnInit {
+export class UsersPage implements OnInit {
 
   protected loading = false;
 
@@ -25,20 +24,12 @@ export class BlogsPage implements OnInit {
         path: "id"
       },
       {
-        name: "Título",
-        path: "title"
+        name: "Nome",
+        path: "name"
       },
       {
-        name: "Subtítulo",
-        path: "subtitle"
-      },
-      {
-        name: "Resumo",
-        path: "excerpt",
-      },
-      {
-        name: "Categoria",
-        path: "category",
+        name: "Email",
+        path: "email"
       }
     ],
     showAddButton: true,
@@ -47,8 +38,9 @@ export class BlogsPage implements OnInit {
   };
 
   constructor(
-    private blogService: BlogService
-  ) {}
+    private userService: UserService
+  ) {
+  }
 
   ngOnInit() {
     this.load();
@@ -56,7 +48,7 @@ export class BlogsPage implements OnInit {
 
   load() {
     this.loading = true;
-    this.blogService.getBlogs().then(result => {
+    this.userService.getUsers().then(result => {
       this.data = result;
     }).finally(() => this.loading = false);
 
@@ -64,7 +56,7 @@ export class BlogsPage implements OnInit {
 
   delete(event: any) {
     this.loading = true;
-    this.blogService.deleteBlog(event.id).then(response => {
+    this.userService.deleteUser(event.id).then(response => {
       this.load();
     }).finally(() => this.loading = false);
   }

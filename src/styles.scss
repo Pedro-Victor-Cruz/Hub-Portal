@@ -14,7 +14,6 @@ body {
   font-family: 'Inter', sans-serif;
   color: var(--text-color);
   background-color: var(--background-color);
-  line-height: 1.6;
   font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -37,7 +36,10 @@ body {
   --info-color: #26a0ff; /* Azul suave */
   --info-color-dark: #0c89ff; /* Azul escuro */
   --background-color: #f8f9fa; /* Cinza claro (fundo) */
+  --bg-primary-color: #f8f9fa; /* Branco (fundo primário) */
+  --bg-secondary-color: #e8e8e8; /* Branco (fundo secundário) */
   --text-color: #262626; /* Cinza escuro (texto) */
+  --text-color-light: #333; /* Cinza claro (texto) */
   --input-border-color: #ddd; /* Cor de borda suave */
   --input-focus-border-color: var(--secondary-color); /* Cor de borda ao focar (amarelo) */
 

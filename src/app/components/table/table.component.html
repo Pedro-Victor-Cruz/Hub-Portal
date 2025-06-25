@@ -87,6 +87,19 @@
     </tfoot>
   </table>
 
+  <div class="table-footer" *ngIf="paginate">
+    <ub-pagination
+      [currentPage]="paginate.current_page"
+      [lastPage]="paginate.last_page"
+      [perPage]="paginate.per_page"
+      [total]="paginate.total"
+      [from]="paginate.from"
+      [to]="paginate.from"
+      (pageChange)="onPageChange($event)"
+      (perPageChange)="onPerPageChange($event)"
+    ></ub-pagination>
+  </div>
+
   <div class="filter-popup" *ngIf="filterPopupVisible">
     <div class="filter-content">
       <h4>Filtrar por {{ selectedFilterColumn?.name }}</h4>

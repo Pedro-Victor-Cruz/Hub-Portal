@@ -1,24 +1,55 @@
-<div class="app-selector-container">
-  <!-- Botão do menu -->
-  <div class="icon-button" (click)="toggleSearch()">
-    <i class='bx bxs-grid menu-icon'></i>
-  </div>
+<div class="app-selector">
+  <!-- Botão de ativação -->
+  <button class="selector-trigger" (click)="toggleSearch()">
+    <i class='bx bx-grid-alt'></i>
+  </button>
 
-  <!-- Menu expansível -->
-  <div class="app-menu" [class.expanded]="isSearchActive" *ngIf="isSearchActive">
-    <!-- Campo de busca -->
-    <div class="search-box">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Buscar app..." (focus)="isSearchActive = true">
+  <!-- Overlay e container do menu -->
+  <div class="selector-overlay" [class.active]="isSearchActive" (click)="isSearchActive = false"></div>
+
+  <div class="selector-menu" [class.active]="isSearchActive">
+    <!-- Cabeçalho -->
+    <div class="menu-header">
+      <h3>Navegação</h3>
+      <button class="close-btn" (click)="isSearchActive = false">
+        <i class='bx bx-x'></i>
+      </button>
     </div>
 
-    <!-- Listagem de apps -->
-    <div *ngIf="isSearchActive" class="app-grid">
-      <ng-container *ngFor="let app of searchResults()">
-        <div class="app-card" (click)="navigate(app.path); isSearchActive = false">
-          <i [class]="app.icon"></i>
-          <span>{{ app.title }}</span>
+    <!-- Campo de busca -->
+    <div class="search-container">
+      <i class='bx bx-search'></i>
+      <input type="text"
+             [(ngModel)]="searchQuery"
+             placeholder="Buscar página..."
+             (input)="handleSearch()"
+             (focus)="isSearchActive = true">
+    </div>
+
+    <!-- Lista de resultados -->
+    <div class="app-list">
+      <ng-container *ngIf="searchResults().length > 0; else noResults">
+        <div class="app-item"
+             *ngFor="let app of searchResults()"
+             (click)="navigate(app.path)">
+          <div class="app-icon">
+            <i [class]="app.icon"></i>
+          </div>
+          <div class="app-info">
+            <span class="app-title">{{ app.title }}</span>
+            <span class="app-desc" *ngIf="app.description">{{ app.description }}</span>
+          </div>
+          <i class='bx bx-chevron-right'></i>
         </div>
       </ng-container>
+
+      <ng-template #noResults>
+        <div class="empty-state">
+          <i class='bx bx-compass'></i>
+          <h4>Nenhum resultado encontrado</h4>
+          <p>Tente buscar com outros termos ou verifique se a página existe</p>
+        </div>
+      </ng-template>
     </div>
   </div>
 </div>

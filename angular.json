@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "chamados2": {
+    "forca-de-vendas-portal": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/chamados2",
+            "outputPath": "dist/forca-de-vendas-portal",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -65,10 +65,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "chamados2:build:production"
+              "buildTarget": "forca-de-vendas-portal:build:production"
             },
             "development": {
-              "buildTarget": "chamados2:build:development"
+              "buildTarget": "forca-de-vendas-portal:build:development"
             }
           },
           "defaultConfiguration": "development"

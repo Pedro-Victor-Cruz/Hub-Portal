@@ -54,7 +54,7 @@ export class ProfilePage {
     this.profileService.updateProfile(this.form.value).then(response => {
       this.auth.storeUser(response.data);
       this.toast.success('Perfil atualizado com sucesso!');
-    }, err => this.errors = this.utils.handleErrorsForm(err, this.form, this.errors))
+    }, err => this.errors = this.utils.handleErrorsForm(err, this.form))
       .finally(() => this.loading = false);
   }
 
