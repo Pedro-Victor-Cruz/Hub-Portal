@@ -28,8 +28,7 @@ class UserAuthController extends Controller
                         'refresh_token' => $tokens['refresh_token'],
                         'user' => User::query()
                             ->where('id', $id)
-                            ->with(['portals', 'portals.departments'])
-                            ->first()
+                            ->first()->getFullInfo()
                     ],
                 ]);
             } else {
@@ -81,16 +80,17 @@ class UserAuthController extends Controller
 
         $jwt = $user->generateJwt();
 
+        $user = User::query()
+            ->where('id', $user->id)
+            ->first();
+
         return response()->json([
             'message' => 'Usuário cadastrado com sucesso',
             'data' => [
                 'access_token' => $jwt['access_token'],
                 'access_token_expires_in' => $jwt['access_token_expires_in'],
                 'refresh_token' => $jwt['refresh_token'],
-                'user' => User::query()
-                    ->where('id', $user->id)
-                    ->with(['portals', 'portals.departments'])
-                    ->first()
+                'user' => $user->getFullInfo()
             ],
         ]);
     }

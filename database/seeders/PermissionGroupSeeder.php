@@ -1,0 +1,61 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Permission;
+use App\Models\PermissionGroup;
+use App\Utils\PermissionStatus;
+use Illuminate\Database\Seeder;
+
+class PermissionGroupSeeder extends Seeder
+{
+    private array $systemGroups = [
+        [
+            'name' => 'super-administrator',
+            'description' => 'Administrador do Sistema',
+            'is_system' => true,
+            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR,
+            'permissions' => ['*'] // Todas as permissões
+        ],
+        [
+            'name' => 'administrator',
+            'description' => 'Administrador do Técnico',
+            'is_system' => true,
+            'access_level' => PermissionStatus::ADMINISTRATOR,
+            'permissions' => ['*']
+        ],
+        [
+            'name' => 'users',
+            'description' => 'Usuários',
+            'is_system' => true,
+            'access_level' => PermissionStatus::USER
+        ]
+    ];
+
+    public function run(): void
+    {
+        foreach ($this->systemGroups as $groupData) {
+            $permissions = $groupData['permissions'] ?? [];
+            unset($groupData['permissions']);
+
+            $group = PermissionGroup::firstOrCreate(
+                ['name' => $groupData['name']],
+                $groupData
+            );
+
+            if ($permissions === ['*']) {
+                // Atribui todas as permissões
+                $group->permissions()->sync(Permission::all()->pluck('id'));
+            } else {
+                // Atribui permissões específicas
+                $permissionIds = Permission::whereIn('name', $permissions)
+                    ->pluck('id')
+                    ->toArray();
+
+                $group->permissions()->syncWithoutDetaching($permissionIds);
+            }
+        }
+
+        $this->command->info('System permission groups seeded successfully!');
+    }
+}

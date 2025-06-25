@@ -2,72 +2,82 @@
 
 namespace App\Models;
 
+use App\Utils\PermissionStatus;
 use Firebase\JWT\JWT;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * Class User
+ *
+ * Representa um usuário do sistema.
+ *
+ * @property int $id
+ * @property string $email
+ * @property string $name
+ * @property string $password
+ * @property int|null $company_id
+ * @property int $status
+ * @property Carbon|null $last_login
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ *
+ * @property Company|null $company Empresa à qual o usuário pertence
+ * @property Collection|Company[] $responsibleCompanies Empresas em que o usuário é responsável principal
+ * @property Collection|UsersRefreshToken[] $refresh_tokens Tokens de atualização vinculados ao usuário
+ * @property Collection|PermissionGroup[] $permissionGroups Grupos de permissão do usuário
+ */
 class User extends Model implements Authenticatable
 {
-    use SoftDeletes;
-    use HasFactory;
+    use SoftDeletes, HasFactory;
 
     protected $table = 'users';
 
     protected $casts = [
-        'status' => 'int',
-        'last_login' => 'datetime'
+        'status'     => 'int',
+        'last_login' => 'datetime',
     ];
 
     protected $hidden = [
-        'password'
+        'password',
     ];
 
     protected $fillable = [
         'email',
         'name',
         'password',
+        'company_id',
         'status',
-        'last_login'
+        'last_login',
     ];
 
-    public function ownerPortal(): BelongsTo
-    {
-        return $this->belongsTo(Portal::class, 'user_id');
-    }
-
-    public function portals(): BelongsToMany
-    {
-        return $this->belongsToMany(Portal::class, 'portal_users');
-    }
-
-    public function accessGroups(): BelongsToMany
-    {
-        return $this->belongsToMany(AccessGroup::class, 'user_access_groups');
-    }
-
-    public function hasPermission(string $permissionName): bool
-    {
-        return $this->accessGroups()
-            ->whereHas('permissions', function ($query) use ($permissionName) {
-                $query->where('name', $permissionName);
-            })
-            ->exists();
-    }
-
+    /**
+     * Hash automático da senha ao setar.
+     */
     public function setPasswordAttribute($value): void
     {
         $this->attributes['password'] = bcrypt($value);
     }
 
-    public function refresh_tokens()
+    /**
+     * Tokens de atualização vinculados ao usuário.
+     */
+    public function refresh_tokens(): HasMany
     {
         return $this->hasMany(UsersRefreshToken::class);
     }
 
+    /**
+     * Revoga um token de atualização.
+     */
     public function revokeRefreshToken($token)
     {
         return $this->refresh_tokens()
@@ -75,6 +85,9 @@ class User extends Model implements Authenticatable
             ->update(['revoked' => true]);
     }
 
+    /**
+     * Exclui um token de atualização.
+     */
     public function deleteRefreshToken($token)
     {
         return $this->refresh_tokens()
@@ -82,12 +95,11 @@ class User extends Model implements Authenticatable
             ->delete();
     }
 
-    /**
-     * @throws RandomException
-     */
-    public function generateRefreshToken()
+
+    public function generateRefreshToken(): UsersRefreshToken
     {
         $request = request();
+
         $refreshToken = new UsersRefreshToken();
         $refreshToken->user_id = $this->id;
         $refreshToken->token = bin2hex(random_bytes(32));
@@ -102,33 +114,54 @@ class User extends Model implements Authenticatable
         $refreshToken->latitude = $request->header('Latitude');
         $refreshToken->longitude = $request->header('Longitude');
         $refreshToken->save();
+
         return $refreshToken;
     }
 
-    public function generateJwt()
+    /**
+     * Gera o token JWT de acesso e o token de refresh.
+     */
+    public function generateJwt(): array
     {
         $refreshToken = $this->generateRefreshToken();
-        // 1h em segundos
-        $expiration = 60 * 60;
+
+        $expiration = 60 * 60; // 1 hora
+
         $payload = [
-            'iss' => config('app.url'),   // Emissor (Issuer)
-            'aud' => config('app.url'),       // Público (Audience)
-            'iat' => time(),              // Emitido em (Issued At)
-            'exp' => time() + $expiration,       // Expiração (1 hora)
-            'rule' => $this->role,           // Regra (Role)
+            'iss'  => config('app.url'),
+            'aud'  => config('app.url'),
+            'iat'  => time(),
+            'exp'  => time() + $expiration,
             'data' => [
                 'uid' => sha1($this->getAuthIdentifier()),
-                'rt' => sha1($refreshToken['id'])
-            ]
+                'rt'  => sha1($refreshToken['id']),
+            ],
         ];
 
         return [
-            'access_token' => JWT::encode($payload, config('app.key'), 'HS256'),
+            'access_token'            => JWT::encode($payload, config('app.key'), 'HS256'),
             'access_token_expires_in' => $expiration,
-            'refresh_token' => $refreshToken['token']
+            'refresh_token'           => $refreshToken['token'],
         ];
-
     }
+
+    /**
+     * Empresa à qual este usuário pertence.
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    /**
+     * Empresas em que este usuário é o responsável principal.
+     */
+    public function responsibleCompanies(): HasMany
+    {
+        return $this->hasMany(Company::class, 'responsible_user_id');
+    }
+
+    // Métodos do contrato Authenticatable
 
     public function getAuthIdentifierName(): string
     {
@@ -152,11 +185,281 @@ class User extends Model implements Authenticatable
 
     public function setRememberToken($value)
     {
-        // TODO: Implement setRememberToken() method.
+        // Método não utilizado
     }
 
     public function getRememberTokenName()
     {
         return null;
+    }
+
+    public function permissionGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(PermissionGroup::class, 'user_has_permission_groups');
+    }
+
+    public function directPermissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'user_permissions')
+            ->withPivot('is_active')
+            ->withTimestamps();
+    }
+
+    /**
+     * Verifica se o usuário tem uma permissão específica.
+     *
+     * @param string $permissionName Nome da permissão a ser verificada
+     * @return bool Retorna true se o usuário tiver a permissão, caso contrário, false
+     */
+    public function hasPermissionTo(string $permissionName): bool
+    {
+        // Verifica primeiro as permissões diretas
+        $directPermission = $this->directPermissions()
+            ->where('name', $permissionName)
+            ->first();
+
+        if ($directPermission) {
+            return (bool)$directPermission->pivot->is_active;
+        }
+
+        // Se não tiver permissão direta, verifica nos grupos
+        foreach ($this->permissionGroups as $group) {
+            if ($group->permissions->contains('name', $permissionName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica se o usuário tem qualquer uma das permissões especificadas.
+     *
+     * @param array $permissionNames Lista de nomes de permissões a serem verificadas
+     * @return bool Retorna true se o usuário tiver pelo menos uma das permissões, caso contrário, false
+     */
+    public function hasAnyPermission(array $permissionNames): bool
+    {
+        foreach ($permissionNames as $permissionName) {
+            if ($this->hasPermissionTo($permissionName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica se o usuário é um super administrador.
+     * Um super administrador é um usuário que pertence a um grupo de permissões global
+     * e que é marcado como sistema, com o nome "Super Admin".
+     *
+     * @return bool Retorna true se o usuário for um super administrador, caso contrário, false
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->permissionGroups->contains(function (PermissionGroup $group) {
+            return $group->access_level === PermissionStatus::SUPER_ADMINISTRATOR;
+        });
+    }
+
+    /**
+     * Verifica se o usuário é um administrador.
+     * Um administrador é um usuário que pertence a um grupo de permissões com nível de acesso
+     * de administrador ou super administrador.
+     *
+     * @return bool Retorna true se o usuário for um administrador, caso contrário, false
+     */
+    public function isAdmin()
+    {
+        return $this->permissionGroups->contains(function (PermissionGroup $group) {
+            return $group->access_level === PermissionStatus::ADMINISTRATOR ||
+                   $group->access_level === PermissionStatus::SUPER_ADMINISTRATOR;
+        });
+    }
+
+    public function accessLevel(): PermissionStatus
+    {
+        $highestLevel = PermissionStatus::USER;
+
+        foreach ($this->permissionGroups as $group) {
+            if ($group->access_level->value > $highestLevel->value) {
+                $highestLevel = $group->access_level;
+            }
+        }
+
+        return $highestLevel;
+    }
+
+    /**
+     * Atribui um grupo de permissão ao usuário.
+     *
+     * @param PermissionGroup $group Instância do grupo de permissão a ser atribuído
+     * @return static Retorna a instância do usuário para encadeamento de métodos
+     */
+    public function assignPermissionGroup(PermissionGroup $group): static
+    {
+        $this->permissionGroups()->syncWithoutDetaching([$group->id]);
+        return $this;
+    }
+
+    /**
+     * Remove um grupo de permissão do usuário.
+     *
+     * @param PermissionGroup $group Instância do grupo de permissão a ser removido
+     * @return static Retorna a instância do usuário para encadeamento de métodos
+     */
+    public function removePermissionGroup(PermissionGroup $group): static
+    {
+        $this->permissionGroups()->detach($group->id);
+        return $this;
+    }
+
+    /**
+     * Atribui uma permissão direta ao usuário.
+     *
+     * @param string $permissionName Nome da permissão a ser atribuída
+     * @param bool $isActive Indica se a permissão está ativa (padrão é true)
+     * @return static Retorna a instância do usuário para encadeamento de métodos
+     */
+    public function assignDirectPermission(string $permissionName, bool $isActive = true): static
+    {
+        $permission = Permission::where('name', $permissionName)->firstOrFail();
+
+        $this->directPermissions()->syncWithoutDetaching([
+            $permission->id => ['is_active' => $isActive]
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Remove uma permissão direta do usuário.
+     *
+     * @param string $permissionName Nome da permissão a ser removida
+     * @return static Retorna a instância do usuário para encadeamento de métodos
+     */
+    public function removeDirectPermission(string $permissionName): static
+    {
+        $permission = Permission::where('name', $permissionName)->firstOrFail();
+
+        $this->directPermissions()->detach($permission->id);
+
+        return $this;
+    }
+
+    /**
+     * Sincroniza as permissões diretas do usuário.
+     * @param array $permissions
+     * @return $this
+     */
+    public function syncDirectPermissions(array $permissions): static
+    {
+        // remove todas as permissões diretas
+    }
+
+    /**
+     * Obtém a fonte de uma permissão específica.
+     *
+     * @param string $permissionName Nome da permissão a ser verificada
+     * @return array|null Retorna um array com a fonte e informações adicionais se a permissão for encontrada,
+     *                    ou null se não for encontrada
+     */
+    public function getPermissionSource(string $permissionName): ?array
+    {
+        // Verifica se tem permissão direta
+        $directPermission = $this->directPermissions()
+            ->where('name', $permissionName)
+            ->first();
+
+        if ($directPermission) {
+            return [
+                'source'    => 'user',
+                'is_active' => (bool)$directPermission->pivot->is_active
+            ];
+        }
+
+        // Verifica nos grupos
+        foreach ($this->permissionGroups as $group) {
+            if ($group->permissions->contains('name', $permissionName)) {
+                return [
+                    'source'     => 'group',
+                    'group_id'   => $group->id,
+                    'group_name' => $group->name
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Obtém todas as informações do usuário, incluindo permissões e grupos
+     */
+    public function getFullInfo(): array
+    {
+        // Carrega os relacionamentos necessários de forma otimizada
+        $this->load([
+            'company',
+            'permissionGroups.permissions',
+            'directPermissions'
+        ]);
+
+        // Obtém todas as permissões disponíveis no sistema
+        $allPermissions = Permission::all()->keyBy('name');
+
+        // Mapeia as permissões do usuário (diretas e de grupos)
+        $permissions = [];
+        foreach ($allPermissions as $permission) {
+            $source = $this->getPermissionSource($permission->name);
+
+            if (!$source) continue;
+
+            $permissions[] = [
+                'name'        => $permission->name,
+                'description' => $permission->description,
+                'group'       => $permission->group,
+                'source'      => $source['source'],
+                'is_active'   => $source['is_active'] ?? true,
+                'group_name'  => $source['group_name'] ?? null,
+                'group_id'    => $source['group_id'] ?? null,
+            ];
+        }
+
+        $group = $this->permissionGroups->first();
+
+        return [
+            'id'                => $this->id,
+            'email'             => $this->email,
+            'name'              => $this->name,
+            'company_id'        => $this->company_id,
+            'status'            => $this->status,
+            'is_super_admin'    => $this->isSuperAdmin(),
+            'last_login'        => $this->last_login?->toDateTimeString(),
+            'company'           => $this->company ? [
+                'id'   => $this->company->id,
+                'name' => $this->company->name,
+                'cnpj' => $this->company->cnpj,
+            ] : null,
+            'group' => [
+                'id'          => $group->id,
+                'name'        => $group->name,
+                'description' => $group->description,
+                'is_system'   => $group->is_system,
+                'company_id'  => $group->company_id,
+            ],
+            'permissions'       => $permissions,
+        ];
+    }
+
+    public function canBeAssignedPermissions(array $permissionsName): bool
+    {
+        $permissions = Permission::whereIn('name', $permissionsName)->get();
+
+        foreach ($permissions as $permission) {
+            if ($permission->canBeAssignedByCurrentUser()) continue;
+            return false;
+        }
+
+        return true;
     }
 }
