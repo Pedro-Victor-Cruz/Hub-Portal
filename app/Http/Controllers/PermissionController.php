@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Permission\AssignPermissionGroupToUserRequest;
 use App\Http\Requests\Permission\AssignPermissionsToUserRequest;
 use App\Http\Requests\Permission\PermissionGroupRequest;
 use App\Models\Permission;
@@ -19,13 +20,13 @@ class PermissionController extends Controller
 
     public function accessLevels(): JsonResponse
     {
-        /** @var User $user **/
+        /** @var User $user * */
         $user = Auth::guard('auth')->user();
         if (!$user) return response()->json(['message' => 'Usuário não autenticado.'], 401);
 
         return response()->json([
             'message' => 'Lista de níveis de acesso',
-            'data' => PermissionStatus::getManageableLevelsArray($user->accessLevel())
+            'data'    => PermissionStatus::getManageableLevelsArray($user->accessLevel())
         ]);
     }
 
@@ -44,7 +45,7 @@ class PermissionController extends Controller
 
         return response()->json([
             'message' => 'Lista de permissões',
-            'data' => $query->get()
+            'data'    => $query->get()
         ]);
     }
 
@@ -98,7 +99,7 @@ class PermissionController extends Controller
 
         return response()->json([
             'message' => 'Grupo de permissões criado com sucesso.',
-            'data' => $group
+            'data'    => $group
         ], 201);
     }
 
@@ -118,7 +119,7 @@ class PermissionController extends Controller
 
         return response()->json([
             'message' => 'Grupo de permissões atualizado com sucesso.',
-            'data' => $permissionGroup
+            'data'    => $permissionGroup
         ]);
     }
 
@@ -152,10 +153,11 @@ class PermissionController extends Controller
 
         $data = $request->validated();
         $permissions = $data['permissions'];
+        $permissionsName = array_map(fn($permission) => $permission['name'], $permissions);
 
         // Verifica se o usuário tem permissão para atribuir essas permissões
-        if (!$user->canBeAssignedPermissions($permissions)) {
-            return response()->json(['message' => 'Você não tem permissão para atribuir essas permissões.'], 403);
+        if (!$user->canBeAssignedPermissions($permissionsName)) {
+            return response()->json(['message' => 'Você não tem permissão para alterar essas permissões.'], 403);
         }
 
         // Atribui as permissões ao usuário
@@ -164,5 +166,41 @@ class PermissionController extends Controller
         return response()->json([
             'message' => 'Permissões atribuídas com sucesso.',
         ]);
+    }
+
+    public function assignGroupToUser(AssignPermissionGroupToUserRequest $request, $userId): JsonResponse
+    {
+        /** @var User $user */
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não encontrado.'], 404);
+        }
+
+        $data = $request->validated();
+        $groupId = $data['group_id'];
+
+        if ($groupId) {
+            /** @var PermissionGroup $group */
+            $group = PermissionGroup::manageableByCurrentUser()->find($groupId);
+
+            if (!$group) {
+                return response()->json(['message' => 'Grupo de permissões não encontrado.'], 404);
+            }
+
+            $user->assignPermissionGroup($group);
+
+            return response()->json([
+                'message' => 'Grupo de permissões atribuído com sucesso.',
+            ]);
+        } else {
+            $group = $user->group();
+
+            if ($group) $user->removePermissionGroup($user->group());
+
+            return response()->json([
+                'message' => 'Grupo de permissões removido com sucesso.',
+            ]);
+        }
     }
 }

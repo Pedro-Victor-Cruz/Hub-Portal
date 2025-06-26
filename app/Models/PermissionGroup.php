@@ -144,7 +144,7 @@ class PermissionGroup extends Model
         if (!$user) return false;
 
         // Verifica primeiro o nível de acesso
-        if ($this->access_level->value > $user->access_level->value) return false;
+        if ($this->access_level->value > $user->accessLevel()->value) return false;
 
         // Grupos globais (sem company_id) podem ser gerenciados se o nível de acesso permitir
         if (is_null($this->company_id)) return true;

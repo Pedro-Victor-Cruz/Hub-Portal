@@ -18,7 +18,7 @@ class PermissionGroupRequest extends ApiRequest
         return [
             'description'   => 'required|string|max:255',
             'name'          => 'required|string|max:255',
-            'company_id'    => 'sometimes|integer|exists:companies,id',
+            'company_id'    => 'nullable|integer|exists:companies,id',
             'access_level'  => 'sometimes|in:' . implode(',', array_keys(PermissionStatus::getManageableLevelsArray($user->accessLevel()))),
             'permissions'   => 'required|array',
             'permissions.*' => 'string|exists:permissions,name',

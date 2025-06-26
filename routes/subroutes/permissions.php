@@ -30,6 +30,9 @@ Route::middleware('auth')->group(function () {
 
             Route::delete('/{idGroup}/delete', [PermissionController::class, 'deleteGroup'])
                 ->middleware('permission:permission_group.delete');
+
+            Route::post('assign-group/{userId}', [PermissionController::class, 'assignGroupToUser'])
+                ->middleware('permission:permission_group.assign');
         });
     });
 });

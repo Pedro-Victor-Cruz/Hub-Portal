@@ -48,13 +48,12 @@ class UserController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $user = User::query()
-            ->with(['company'])
-            ->findOrFail($id);
+        /** @var User $user */
+        $user = User::findOrFail($id);
 
         return response()->json([
             'message' => 'Usuário encontrado com sucesso',
-            'data' => $user
+            'data' => $user->getFullInfo()
         ]);
     }
 

@@ -269,7 +269,7 @@ class User extends Model implements Authenticatable
      *
      * @return bool Retorna true se o usuário for um administrador, caso contrário, false
      */
-    public function isAdmin()
+    public function isAdmin(): bool
     {
         return $this->permissionGroups->contains(function (PermissionGroup $group) {
             return $group->access_level === PermissionStatus::ADMINISTRATOR ||
@@ -288,6 +288,11 @@ class User extends Model implements Authenticatable
         }
 
         return $highestLevel;
+    }
+
+    public function group(): ?PermissionGroup
+    {
+        return $this->permissionGroups->first();
     }
 
     /**
@@ -349,12 +354,39 @@ class User extends Model implements Authenticatable
 
     /**
      * Sincroniza as permissões diretas do usuário.
+     * Formato esperad do array:
+     * ['name' => 'permission_name', 'value' => true]
      * @param array $permissions
      * @return $this
      */
     public function syncDirectPermissions(array $permissions): static
     {
-        // remove todas as permissões diretas
+        foreach ($permissions as $permission) {
+            if (!isset($permission['name']) || !isset($permission['value'])) {
+                continue; // Ignora se não tiver nome ou valor
+            }
+
+            $permissionName = $permission['name'];
+            $isActive = (bool)$permission['value'];
+
+            if ($isActive) {
+                // Verifica se a permissão já está atribuída no grupo caso o usuário possua um grupo
+                $existingPermissionInGroup = $this->permissionGroups
+                    ->flatMap(fn($group) => $group->permissions)
+                    ->contains('name', $permissionName);
+
+                // Se a permissão já existe no grupo e estou tentando ativar, remova do usuário
+                // Para que não haja duplicidade
+                if ($existingPermissionInGroup) {
+                    $this->removeDirectPermission($permissionName);
+                    continue; // Pula para a próxima permissão
+                }
+
+            }
+            $this->assignDirectPermission($permissionName, $isActive);
+        }
+
+        return $this;
     }
 
     /**
@@ -440,19 +472,20 @@ class User extends Model implements Authenticatable
                 'name' => $this->company->name,
                 'cnpj' => $this->company->cnpj,
             ] : null,
-            'group' => [
+            'group' => $group ? [
                 'id'          => $group->id,
                 'name'        => $group->name,
                 'description' => $group->description,
                 'is_system'   => $group->is_system,
                 'company_id'  => $group->company_id,
-            ],
+            ] : null,
             'permissions'       => $permissions,
         ];
     }
 
     public function canBeAssignedPermissions(array $permissionsName): bool
     {
+        /** @var Permission $permissions */
         $permissions = Permission::whereIn('name', $permissionsName)->get();
 
         foreach ($permissions as $permission) {
@@ -461,5 +494,18 @@ class User extends Model implements Authenticatable
         }
 
         return true;
+    }
+
+    /**
+     * Verifica se o usuário pode ser atribuído a um grupo de permissões.
+     * @param int $groupId
+     * @return bool
+     */
+    public function canBeAssignedGroup(int $groupId): bool
+    {
+        /** @var PermissionGroup $group */
+        $group = PermissionGroup::find($groupId);
+        if (!$group) return false;
+        return $group->canBeManagedByCurrentUser();
     }
 }
