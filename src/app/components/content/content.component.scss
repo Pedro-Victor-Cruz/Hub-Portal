@@ -4,6 +4,7 @@
   border-radius: var(--border-radius);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 16px;
+  min-height: calc(100vh - 156px);
   transition: opacity 0.3s ease;
 
   &.loading {
@@ -48,6 +49,7 @@
 
   .content {
     padding: 16px 0;
+
   }
 
   .loading-overlay {
@@ -88,3 +90,21 @@
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 1199px) {
+  .content-container {
+    min-height: calc(100vh - 140px);
+  }
+}
+
+@media (max-width: 993px) {
+  .content-container {
+    min-height: calc(100vh - 124px);
+  }
+}
+
+  @media (max-width: 770px) {
+    .content-container {
+      min-height: calc(100vh - 126px);
+    }
+  }
