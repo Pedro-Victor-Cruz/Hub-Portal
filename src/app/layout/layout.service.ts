@@ -23,27 +23,39 @@ export class LayoutService {
       title: 'Usuários',
       path: '/users',
       icon: 'bx bx-user',
+      description: 'Acesse e controle os usuários cadastrados no sistema',
       permission: 'user.view'
     },
     {
       title: 'Empresas',
       path: '/companies',
       icon: 'bx bx-building',
+      description: 'Visualize e edite informações das empresas vinculadas',
       permission: 'company.view'
     },
     {
       title: 'Permissões',
       path: '/permissions',
       icon: 'bx bx-lock',
+      description: 'Defina regras de acesso e controle de funcionalidades',
       permission: 'permission.view'
     },
     {
       title: 'Grupos',
       path: '/groups',
       icon: 'bx bx-group',
+      description: 'Organize permissões em grupos e associe aos usuários',
       permission: 'permission_group.view'
+    },
+    {
+      title: 'Parâmetros',
+      path: '/parameters',
+      icon: 'bx bx-cog',
+      description: 'Configure preferências e ajustes do sistema',
+      permission: 'parameter.view'
     }
   ];
+
   private open_tabs: TabOpen[] = [];
   private currentRoute: string = '';
 

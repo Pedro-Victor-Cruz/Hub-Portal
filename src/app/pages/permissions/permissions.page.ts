@@ -20,7 +20,7 @@ export class PermissionsPage implements OnInit{
 
   folderPermissionsConfig: FolderConfig = {
     groupBy: 'group',
-    folderName: 'group_description',
+    folderName: 'group',
     itemDescription: 'name',
     itemName: 'description',
     folderIcon: 'bx-folder',

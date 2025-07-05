@@ -1,0 +1,131 @@
+<ub-content title="Parâmetros" [loading]="loading">
+  <ub-panel-area direction="horizontal">
+    <ub-panel [size]="20" title="Lista de parâmetros">
+      <ub-folder-view primaryKey="key" [folderConfig]="folderConfig" selectionMode="single"
+                      (itemSelected)="selectItem($event)" [data]="parameters"></ub-folder-view>
+    </ub-panel>
+    <ub-panel [size]="80" title="Configurar parâmetro" [actions]="actionsPanel">
+      <div class="p-fluid p-formgrid grid">
+
+        <div class="col-12 md:col-6">
+          <ub-input label="Chave" placeholder="Digite a chave do parâmetro"
+                    [(ngModel)]="form.key" [disabled]="true" (blur)="formatKey()"></ub-input>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <ub-input label="Descrição" placeholder="Digite a descrição do parâmetro"
+                    [(ngModel)]="form.description" [error]="FormErrorHandlerService.getError('description', errors)"></ub-input>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <ub-input label="Categoria" placeholder="Selecione a categoria do parâmetro"
+                       [suggestions]="categories"
+                       [(ngModel)]="form.category" [error]="FormErrorHandlerService.getError('category', errors)"></ub-input>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <ub-dropdown label="Tipo" placeholder="Selecione o tipo do parâmetro"
+                       [options]="types" optionLabel="label" optionValue="name"
+                       [(value)]="form.type" [error]="FormErrorHandlerService.getError('type', errors)"></ub-dropdown>
+        </div>
+
+        <div class="col-12 md:col-6">
+          @switch (form.type) {
+            @case ('integer') {
+              <ub-input
+                label="Valor"
+                placeholder="Digite o valor inteiro padrão"
+                type="number"
+                [(ngModel)]="form.default_value"
+                [error]="FormErrorHandlerService.getError('default_value', errors)">
+              </ub-input>
+            }
+            @case ('decimal') {
+              <ub-input
+                label="Valor"
+                placeholder="Digite o valor decimal padrão"
+                type="number"
+                [(ngModel)]="form.default_value"
+                [error]="FormErrorHandlerService.getError('default_value', errors)">
+              </ub-input>
+            }
+<!--            @case ('date') {-->
+<!--&lt;!&ndash;              <ub-datepicker&ndash;&gt;-->
+<!--&lt;!&ndash;                label="Data"&ndash;&gt;-->
+<!--&lt;!&ndash;                placeholder="Selecione a data padrão"&ndash;&gt;-->
+<!--&lt;!&ndash;                [(ngModel)]="form.default_value"&ndash;&gt;-->
+<!--&lt;!&ndash;                [error]="FormErrorHandlerService.getError('default_value', errors)">&ndash;&gt;-->
+<!--&lt;!&ndash;              </ub-datepicker>&ndash;&gt;-->
+<!--            }-->
+            @case ('list') {
+              <div class="p-fluid">
+                <div class="flex align-items-end">
+                  <ub-input
+                    class="flex-grow-1 mr-2"
+                    label="Valor Padrão"
+                    placeholder="Selecione um valor da lista"
+                    [suggestions]="form.options"
+                    [(ngModel)]="form.default_value"
+                    [error]="FormErrorHandlerService.getError('default_value', errors)">
+                  </ub-input>
+                  <ub-button severity="primary" icon="bx bx-cog" (click)="showOptions = !showOptions"></ub-button>
+                </div>
+
+                <div class="mt-3" *ngIf="showOptions">
+                  <label class="block mb-2">Opções da Lista</label>
+                  <div *ngFor="let option of form.options; let i = index" class="flex align-items-center mb-2">
+                    <ub-input
+                      [label]="'Opção ' + (i + 1)"
+                      [placeholder]="'Opção ' + (i + 1)"
+                      [(ngModel)]="optionValue[i]"
+                      (blur)="updateOption(i)"
+                      class="flex-grow-1 mr-2">
+                    </ub-input>
+                    <ub-button severity="danger" icon="bx bx-trash" (click)="removeOption(i)"></ub-button>
+                  </div>
+                  <ub-button severity="success" icon="bx bx-plus" (click)="addOption()">Adicionar Opção</ub-button>
+                </div>
+              </div>
+            }
+            @case ('boolean') {
+              <ub-toggle-switch
+                label="Defina o valor padrão do parâmetro"
+                [inline]="true"
+                [(value)]="form.default_value"
+                [error]="FormErrorHandlerService.getError('value', errors)">
+                Ativo:
+              </ub-toggle-switch>
+            }
+            @default {
+              <ub-input
+                label="Valor"
+                placeholder="Digite o valor padrão do parâmetro"
+                [(ngModel)]="form.default_value"
+                [error]="FormErrorHandlerService.getError('default_value', errors)">
+              </ub-input>
+            }
+          }
+        </div>
+
+        <div class="col-12 md:col-6" *ngIf="accessLevels.length > 1">
+          <ub-dropdown
+            label="Nível de Acesso"
+            placeholder="Selecione o nível de acesso do parâmetro"
+            helpText="Ao definir o nível de acesso, o parâmetro será visível apenas para usuários com esse nível ou superior."
+            [clearable]="true"
+            [options]="accessLevels"
+            optionLabel="label"
+            optionDescription="description"
+            optionValue="value"
+            [error]="FormErrorHandlerService.getError('access_level', errors)"
+            [(value)]="form.access_level">
+          </ub-dropdown>
+        </div>
+
+        <div class="flex justify-content-end">
+          <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>
+        </div>
+      </div>
+    </ub-panel>
+  </ub-panel-area>
+</ub-content>

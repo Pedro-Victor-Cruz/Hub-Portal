@@ -39,6 +39,10 @@ export class Utils {
     return slug.replace(/-+$/, '');
   }
 
+  public static removeAccents(str: string): string {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
   public static isHtml(str: string) {
     return /<[a-z][\s\S]*>/i.test(str);
   }

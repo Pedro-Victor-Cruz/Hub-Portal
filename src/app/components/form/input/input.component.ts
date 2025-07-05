@@ -1,7 +1,17 @@
-import { Component, EventEmitter, forwardRef, Input, Output, ViewChild, ElementRef } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { BaseInputComponent } from '../base-input.component';
-import { NgForOf, NgIf } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  forwardRef,
+  Input,
+  Output,
+  ViewChild,
+  ElementRef,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {BaseInputComponent} from '../base-input.component';
+import {NgForOf, NgIf} from '@angular/common';
 
 @Component({
   selector: 'ub-input',
@@ -17,7 +27,7 @@ import { NgForOf, NgIf } from '@angular/common';
     },
   ],
 })
-export class InputComponent implements ControlValueAccessor {
+export class InputComponent implements ControlValueAccessor, OnChanges {
   @Input() label: string = '';
   @Input() helpText: string = '';
   @Input() placeholder: string = '';
@@ -34,11 +44,20 @@ export class InputComponent implements ControlValueAccessor {
 
   @ViewChild('inputElement') inputElement!: ElementRef; // Acessa o elemento input
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['suggestions']) {
+      console.log('Sugestões atualizadas:', this.suggestions);
+
+    }
+  }
+
   showSuggestions: boolean = false; // Controla a visibilidade das sugestões
   filteredSuggestions: string[] = []; // Sugestões filtradas
 
-  onChange: any = () => {};
-  onTouched: any = () => {};
+  onChange: any = () => {
+  };
+  onTouched: any = () => {
+  };
 
   writeValue(value: string): void {
     this.value = value;
@@ -59,13 +78,7 @@ export class InputComponent implements ControlValueAccessor {
     this.valueChange.emit(value);
     this.input.emit(event);
 
-    // Filtra as sugestões com base no valor digitado
-    this.filteredSuggestions = this.suggestions.filter((suggestion) =>
-      suggestion.toLowerCase().includes(value.toLowerCase())
-    );
-
-    // Mostra as sugestões se houver correspondências
-    this.showSuggestions = this.filteredSuggestions.length > 0;
+    this.filterSuggestions();
   }
 
   onChangeEvent(event: Event): void {
@@ -75,6 +88,17 @@ export class InputComponent implements ControlValueAccessor {
   onClick(event: Event): void {
     this.click.emit(event);
     this.showSuggestions = true; // Mostra as sugestões ao clicar no input
+    this.filterSuggestions();
+  }
+
+  filterSuggestions(): void {
+    const value = this.value.toLowerCase();
+    this.filteredSuggestions = this.suggestions.filter((suggestion) =>
+      suggestion.toLowerCase().includes(value)
+    );
+    if (this.filteredSuggestions.length === 0) {
+      this.filteredSuggestions = this.suggestions; // Se não houver sugestões filtradas, mostra todas
+    }
   }
 
   onBlur(event: FocusEvent): void {
@@ -90,7 +114,6 @@ export class InputComponent implements ControlValueAccessor {
   }
 
   selectSuggestion(suggestion: string): void {
-    console.log('suggestion', suggestion);
     this.value = suggestion;
     this.onChange(suggestion);
     this.valueChange.emit(suggestion);

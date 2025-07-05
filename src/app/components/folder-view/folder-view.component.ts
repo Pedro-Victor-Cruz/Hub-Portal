@@ -59,7 +59,7 @@ export class FolderViewComponent {
 
   @Input() folderConfig: FolderConfig = {
     groupBy: 'group',
-    folderName: 'group_description',
+    folderName: 'group',
     folderIcon: 'bx-folder',
     itemIcon: 'bx-file',
     itemName: 'name',
@@ -70,6 +70,7 @@ export class FolderViewComponent {
   @Input() placeholder: string = 'Buscar registros...';
   @Input() selectable: boolean = false;
   @Input() primaryKey: string = 'id';
+  @Input() selectionMode: 'single' | 'multiple' = 'multiple';
 
   @Input()
   get selectedItems(): Record<string | number, boolean> {
@@ -86,6 +87,7 @@ export class FolderViewComponent {
     }
     this.syncSelectedItems();
   }
+
 
   @Output() itemSelected = new EventEmitter<any>();
   @Output() selectedItemsChange = new EventEmitter<Record<string | number, boolean>>();
@@ -229,7 +231,19 @@ export class FolderViewComponent {
     item.highlight = true;
 
     if (item.originalData) {
-      this.itemSelected.emit(item.originalData);
+      if (this.selectionMode === 'single') {
+        // Verifica se o item já estava selecionado, se sim demarca ele
+        if (this.isSelected(item)) {
+          item.highlight = false;
+          delete this._selectedItems[item.originalData[this.primaryKey]];
+          this.itemSelected.emit(null);
+        } else {
+          // Limpa seleções anteriores e seleciona apenas este item
+          this._selectedItems = {};
+          this._selectedItems[item.originalData[this.primaryKey]] = true;
+          this.itemSelected.emit(item.originalData);
+        }
+      }
     }
   }
 
@@ -370,6 +384,11 @@ export class FolderViewComponent {
    */
   toggleSelection(item: FolderItem, event: MouseEvent | Event | null, newValue?: boolean): void {
     if (event) event.stopPropagation();
+
+    if (this.selectionMode === 'single') {
+      this.selectItem(item);
+      return;
+    }
 
     if (item.isGroup) {
       this.toggleGroupSelection(item, newValue);

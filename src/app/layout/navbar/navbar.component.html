@@ -4,9 +4,7 @@
     <div class="nav-content">
       <!-- Logo e Menu Mobile -->
       <div class="nav-start">
-        <button class="menu-toggle" (click)="toggleMobileMenu()" *ngIf="isMobile">
-          <i class="bx bx-menu"></i>
-        </button>
+        <search-screen *ngIf="isMobile"></search-screen>
         <a class="logo" routerLink="/home">
           <i class="bx bx-code-alt logo-icon"></i>
           <span class="logo-text">Força De Vendas</span>

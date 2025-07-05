@@ -1,53 +1,84 @@
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
+.container-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small); // Adiciona espaçamento consistente
+  width: 100%;
 
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  // Layout padrão (vertical)
+  flex-direction: column;
+  justify-content: center;
 
-    &:checked + .slider {
-      background-color: var(--secondary-color);
-    }
+  // Layout quando inline é true
+  &.inline-toggle {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 
-    &:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    &:disabled + .slider {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    &:disabled:checked + .slider {
-      background-color: var(--secondary-color-dark);
+    .label {
+      margin-bottom: 0; // Remove a margem inferior no modo inline
+      margin-right: var(--spacing-small); // Adiciona margem à direita
     }
   }
 
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc; // Cor padrão
-    transition: 0.4s;
-    border-radius: 34px;
+  .label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+  }
 
-    &:before {
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 55px;
+    height: 29px;
+    flex-shrink: 0; // Evita que o switch diminua
+
+    input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+
+      &:checked + .slider {
+        background-color: var(--secondary-color);
+      }
+
+      &:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
+      &:disabled + .slider {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      &:disabled:checked + .slider {
+        background-color: var(--secondary-color-dark);
+      }
+    }
+
+    .slider {
       position: absolute;
-      content: '';
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
       transition: 0.4s;
-      border-radius: 50%;
+      border-radius: 34px;
+
+      &:before {
+        position: absolute;
+        content: '';
+        height: 21px;
+        width: 21px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
     }
   }
 }

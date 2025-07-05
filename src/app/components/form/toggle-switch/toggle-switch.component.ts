@@ -1,11 +1,13 @@
 import {Component, EventEmitter, forwardRef, Input, Output} from '@angular/core';
 import {BaseInputComponent} from '../base-input.component';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'ub-toggle-switch',
   imports: [
-    BaseInputComponent
+    BaseInputComponent,
+    NgClass
   ],
   templateUrl: './toggle-switch.component.html',
   standalone: true,
@@ -19,6 +21,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
   ],
 })
 export class ToggleSwitchComponent implements ControlValueAccessor {
+  @Input() inline: boolean = false;
   @Input() label: string = '';
   @Input() helpText: string = '';
   @Input() error: string = '';
@@ -27,8 +30,8 @@ export class ToggleSwitchComponent implements ControlValueAccessor {
   @Input() value: boolean = false;
   @Output() valueChange = new EventEmitter<boolean>();
   @Output() change = new EventEmitter<Event>();
-  @Output() click = new EventEmitter<Event>();
 
+  @Output() click = new EventEmitter<Event>();
   onChange: any = () => {};
   onTouched: any = () => {};
 

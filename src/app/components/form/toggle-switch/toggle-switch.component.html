@@ -1,12 +1,15 @@
 <ub-base-input [label]="label" [helpText]="helpText" [error]="error" [success]="success">
-  <label class="toggle-switch">
-    <input
-      type="checkbox"
-      [checked]="value"
-      [disabled]="disabled"
-      (change)="onChangeEvent($event)"
-      (click)="onClick($event)"
-    />
-    <span class="slider"></span>
-  </label>
+  <div class="container-toggle" [ngClass]="{'inline-toggle': inline}">
+    <span class="label"><ng-content></ng-content></span>
+    <label class="toggle-switch">
+      <input
+        type="checkbox"
+        [checked]="value"
+        [disabled]="disabled"
+        (change)="onChangeEvent($event)"
+        (click)="onClick($event)"
+      />
+      <span class="slider"></span>
+    </label>
+  </div>
 </ub-base-input>

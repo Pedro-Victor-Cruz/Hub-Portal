@@ -72,7 +72,7 @@
           <div class="folder-child"
                *ngFor="let child of item.children; trackBy: trackByItemId"
                [class.highlight]="child.highlight"
-               (click)="selectable ? toggleSelection(child, $event) : selectItem(child)">
+               (click)="selectionMode === 'single' ? selectItem(child) : (selectable ? toggleSelection(child, $event) : selectItem(child))">
 
             <div class="child-indent"
                  [style.margin-left.px]="getIndentLevel(child) * 12"></div>

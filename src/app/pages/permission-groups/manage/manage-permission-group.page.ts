@@ -38,7 +38,7 @@ export class ManagePermissionGroupPage {
   protected loadingAction: boolean = false;
   protected folderPermissionsConfig: FolderConfig = {
     groupBy: 'group',
-    folderName: 'group_description',
+    folderName: 'group',
     itemDescription: 'name',
     itemName: 'description',
     folderIcon: 'bx-folder',

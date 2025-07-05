@@ -13,6 +13,7 @@ import {ManageCompanyPage} from './pages/companies/manage/manage-company.page';
 import {PermissionsPage} from './pages/permissions/permissions.page';
 import {PermissionGroupsPage} from './pages/permission-groups/permission-groups.page';
 import {ManagePermissionGroupPage} from './pages/permission-groups/manage/manage-permission-group.page';
+import {ParametersPage} from './pages/parameters/parameters.page';
 
 export const routes: Routes = [
   {
@@ -137,6 +138,19 @@ export const routes: Routes = [
             data: {
               permission: 'permission_group.edit',
             }
+          }
+        ]
+      },
+      {
+        path: 'parameters',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'parameter.view',
+        },
+        children: [
+          {
+            path: '',
+            component: ParametersPage
           }
         ]
       }

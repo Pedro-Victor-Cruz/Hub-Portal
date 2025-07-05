@@ -1,55 +1,109 @@
 <div class="app-selector">
-  <!-- Botão de ativação -->
   <button class="selector-trigger" (click)="toggleSearch()">
     <i class='bx bx-grid-alt'></i>
   </button>
 
-  <!-- Overlay e container do menu -->
-  <div class="selector-overlay" [class.active]="isSearchActive" (click)="isSearchActive = false"></div>
-
-  <div class="selector-menu" [class.active]="isSearchActive">
-    <!-- Cabeçalho -->
-    <div class="menu-header">
-      <h3>Navegação</h3>
-      <button class="close-btn" (click)="isSearchActive = false">
-        <i class='bx bx-x'></i>
-      </button>
-    </div>
-
-    <!-- Campo de busca -->
-    <div class="search-container">
+  <div class="selector-search">
+    <div class="search">
       <i class='bx bx-search'></i>
       <input type="text"
+             placeholder="Pesquisar página..."
              [(ngModel)]="searchQuery"
-             placeholder="Buscar página..."
-             (input)="handleSearch()"
-             (focus)="isSearchActive = true">
+             (focus)="onSearchFocus()"
+             (blur)="onSearchBlur()"
+             (input)="handleSearch()">
     </div>
 
-    <!-- Lista de resultados -->
-    <div class="app-list">
-      <ng-container *ngIf="searchResults().length > 0; else noResults">
-        <div class="app-item"
-             *ngFor="let app of searchResults()"
-             (click)="navigate(app.path)">
-          <div class="app-icon">
-            <i [class]="app.icon"></i>
-          </div>
-          <div class="app-info">
-            <span class="app-title">{{ app.title }}</span>
-            <span class="app-desc" *ngIf="app.description">{{ app.description }}</span>
-          </div>
-          <i class='bx bx-chevron-right'></i>
+    <div class="search-results" *ngIf="isSearchText">
+      <ng-container *ngIf="searchQuery.trim() === ''; else searchResults">
+        <div class="results-column">
+          <h4>Pesquisas recentes</h4>
+          <ul *ngIf="recentSearches.length > 0; else noRecent">
+            <li *ngFor="let search of recentSearches" (click)="navigate(search.path)">
+              <i class='bx bx-history'></i>
+              <span>{{ search.title }}</span>
+              <i class='bx bx-star' (click)="toggleFavorite(search); $event.stopPropagation()"
+                 [class.favorite]="isFavorite(search)"></i>
+            </li>
+          </ul>
+          <ng-template #noRecent>
+            <p class="empty-message">Nenhuma pesquisa recente</p>
+          </ng-template>
+        </div>
+
+        <div class="results-column">
+          <h4>Favoritos</h4>
+          <ul *ngIf="favoritePages.length > 0; else noFavorites">
+            <li *ngFor="let favorite of favoritePages" (click)="navigate(favorite.path)">
+              <i class='bx bx-star'></i>
+              <span>{{ favorite.title }}</span>
+            </li>
+          </ul>
+          <ng-template #noFavorites>
+            <p class="empty-message">Nenhum favorito adicionado</p>
+          </ng-template>
         </div>
       </ng-container>
 
-      <ng-template #noResults>
-        <div class="empty-state">
-          <i class='bx bx-compass'></i>
-          <h4>Nenhum resultado encontrado</h4>
-          <p>Tente buscar com outros termos ou verifique se a página existe</p>
+      <ng-template #searchResults>
+        <div class="search-results-list">
+          <ul *ngIf="filteredResults.length > 0; else noSearchResults">
+            <li *ngFor="let result of filteredResults" (click)="navigate(result.path)">
+              <i [class]="result.icon || 'bx bx-file'"></i>
+              <span>{{ result.title }}</span>
+              <i class='bx bx-star' (click)="toggleFavorite(result); $event.stopPropagation()"
+                 [class.favorite]="isFavorite(result)"></i>
+            </li>
+          </ul>
+          <ng-template #noSearchResults>
+            <p class="empty-message">Nenhum resultado encontrado</p>
+          </ng-template>
         </div>
       </ng-template>
     </div>
+  </div>
+</div>
+
+<div class="selector-overlay" [class.active]="isSearchModalActive" (click)="isSearchModalActive = false"></div>
+
+<div class="selector-menu" [class.active]="isSearchModalActive">
+  <div class="menu-header">
+    <h3>Navegação</h3>
+    <button class="close-btn" (click)="isSearchModalActive = false">
+      <i class='bx bx-x'></i>
+    </button>
+  </div>
+
+  <div class="search-container">
+    <i class='bx bx-search'></i>
+    <input type="text"
+           [(ngModel)]="searchQuery"
+           placeholder="Buscar página..."
+           (input)="handleSearch()">
+  </div>
+
+  <div class="app-list">
+    <ng-container *ngIf="filteredResults.length > 0; else noResults">
+      <div class="app-item"
+           *ngFor="let app of filteredResults"
+           (click)="navigate(app.path)">
+        <div class="app-icon">
+          <i [class]="app.icon || 'bx bx-file'"></i>
+        </div>
+        <div class="app-info">
+          <span class="app-title">{{ app.title }}</span>
+          <span class="app-desc" *ngIf="app.description">{{ app.description }}</span>
+        </div>
+        <i class='bx bx-chevron-right'></i>
+      </div>
+    </ng-container>
+
+    <ng-template #noResults>
+      <div class="empty-state">
+        <i class='bx bx-compass'></i>
+        <h4>Nenhum resultado encontrado</h4>
+        <p>Tente buscar com outros termos ou verifique se a página existe</p>
+      </div>
+    </ng-template>
   </div>
 </div>

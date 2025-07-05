@@ -1,9 +1,4 @@
-import {
-  Component, Input, Output, ContentChildren,
-  QueryList, AfterContentInit, ElementRef,
-  HostListener, Renderer2, OnDestroy, EventEmitter,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, Input, ContentChildren, QueryList, AfterContentInit, OnDestroy, Renderer2, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { PanelComponent } from './panel/panel.component';
 import { CommonModule } from '@angular/common';
 
@@ -13,174 +8,167 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="panel-area"
-         [class.dragging]="isDragging"
-         [style.flex-direction]="direction === 'vertical' ? 'column' : 'row'"
-         [style.flex]="flexStyle"
-         [style.gap]="gap + 'px'">
-      <ng-content></ng-content>
+         [class.vertical]="direction === 'vertical'"
+         [class.horizontal]="direction === 'horizontal'"
+         [class.dragging]="isDragging">
+      <ng-container *ngFor="let panel of visiblePanels; let i = index; trackBy: trackByPanel">
+        <div class="panel-wrapper" [style.flex]="getPanelFlex(panel)">
+          <ng-container [ngTemplateOutlet]="panel.template"></ng-container>
+        </div>
 
-      <div *ngFor="let gutter of gutters; trackBy: trackByIndex"
-           class="panel-gutter"
-           [class.vertical]="direction === 'vertical'"
-           [class.horizontal]="direction === 'horizontal'"
-           [style.left]="getGutterPosition(gutter)"
-           [style.top]="getGutterPosition(gutter)"
-           (mousedown)="startDrag($event, gutter.index)">
-      </div>
+        <div *ngIf="i < visiblePanels.length - 1"
+             class="panel-gutter"
+             [class.vertical]="direction === 'vertical'"
+             [class.horizontal]="direction === 'horizontal'"
+             [class.dragging]="draggingGutterIndex === i"
+             (mousedown)="startDrag($event, i)"
+             (touchstart)="startDrag($event, i)">
+        </div>
+      </ng-container>
     </div>
   `,
-  styleUrls: ['./panel-area.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./panel-area.component.scss']
 })
 export class PanelAreaComponent implements AfterContentInit, OnDestroy {
   @Input() direction: 'horizontal' | 'vertical' = 'horizontal';
   @Input() gutterSize: number = 8;
-  @Input() gap: number = 8;
-  @Input() size: number | null = null;
-  @Input() minSize: number = 20;
-  @Output() sizeChange = new EventEmitter<number>();
-  @Output() dragEnd = new EventEmitter<void>();
 
   @ContentChildren(PanelComponent) panels!: QueryList<PanelComponent>;
+  visiblePanels: PanelComponent[] = [];
 
   isDragging = false;
-  gutters: {index: number, position: number}[] = [];
-  private startPos = 0;
-  private panelArray: PanelComponent[] = [];
-  private destroyListeners: (() => void)[] = [];
-  private activeGutterIndex = -1;
-  private initialSizes: number[] = [];
+  draggingGutterIndex = -1;
+  private startPosition = 0;
+  private startSizes: number[] = [];
+  private moveListeners: (() => void)[] = [];
+  private endListeners: (() => void)[] = [];
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
-
-  get flexStyle(): string {
-    return this.size !== null ? `1 1 ${this.size}%` : '1 1 auto';
-  }
+  constructor(
+    private renderer: Renderer2,
+    private el: ElementRef,
+    private cdRef: ChangeDetectorRef
+  ) {}
 
   ngAfterContentInit(): void {
-    this.panelArray = this.panels.toArray();
-    this.updateGutters();
-    this.panels.changes.subscribe(() => {
-      this.panelArray = this.panels.toArray();
-      this.updateGutters();
-    });
+    this.updateVisiblePanels();
+    this.panels.changes.subscribe(() => this.updateVisiblePanels());
   }
 
   ngOnDestroy(): void {
-    this.cleanupListeners();
+    this.removeEventListeners();
   }
 
-  trackByIndex(index: number): number {
-    return index;
-  }
-
-  getGutterPosition(gutter: {index: number, position: number}): string | null {
-    return this.isDragging ? `${gutter.position}px` : null;
-  }
-
-  private updateGutters(): void {
-    this.gutters = [];
-    const resizablePanels = this.panelArray.filter(p => p.size !== null);
-
-    for (let i = 0; i < resizablePanels.length - 1; i++) {
-      this.gutters.push({
-        index: i,
-        position: 0 // Será calculado durante o drag
-      });
-    }
-  }
-
-  startDrag(event: MouseEvent, index: number): void {
+  startDrag(event: MouseEvent | TouchEvent, gutterIndex: number): void {
     event.preventDefault();
-    event.stopPropagation();
-
     this.isDragging = true;
-    this.activeGutterIndex = index;
-    this.startPos = this.direction === 'horizontal' ? event.clientX : event.clientY;
-    this.initialSizes = this.panelArray.map(p => p.size || 0);
+    this.draggingGutterIndex = gutterIndex;
 
-    this.renderer.addClass(document.body, 'panel-dragging');
+    const clientPos = this.getClientPosition(event);
+    this.startPosition = this.direction === 'horizontal' ? clientPos.x : clientPos.y;
+    this.startSizes = [
+      this.visiblePanels[gutterIndex].size || 0,
+      this.visiblePanels[gutterIndex + 1].size || 0
+    ];
 
-    const mouseMoveListener = this.renderer.listen(
-      document, 'mousemove', this.onDrag.bind(this)
-    );
-    const mouseUpListener = this.renderer.listen(
-      document, 'mouseup', this.endDrag.bind(this)
-    );
+    // Adiciona listeners para mouse e touch
+    this.moveListeners = [
+      this.renderer.listen('document', 'mousemove', this.onDrag.bind(this)),
+      this.renderer.listen('document', 'touchmove', this.onDrag.bind(this), { passive: false })
+    ];
 
-    this.destroyListeners.push(() => {
-      mouseMoveListener();
-      mouseUpListener();
-    });
+    this.endListeners = [
+      this.renderer.listen('document', 'mouseup', this.endDrag.bind(this)),
+      this.renderer.listen('document', 'touchend', this.endDrag.bind(this)),
+      this.renderer.listen('document', 'touchcancel', this.endDrag.bind(this))
+    ];
   }
 
-  private onDrag(event: MouseEvent): void {
-    if (!this.isDragging || this.activeGutterIndex === -1) return;
+  private onDrag(event: MouseEvent | TouchEvent): void {
+    if (!this.isDragging || this.draggingGutterIndex === -1) return;
+    event.preventDefault();
 
-    const currentPos = this.direction === 'horizontal' ? event.clientX : event.clientY;
-    const delta = currentPos - this.startPos;
+    const clientPos = this.getClientPosition(event);
+    const currentPosition = this.direction === 'horizontal' ? clientPos.x : clientPos.y;
+    const delta = currentPosition - this.startPosition;
+
     const containerSize = this.direction === 'horizontal'
       ? this.el.nativeElement.offsetWidth
       : this.el.nativeElement.offsetHeight;
 
     if (containerSize <= 0) return;
 
-    const percentageDelta = (delta / containerSize) * 100;
-    const resizablePanels = this.panelArray.filter(p => p.size !== null);
+    const deltaPercent = (delta / containerSize) * 100;
 
-    if (this.activeGutterIndex >= 0 && this.activeGutterIndex < resizablePanels.length - 1) {
-      const panel1 = resizablePanels[this.activeGutterIndex];
-      const panel2 = resizablePanels[this.activeGutterIndex + 1];
-      const initialSize1 = this.initialSizes[this.panelArray.indexOf(panel1)];
-      const initialSize2 = this.initialSizes[this.panelArray.indexOf(panel2)];
+    const leftPanel = this.visiblePanels[this.draggingGutterIndex];
+    const rightPanel = this.visiblePanels[this.draggingGutterIndex + 1];
 
-      const newSize1 = Math.max(
-        panel1.minSize,
-        Math.min(100 - panel2.minSize, initialSize1 + percentageDelta)
-      );
-      const newSize2 = Math.max(
-        panel2.minSize,
-        initialSize2 - percentageDelta
-      );
+    const newLeftSize = this.startSizes[0] + deltaPercent;
+    const newRightSize = this.startSizes[1] - deltaPercent;
 
-      // Ajuste para garantir que a soma seja 100%
-      const total = newSize1 + newSize2;
-      const adjustment = 100 - total;
-
-      panel1.updateSize(newSize1 + adjustment/2);
-      panel2.updateSize(newSize2 + adjustment/2);
-
-      // Atualiza a posição do gutter durante o drag
-      if (this.gutters[this.activeGutterIndex]) {
-        const gutterPos = (panel1.size || 0) * containerSize / 100;
-        this.gutters[this.activeGutterIndex].position = gutterPos;
-      }
+    // Aplicar os novos tamanhos respeitando os mínimos e máximos
+    if (newLeftSize >= leftPanel.minSize && newRightSize >= rightPanel.minSize &&
+      newLeftSize <= (leftPanel.maxSize || 100) && newRightSize <= (rightPanel.maxSize || 100)) {
+      leftPanel.size = newLeftSize;
+      rightPanel.size = newRightSize;
+      this.cdRef.detectChanges();
     }
+  }
+
+  private getClientPosition(event: MouseEvent | TouchEvent): {x: number, y: number} {
+    if (this.isTouchEvent(event)) {
+      return {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY
+      };
+    } else {
+      return {
+        x: (event as MouseEvent).clientX,
+        y: (event as MouseEvent).clientY
+      };
+    }
+  }
+
+  private isTouchEvent(event: MouseEvent | TouchEvent): event is TouchEvent {
+    return (event as TouchEvent).touches !== undefined;
   }
 
   private endDrag(): void {
     this.isDragging = false;
-    this.activeGutterIndex = -1;
-    this.renderer.removeClass(document.body, 'panel-dragging');
-    this.dragEnd.emit();
-    this.cleanupListeners();
+    this.draggingGutterIndex = -1;
+    this.removeEventListeners();
+    this.cdRef.detectChanges();
   }
 
-  private cleanupListeners(): void {
-    this.destroyListeners.forEach(fn => fn());
-    this.destroyListeners = [];
+  private removeEventListeners(): void {
+    this.moveListeners.forEach(fn => fn());
+    this.endListeners.forEach(fn => fn());
+    this.moveListeners = [];
+    this.endListeners = [];
   }
 
-  updateSize(newSize: number): void {
-    if (this.size !== null) {
-      this.size = Math.max(this.minSize, Math.min(100, newSize));
-      this.sizeChange.emit(this.size);
+  trackByPanel(index: number, panel: PanelComponent): any {
+    return panel.id || index;
+  }
+
+  getPanelFlex(panel: PanelComponent): string {
+    if (panel.hidden) return '0 0 0%';
+    return panel.size !== null ? `0 0 calc(${panel.size}% + 2.5px)` : '1 1 auto';
+  }
+
+  private updateVisiblePanels(): void {
+    this.visiblePanels = this.panels.filter(p => !p.hidden);
+    this.normalizePanelSizes();
+    this.cdRef.detectChanges();
+  }
+
+  private normalizePanelSizes(): void {
+    const totalSize = this.visiblePanels.reduce((sum, panel) => sum + (panel.size || 0), 0);
+
+    if (totalSize !== 100) {
+      const equalSize = 100 / this.visiblePanels.length;
+      this.visiblePanels.forEach(panel => {
+        panel.size = equalSize;
+      });
     }
-  }
-
-  @HostListener('window:resize')
-  onWindowResize(): void {
-    this.panelArray.forEach(panel => panel.size !== null && panel.updateSize(panel.size));
-    this.size !== null && this.updateSize(this.size);
   }
 }

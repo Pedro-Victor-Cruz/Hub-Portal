@@ -48,7 +48,7 @@ export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges
 
   folderPermissionsConfig: FolderConfig = {
     groupBy: 'group',
-    folderName: 'group_description',
+    folderName: 'group',
     itemDescription: 'name',
     itemName: (item: any) => `${item.description} ${this.getSourcePermission(item.name)}`,
     folderIcon: 'bx-folder',
