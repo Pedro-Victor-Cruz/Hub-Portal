@@ -1,7 +1,11 @@
 <ub-base-input>
   <button [class]="buttonClass" [disabled]="loading || disabled" [type]="type">
-    <i *ngIf="icon" class="bx {{ icon }}"></i>
-    <span *ngIf="loading" class="loading-spinner"></span>
+    @if (icon) {
+      <i class="bx {{ icon }}"></i>
+    }
+    @if (loading) {
+      <span class="loading-spinner"></span>
+    }
     <ng-content></ng-content>
   </button>
 </ub-base-input>

@@ -1,5 +1,4 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgForOf, NgIf, NgSwitch, NgSwitchCase} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ToggleSwitchComponent} from '../form/toggle-switch/toggle-switch.component';
 
@@ -39,7 +38,7 @@ export interface FolderConfig {
 
 @Component({
   selector: 'ub-folder-view',
-  imports: [NgForOf, NgIf, FormsModule, NgSwitch, NgSwitchCase, ToggleSwitchComponent],
+  imports: [FormsModule, ToggleSwitchComponent],
   templateUrl: './folder-view.component.html',
   standalone: true,
   styleUrl: './folder-view.component.scss'

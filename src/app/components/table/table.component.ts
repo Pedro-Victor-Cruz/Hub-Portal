@@ -1,5 +1,4 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import { NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../form/button/button.component';
 import {InputComponent} from '../form/input/input.component';
@@ -26,7 +25,7 @@ export interface ColumnConfig {
 
 @Component({
   selector: 'ub-table',
-  imports: [NgIf, NgForOf, FormsModule, ButtonComponent, InputComponent, MultiselectComponent, ButtonComponent, ActionButtonComponent, PaginationComponent],
+  imports: [FormsModule, ButtonComponent, InputComponent, MultiselectComponent, ButtonComponent, ActionButtonComponent, PaginationComponent],
   templateUrl: './table.component.html',
   standalone: true,
   styleUrl: './table.component.scss',

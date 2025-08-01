@@ -1,11 +1,9 @@
 import {Component, HostBinding, Input} from '@angular/core';
-import {NgIf} from '@angular/common';
 import {BaseInputComponent} from '../base-input.component';
 
 @Component({
   selector: 'ub-button',
   imports: [
-    NgIf,
     BaseInputComponent
   ],
   templateUrl: './button.component.html',

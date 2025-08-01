@@ -1,11 +1,10 @@
 import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { BaseInputComponent } from '../base-input.component';
-import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'ub-textarea',
-  imports: [BaseInputComponent, NgIf],
+  imports: [BaseInputComponent],
   templateUrl: './textarea.component.html',
   standalone: true,
   styleUrls: ['../base-input.component.scss'],

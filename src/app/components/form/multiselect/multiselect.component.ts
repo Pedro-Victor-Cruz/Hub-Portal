@@ -1,15 +1,12 @@
 import {Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, Output} from '@angular/core';
 import {BaseInputComponent} from '../base-input.component';
-import {NgForOf, NgIf} from '@angular/common';
 import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 @Component({
   selector: 'ub-multiselect',
   imports: [
     BaseInputComponent,
-    NgIf,
     FormsModule,
-    NgForOf
   ],
   templateUrl: './multiselect.component.html',
   standalone: true,

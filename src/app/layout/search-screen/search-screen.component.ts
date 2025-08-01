@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutService } from '../layout.service';
@@ -15,7 +14,7 @@ interface SearchItem {
 
 @Component({
   selector: 'search-screen',
-  imports: [NgForOf, NgIf, FormsModule],
+  imports: [FormsModule],
   templateUrl: './search-screen.component.html',
   standalone: true,
   styleUrls: ['./search-screen.component.scss']

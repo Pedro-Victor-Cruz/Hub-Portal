@@ -14,53 +14,62 @@
              (input)="handleSearch()">
     </div>
 
-    <div class="search-results" *ngIf="isSearchText">
-      <ng-container *ngIf="searchQuery.trim() === ''; else searchResults">
-        <div class="results-column">
-          <h4>Pesquisas recentes</h4>
-          <ul *ngIf="recentSearches.length > 0; else noRecent">
-            <li *ngFor="let search of recentSearches" (click)="navigate(search.path)">
-              <i class='bx bx-history'></i>
-              <span>{{ search.title }}</span>
-              <i class='bx bx-star' (click)="toggleFavorite(search); $event.stopPropagation()"
-                 [class.favorite]="isFavorite(search)"></i>
-            </li>
-          </ul>
-          <ng-template #noRecent>
-            <p class="empty-message">Nenhuma pesquisa recente</p>
-          </ng-template>
-        </div>
+    @if (isSearchText) {
+      <div class="search-results">
+        @if (searchQuery.trim() === '') {
+          <div class="results-column">
+            <h4>Pesquisas recentes</h4>
+            @if (recentSearches.length > 0) {
+              <ul>
+                @for (search of recentSearches; track search) {
+                  <li (click)="navigate(search.path)">
+                    <i class='bx bx-history'></i>
+                    <span>{{ search.title }}</span>
+                    <i class='bx bx-star' (click)="toggleFavorite(search); $event.stopPropagation()"
+                       [class.favorite]="isFavorite(search)"></i>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty-message">Nenhuma pesquisa recente</p>
+            }
+          </div>
 
-        <div class="results-column">
-          <h4>Favoritos</h4>
-          <ul *ngIf="favoritePages.length > 0; else noFavorites">
-            <li *ngFor="let favorite of favoritePages" (click)="navigate(favorite.path)">
-              <i class='bx bx-star'></i>
-              <span>{{ favorite.title }}</span>
-            </li>
-          </ul>
-          <ng-template #noFavorites>
-            <p class="empty-message">Nenhum favorito adicionado</p>
-          </ng-template>
-        </div>
-      </ng-container>
-
-      <ng-template #searchResults>
-        <div class="search-results-list">
-          <ul *ngIf="filteredResults.length > 0; else noSearchResults">
-            <li *ngFor="let result of filteredResults" (click)="navigate(result.path)">
-              <i [class]="result.icon || 'bx bx-file'"></i>
-              <span>{{ result.title }}</span>
-              <i class='bx bx-star' (click)="toggleFavorite(result); $event.stopPropagation()"
-                 [class.favorite]="isFavorite(result)"></i>
-            </li>
-          </ul>
-          <ng-template #noSearchResults>
-            <p class="empty-message">Nenhum resultado encontrado</p>
-          </ng-template>
-        </div>
-      </ng-template>
-    </div>
+          <div class="results-column">
+            <h4>Favoritos</h4>
+            @if (favoritePages.length > 0) {
+              <ul>
+                @for (favorite of favoritePages; track favorite) {
+                  <li (click)="navigate(favorite.path)">
+                    <i class='bx bx-star'></i>
+                    <span>{{ favorite.title }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty-message">Nenhum favorito adicionado</p>
+            }
+          </div>
+        } @else {
+          <div class="search-results-list">
+            @if (filteredResults.length > 0) {
+              <ul>
+                @for (result of filteredResults; track result) {
+                  <li (click)="navigate(result.path)">
+                    <i [class]="result.icon || 'bx bx-file'"></i>
+                    <span>{{ result.title }}</span>
+                    <i class='bx bx-star' (click)="toggleFavorite(result); $event.stopPropagation()"
+                       [class.favorite]="isFavorite(result)"></i>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty-message">Nenhum resultado encontrado</p>
+            }
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>
 
@@ -83,27 +92,27 @@
   </div>
 
   <div class="app-list">
-    <ng-container *ngIf="filteredResults.length > 0; else noResults">
-      <div class="app-item"
-           *ngFor="let app of filteredResults"
-           (click)="navigate(app.path)">
-        <div class="app-icon">
-          <i [class]="app.icon || 'bx bx-file'"></i>
+    @if (filteredResults.length > 0) {
+      @for (app of filteredResults; track app) {
+        <div class="app-item" (click)="navigate(app.path)">
+          <div class="app-icon">
+            <i [class]="app.icon || 'bx bx-file'"></i>
+          </div>
+          <div class="app-info">
+            <span class="app-title">{{ app.title }}</span>
+            @if (app.description) {
+              <span class="app-desc">{{ app.description }}</span>
+            }
+          </div>
+          <i class='bx bx-chevron-right'></i>
         </div>
-        <div class="app-info">
-          <span class="app-title">{{ app.title }}</span>
-          <span class="app-desc" *ngIf="app.description">{{ app.description }}</span>
-        </div>
-        <i class='bx bx-chevron-right'></i>
-      </div>
-    </ng-container>
-
-    <ng-template #noResults>
+      }
+    } @else {
       <div class="empty-state">
         <i class='bx bx-compass'></i>
         <h4>Nenhum resultado encontrado</h4>
         <p>Tente buscar com outros termos ou verifique se a página existe</p>
       </div>
-    </ng-template>
+    }
   </div>
 </div>

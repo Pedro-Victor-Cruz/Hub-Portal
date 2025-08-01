@@ -1,6 +1,5 @@
 import { Component, Input, TemplateRef, ViewChild, HostBinding, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgIf } from '@angular/common';
 
 export interface PanelAction {
   title: string;
@@ -15,59 +14,66 @@ let nextId = 0;
 @Component({
   selector: 'ub-panel',
   standalone: true,
-  imports: [CommonModule, NgIf],
+  imports: [CommonModule],
   template: `
     <ng-template #template>
       <div class="panel"
            [class.hidden]="hidden"
            [class.fullscreen]="fullscreen"
            [class.collapsed]="collapsed">
-        <div class="panel-header" *ngIf="showHeader">
-          <h3 class="panel-title">{{ title }}</h3>
 
-          <div class="panel-actions">
-            <button *ngIf="collapsible"
-                    class="panel-action"
-                    (click)="toggleCollapse()"
-                    [title]="collapsed ? 'Expandir' : 'Recolher'">
-              <i class="icon" [class.icon-expand]="collapsed" [class.icon-collapse]="!collapsed"></i>
-            </button>
+        @if (showHeader) {
+          <div class="panel-header">
+            <h3 class="panel-title">{{ title }}</h3>
 
-            <button *ngIf="expandable"
-                    class="panel-action"
-                    (click)="toggleFullscreen()"
-                    [title]="fullscreen ? 'Sair de tela cheia' : 'Tela cheia'">
-              <i class="icon" [class.icon-fullscreen]="!fullscreen" [class.icon-exit-fullscreen]="fullscreen"></i>
-            </button>
+            <div class="panel-actions">
+              @if (collapsible) {
+                <button class="panel-action"
+                        (click)="toggleCollapse()"
+                        [title]="collapsed ? 'Expandir' : 'Recolher'">
+                  <i class="icon" [class.icon-expand]="collapsed" [class.icon-collapse]="!collapsed"></i>
+                </button>
+              }
 
-            <button *ngIf="closable"
-                    class="panel-action"
-                    (click)="close()"
-                    title="Fechar">
-              <i class="icon icon-close"></i>
-            </button>
+              @if (expandable) {
+                <button class="panel-action"
+                        (click)="toggleFullscreen()"
+                        [title]="fullscreen ? 'Sair de tela cheia' : 'Tela cheia'">
+                  <i class="icon" [class.icon-fullscreen]="!fullscreen" [class.icon-exit-fullscreen]="fullscreen"></i>
+                </button>
+              }
 
-            <ng-container *ngFor="let action of actions">
-              <button class="panel-action"
-                      [disabled]="action.disabled"
-                      (click)="action.action()"
-                      [title]="action.title"
+              @if (closable) {
+                <button class="panel-action"
+                        (click)="close()"
+                        title="Fechar">
+                  <i class="icon icon-close"></i>
+                </button>
+              }
+
+              @for (action of actions; track i; let i = $index) {
+                <button class="panel-action"
+                        [disabled]="action.disabled"
+                        (click)="action.action()"
+                        [title]="action.title"
                         [ngClass]="{
-                          'panel-action-info': action.severity === 'info',
-                          'panel-action-warning': action.severity === 'warning',
-                          'panel-action-error': action.severity === 'error',
-                          'panel-action-success': action.severity === 'success'
-                        }">
-                <i class="icon" [class]="action.icon"></i>
-              </button>
-            </ng-container>
-
+                      'panel-action-info': action.severity === 'info',
+                      'panel-action-warning': action.severity === 'warning',
+                      'panel-action-error': action.severity === 'error',
+                      'panel-action-success': action.severity === 'success'
+                    }">
+                  <i class="icon" [class]="action.icon"></i>
+                </button>
+              }
+            </div>
           </div>
-        </div>
+        }
 
-        <div class="panel-content" *ngIf="!collapsed">
-          <ng-content></ng-content>
-        </div>
+        @if (!collapsed) {
+          <div class="panel-content">
+            <ng-content></ng-content>
+          </div>
+        }
       </div>
     </ng-template>
   `,

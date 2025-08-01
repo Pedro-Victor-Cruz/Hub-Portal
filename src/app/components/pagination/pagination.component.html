@@ -17,15 +17,20 @@
     </button>
 
     <div class="pagination-pages">
-      <button *ngFor="let page of getPages()"
-              class="pagination-page"
-              [class.active]="page === currentPage"
-              (click)="changePage(page)">
-        {{page}}
-      </button>
+      @for (page of getPages(); track page) {
+        <button class="pagination-page"
+                [class.active]="page === currentPage"
+                (click)="changePage(page)">
+          {{page}}
+        </button>
+      }
 
-      <span class="pagination-ellipsis" *ngIf="showEllipsisStart">...</span>
-      <span class="pagination-ellipsis" *ngIf="showEllipsisEnd">...</span>
+      @if (showEllipsisStart) {
+        <span class="pagination-ellipsis">...</span>
+      }
+      @if (showEllipsisEnd) {
+        <span class="pagination-ellipsis">...</span>
+      }
     </div>
 
     <button class="pagination-button pagination-next"
@@ -46,7 +51,9 @@
     <select id="perPage" class="pagination-select"
             [(ngModel)]="perPage"
             (change)="onPerPageChange()">
-      <option *ngFor="let opt of perPageOptions" [value]="opt">{{opt}}</option>
+      @for (opt of perPageOptions; track opt) {
+        <option [value]="opt">{{opt}}</option>
+      }
     </select>
   </div>
 </div>

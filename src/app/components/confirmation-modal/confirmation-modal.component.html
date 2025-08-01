@@ -1,11 +1,13 @@
-<div class="modal-overlay" *ngIf="isVisible">
-  <div class="modal">
-    <div class="modal-content">
-      <p>{{ message }}</p>
-      <div class="modal-actions">
-        <ub-button (click)="onCancel()" severity="danger">{{ cancelText }}</ub-button>
-        <ub-button (click)="onAccept()" severity="primary">{{ acceptText }}</ub-button>
+@if (isVisible) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-content">
+        <p>{{ message }}</p>
+        <div class="modal-actions">
+          <ub-button (click)="onCancel()" severity="danger">{{ cancelText }}</ub-button>
+          <ub-button (click)="onAccept()" severity="primary">{{ acceptText }}</ub-button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}

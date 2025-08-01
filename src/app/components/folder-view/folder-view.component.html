@@ -19,7 +19,7 @@
 
   <!-- Lista de pastas -->
   <div class="folder-tree">
-    <ng-container *ngFor="let item of filteredItems; trackBy: trackByItemId">
+    @for (item of filteredItems; track item.id) {
       <div class="folder-item"
            [class.expanded]="item.expanded"
            [class.highlight]="item.highlight">
@@ -28,32 +28,36 @@
         <div class="folder-header" (click)="toggleExpand(item)">
           <div class="folder-indicator"
                [style.margin-left.px]="getIndentLevel(item) * 12">
-            <i class='bx'
-               [class.bx-chevron-right]="!item.expanded && hasChildren(item)"
-               [class.bx-chevron-down]="item.expanded && hasChildren(item)"
-               *ngIf="hasChildren(item)"></i>
+            @if (hasChildren(item)) {
+              <i class='bx'
+                 [class.bx-chevron-right]="!item.expanded"
+                 [class.bx-chevron-down]="item.expanded"></i>
+            }
           </div>
 
-          <div class="folder-selector" *ngIf="selectable">
-            <ng-container [ngSwitch]="folderConfig.selectionType">
-              <!-- Checkbox padrão -->
-              <div *ngSwitchCase="'checkbox'" class="folder-checkbox">
-                <input type="checkbox"
-                       [checked]="isSelected(item)"
-                       (click)="$event.stopPropagation()"
-                       (change)="toggleSelection(item, $event)">
-              </div>
-
-              <!-- Toggle switch alternativo -->
-              <div *ngSwitchCase="'toggle'" class="folder-toggle">
-                <ub-toggle-switch
-                  [value]="isSelected(item)"
-                  (click)="$event.stopPropagation()"
-                  (valueChange)="toggleSelection(item, null, $event)">
-                </ub-toggle-switch>
-              </div>
-            </ng-container>
-          </div>
+          @if (selectable) {
+            <div class="folder-selector">
+              @switch (folderConfig.selectionType) {
+                @case ('checkbox') {
+                  <div class="folder-checkbox">
+                    <input type="checkbox"
+                           [checked]="isSelected(item)"
+                           (click)="$event.stopPropagation()"
+                           (change)="toggleSelection(item, $event)">
+                  </div>
+                }
+                @case ('toggle') {
+                  <div class="folder-toggle">
+                    <ub-toggle-switch
+                      [value]="isSelected(item)"
+                      (click)="$event.stopPropagation()"
+                      (valueChange)="toggleSelection(item, null, $event)">
+                    </ub-toggle-switch>
+                  </div>
+                }
+              }
+            </div>
+          }
 
           <div class="folder-icon">
             <i class='bx'
@@ -63,57 +67,69 @@
 
           <div class="folder-info">
             <span class="folder-name">{{ item.name }}</span>
-            <span class="folder-meta" *ngIf="item.meta">{{ item.meta }}</span>
+            @if (item.meta) {
+              <span class="folder-meta">{{ item.meta }}</span>
+            }
           </div>
         </div>
 
         <!-- Conteúdo da pasta -->
-        <div class="folder-content" *ngIf="item.expanded && hasChildren(item)">
-          <div class="folder-child"
-               *ngFor="let child of item.children; trackBy: trackByItemId"
-               [class.highlight]="child.highlight"
-               (click)="selectionMode === 'single' ? selectItem(child) : (selectable ? toggleSelection(child, $event) : selectItem(child))">
+        @if (item.expanded && hasChildren(item)) {
+          <div class="folder-content">
+            @for (child of item.children; track child.id) {
+              <div class="folder-child"
+                   [class.highlight]="child.highlight"
+                   (click)="selectionMode === 'single' ? selectItem(child) : (selectable ? toggleSelection(child, $event) : selectItem(child))">
 
-            <div class="child-indent"
-                 [style.margin-left.px]="getIndentLevel(child) * 12"></div>
+                <div class="child-indent"
+                     [style.margin-left.px]="getIndentLevel(child) * 12"></div>
 
-            <div class="child-selector" *ngIf="selectable">
-              <ng-container [ngSwitch]="folderConfig.selectionType">
-                <!-- Checkbox padrão -->
-                <div *ngSwitchCase="'checkbox'" class="child-checkbox">
-                  <input type="checkbox"
-                         [checked]="isSelected(child)"
-                         (click)="$event.stopPropagation()"
-                         (change)="toggleSelection(child, $event)">
+                @if (selectable) {
+                  <div class="child-selector">
+                    @switch (folderConfig.selectionType) {
+                      @case ('checkbox') {
+                        <div class="child-checkbox">
+                          <input type="checkbox"
+                                 [checked]="isSelected(child)"
+                                 (click)="$event.stopPropagation()"
+                                 (change)="toggleSelection(child, $event)">
+                        </div>
+                      }
+                      @case ('toggle') {
+                        <div class="child-toggle">
+                          <ub-toggle-switch
+                            [value]="isSelected(child)"
+                            (click)="$event.stopPropagation()"
+                            (valueChange)="toggleSelection(child, null, $event)">
+                          </ub-toggle-switch>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+
+                <div class="child-icon">
+                  <i class='bx' [class]="child.icon || 'bx-file'"></i>
                 </div>
 
-                <!-- Toggle switch alternativo -->
-                <div *ngSwitchCase="'toggle'" class="child-toggle">
-                  <ub-toggle-switch
-                    [value]="isSelected(child)"
-                    (click)="$event.stopPropagation()"
-                    (valueChange)="toggleSelection(child, null, $event)">
-                  </ub-toggle-switch>
+                <div class="child-info">
+                  <span class="child-name">{{ child.name }}</span>
+                  @if (child.description) {
+                    <span class="child-desc">{{ child.description }}</span>
+                  }
                 </div>
-              </ng-container>
-            </div>
-
-            <div class="child-icon">
-              <i class='bx' [class]="child.icon || 'bx-file'"></i>
-            </div>
-
-            <div class="child-info">
-              <span class="child-name">{{ child.name }}</span>
-              <span class="child-desc" *ngIf="child.description">{{ child.description }}</span>
-            </div>
+              </div>
+            }
           </div>
-        </div>
+        }
       </div>
-    </ng-container>
+    }
 
-    <div class="empty-state" *ngIf="filteredItems.length === 0">
-      <i class='bx bx-search-alt'></i>
-      <p>Nenhum resultado encontrado para "{{ searchQuery }}"</p>
-    </div>
+    @if (filteredItems.length === 0) {
+      <div class="empty-state">
+        <i class='bx bx-search-alt'></i>
+        <p>Nenhum resultado encontrado para "{{ searchQuery }}"</p>
+      </div>
+    }
   </div>
 </div>

@@ -6,33 +6,46 @@
 >
   <div class="dropdown-container">
     <div class="dropdown-header" [class.open]="isOpen" (click)="toggleDropdown()">
-      <span *ngIf="!selectedOptionLabel">{{ placeholder }}</span>
-      <span *ngIf="selectedOptionLabel">{{ selectedOptionLabel }}</span>
+      @if (!selectedOptionLabel) {
+        <span>{{ placeholder }}</span>
+      }
+      @if (selectedOptionLabel) {
+        <span>{{ selectedOptionLabel }}</span>
+      }
 
       <div class="dropdown-icons">
-        <i *ngIf="clearable && value"
-           class='bx bx-x clear-icon'
-           (click)="clearSelection($event)"></i>
+        @if (clearable && value) {
+          <i class='bx bx-x clear-icon' (click)="clearSelection($event)"></i>
+        }
         <i class='bx bxs-chevron-down dropdown-icon'></i>
       </div>
     </div>
-    <div class="dropdown-content" *ngIf="isOpen">
-      <input
-        *ngIf="filter"
-        type="text"
-        class="filter-input"
-        placeholder="Filtrar..."
-        [(ngModel)]="filterText"
-        (input)="onFilterChange()"
-      />
-      <div class="options-list">
-        <div *ngFor="let option of filteredOptions" class="option"
-          (click)="selectOption(option)"
-          [class.selected]="option[optionValue] === value">
-          <span>{{ option[optionLabel] }}</span>
-          <small *ngIf="optionDescription && option[optionDescription]">{{option[optionDescription]}}</small>
+
+    <ng-template #dropdownContent>
+      <div class="dropdown-content">
+        @if (filter) {
+          <input
+            type="text"
+            class="filter-input"
+            placeholder="Filtrar..."
+            [(ngModel)]="filterText"
+            (input)="onFilterChange()"
+          />
+        }
+
+        <div class="options-list">
+          @for (option of filteredOptions; track option[optionValue]) {
+            <div class="option"
+                 (click)="selectOption(option)"
+                 [class.selected]="option[optionValue] === value">
+              <span>{{ option[optionLabel] }}</span>
+              @if (optionDescription && option[optionDescription]) {
+                <small>{{ option[optionDescription] }}</small>
+              }
+            </div>
+          }
         </div>
       </div>
-    </div>
+    </ng-template>
   </div>
 </ub-base-input>

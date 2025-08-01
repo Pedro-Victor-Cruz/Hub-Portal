@@ -1,13 +1,11 @@
 import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
 import { BaseInputComponent } from '../base-input.component';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'ub-image',
   imports: [
     BaseInputComponent,
-    NgIf,
   ],
   templateUrl: './image.component.html',
   standalone: true,

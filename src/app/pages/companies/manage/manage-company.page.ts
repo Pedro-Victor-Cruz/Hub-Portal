@@ -2,11 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
-  FormArray,
   Validators,
   ReactiveFormsModule,
-  FormControl,
-  AbstractControl
 } from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CompanyService} from '../../../services/company.service';
@@ -14,9 +11,7 @@ import {Utils} from '../../../services/utils.service';
 import {FormErrorHandlerService} from '../../../components/form/form-error-handler.service';
 import {InputComponent} from '../../../components/form/input/input.component';
 import {TabComponent} from '../../../components/tabs/tab/tab.component';
-import {NgForOf, NgIf} from '@angular/common';
 import {TabsComponent} from '../../../components/tabs/tabs.component';
-import {EditorComponent} from '../../../components/form/editor/editor.component';
 import {ContentComponent} from '../../../components/content/content.component';
 import {ButtonComponent} from '../../../components/form/button/button.component';
 import {InputmaskComponent} from '../../../components/form/inputmask/inputmask.component';
@@ -38,7 +33,6 @@ import {ErpSettingsComponent} from '../erp-settings/erp-settings.component';
     ButtonComponent,
     InputmaskComponent,
     DropdownComponent,
-    NgIf,
     ErpSettingsComponent
   ],
   standalone: true

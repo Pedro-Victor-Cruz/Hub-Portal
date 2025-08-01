@@ -1,12 +1,10 @@
 import {Component, OnDestroy} from '@angular/core';
 import {ConfirmationService} from './confirmation-modal.service';
-import {NgIf} from '@angular/common';
 import {ButtonComponent} from '../form/button/button.component';
 
 @Component({
   selector: 'ub-confirmation-modal',
   imports: [
-    NgIf,
     ButtonComponent
   ],
   templateUrl: './confirmation-modal.component.html',

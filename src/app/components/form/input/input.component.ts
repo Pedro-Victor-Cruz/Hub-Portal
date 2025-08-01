@@ -11,11 +11,10 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {BaseInputComponent} from '../base-input.component';
-import {NgForOf, NgIf} from '@angular/common';
 
 @Component({
   selector: 'ub-input',
-  imports: [BaseInputComponent, NgForOf, NgIf],
+  imports: [BaseInputComponent],
   templateUrl: './input.component.html',
   standalone: true,
   styleUrls: ['../base-input.component.scss'],

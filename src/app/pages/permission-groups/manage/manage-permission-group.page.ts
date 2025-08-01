@@ -3,7 +3,6 @@ import {ButtonComponent} from '../../../components/form/button/button.component'
 import {ContentComponent} from '../../../components/content/content.component';
 import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
 import {InputComponent} from '../../../components/form/input/input.component';
-import {NgIf} from '@angular/common';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PermissionService} from '../../../services/permission.service';
@@ -20,7 +19,6 @@ import {FormErrorHandlerService} from '../../../components/form/form-error-handl
     ReactiveFormsModule,
     FormsModule,
     FolderViewComponent,
-    NgIf,
     ButtonComponent
   ],
   templateUrl: './manage-permission-group.page.html',

@@ -17,18 +17,21 @@
     [rows]="rows"
   ></textarea>
 
-  <!-- Contador de caracteres -->
-  <div *ngIf="maxlength" class="character-counter">
-    {{ characterCount }} / {{ maxlength }}
-  </div>
+  @if (maxlength) {
+    <div class="character-counter">
+      {{ characterCount }} / {{ maxlength }}
+    </div>
+  }
 
-  <!-- Mensagem de erro para minLength -->
-  <div *ngIf="minLength && !isMinLengthValid" class="error-message">
-    O texto deve ter pelo menos {{ minLength }} caracteres.
-  </div>
+  @if (minLength && !isMinLengthValid) {
+    <div class="error-message">
+      O texto deve ter pelo menos {{ minLength }} caracteres.
+    </div>
+  }
 
-  <!-- Mensagem de erro para maxlength -->
-  <div *ngIf="maxlength && !isMaxLengthValid" class="error-message">
-    O texto não pode exceder {{ maxlength }} caracteres.
-  </div>
+  @if (maxlength && !isMaxLengthValid) {
+    <div class="error-message">
+      O texto não pode exceder {{ maxlength }} caracteres.
+    </div>
+  }
 </ub-base-input>

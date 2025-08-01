@@ -62,14 +62,16 @@
       </form>
     </ub-tab>
 
-    <ub-tab label="Acessos" *ngIf="user">
-      <user-access-settings
-        (reload)="reloadPage()"
-        [user]="user"
-        [companyId]="form.get('company_id')?.value"
-        [(loading)]="loadingPage"
-      ></user-access-settings>
-    </ub-tab>
+    @if (user) {
+      <ub-tab label="Acessos">
+        <user-access-settings
+          (reload)="reloadPage()"
+          [user]="user"
+          [companyId]="form.get('company_id')?.value"
+          [(loading)]="loadingPage"
+        ></user-access-settings>
+      </ub-tab>
+    }
 
   </ub-tabs>
 </ub-content>

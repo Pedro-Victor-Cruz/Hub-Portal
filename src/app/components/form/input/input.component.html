@@ -16,10 +16,15 @@
       (click)="onClick($event)"
       [class.error]="error"
     />
-    <div class="suggestions-container" *ngIf="showSuggestions && suggestions.length > 0">
-      <div *ngFor="let suggestion of filteredSuggestions" class="suggestion" (mousedown)="selectSuggestion(suggestion)">
-        {{ suggestion }}
+
+    @if (showSuggestions && suggestions.length > 0) {
+      <div class="suggestions-container">
+        @for (suggestion of filteredSuggestions; track i; let i = $index) {
+          <div class="suggestion" (mousedown)="selectSuggestion(suggestion)">
+            {{ suggestion }}
+          </div>
+        }
       </div>
-    </div>
+    }
   </div>
 </ub-base-input>

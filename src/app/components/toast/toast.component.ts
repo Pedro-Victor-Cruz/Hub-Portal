@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
 import {Toast, ToastService} from './toast.service';
-import {AsyncPipe, NgClass, NgForOf} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 
 @Component({
   selector: 'ub-toast',
   imports: [
-    NgClass,
-    AsyncPipe,
-    NgForOf
+    AsyncPipe
   ],
   templateUrl: './toast.component.html',
   standalone: true,

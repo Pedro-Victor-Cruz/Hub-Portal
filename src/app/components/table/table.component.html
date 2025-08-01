@@ -7,10 +7,16 @@
                       (valueChange)="console.log($event)"></ub-multiselect>
     </div>
     <div class="actions">
-      <ub-button *ngIf="config.showAddButton" (click)="create()" icon="bx bx-plus" severity="success">Adicionar</ub-button>
+      @if (config.showAddButton) {
+        <ub-button (click)="create()" icon="bx bx-plus" severity="success">Adicionar</ub-button>
+      }
       <ub-button icon="bx bx-refresh" (click)="reloadEvent.emit()">Recarregar</ub-button>
-      <ub-button *ngIf="config.showFilterButton" icon="bx bx-filter-alt">Filtrar</ub-button>
-      <ub-actionbutton *ngIf="config.showExportButton ?? true" [actions]="actionsExport" icon="bx bx-export">Exportar</ub-actionbutton>
+      @if (config.showFilterButton) {
+        <ub-button icon="bx bx-filter-alt">Filtrar</ub-button>
+      }
+      @if (config.showExportButton ?? true) {
+        <ub-actionbutton [actions]="actionsExport" icon="bx bx-export">Exportar</ub-actionbutton>
+      }
     </div>
   </div>
 
@@ -18,96 +24,119 @@
     <thead>
     <tr>
       <!-- Coluna de seleção -->
-      <th *ngIf="config.selectable">
-        <label class="checkbox-container">
-          <input
-            type="checkbox"
-            [checked]="selectedItems.length === data.length"
-            (change)="toggleSelectAll($event)"
-          />
-          <span class="checkmark"></span>
-        </label>
-      </th>
+      @if (config.selectable) {
+        <th>
+          <label class="checkbox-container">
+            <input
+              type="checkbox"
+              [checked]="selectedItems.length === data.length"
+              (change)="toggleSelectAll($event)"
+            />
+            <span class="checkmark"></span>
+          </label>
+        </th>
+      }
 
       <!-- Cabeçalho das colunas -->
-      <ng-container *ngFor="let col of config.cols">
-        <th *ngIf="selectedColumns.includes(col.path)" class="sortable">
-          <div class="header-content">
-            {{ col.name }}
-            <i
-              class="bx bx-filter filter-icon"
-              (click)="openFilterPopup(col)"
-            ></i>
-          </div>
-        </th>
-      </ng-container>
+      @for (col of config.cols; track col.path) {
+        @if (selectedColumns.includes(col.path)) {
+          <th class="sortable">
+            <div class="header-content">
+              {{ col.name }}
+              <i
+                class="bx bx-filter filter-icon"
+                (click)="openFilterPopup(col)"
+              ></i>
+            </div>
+          </th>
+        }
+      }
 
       <!-- Coluna de ações -->
-      <th *ngIf="config.showEditButton || config.showDeleteButton">Ações</th>
+      @if (config.showEditButton || config.showDeleteButton) {
+        <th>Ações</th>
+      }
     </tr>
     </thead>
 
     <tbody>
-    <tr *ngFor="let item of filteredData; let i = index">
-      <!-- Checkbox de seleção -->
-      <td *ngIf="config.selectable">
-        <label class="checkbox-container">
-          <input
-            type="checkbox"
-            [checked]="isSelected(item)"
-            (change)="toggleSelect(item)"
-          />
-          <span class="checkmark"></span>
-        </label>
-      </td>
+      @for (item of filteredData; track i; let i = $index) {
+        <tr>
+          <!-- Checkbox de seleção -->
+          @if (config.selectable) {
+            <td>
+              <label class="checkbox-container">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(item)"
+                  (change)="toggleSelect(item)"
+                />
+                <span class="checkmark"></span>
+              </label>
+            </td>
+          }
 
-      <!-- Dados das colunas -->
-      <ng-container *ngFor="let col of config.cols">
-        <td *ngIf="selectedColumns.includes(col.path)">
-          {{ getNestedValue(item, col.path) }}
-        </td>
-      </ng-container>
+          <!-- Dados das colunas -->
+          @for (col of config.cols; track col.path) {
+            @if (selectedColumns.includes(col.path)) {
+              <td>
+                {{ getNestedValue(item, col.path) }}
+              </td>
+            }
+          }
 
-      <!-- Coluna de ações -->
-      <td *ngIf="config.showEditButton || config.showDeleteButton" class="actions">
-        <button *ngIf="config.showEditButton" class="action-button edit" (click)="edit(item)">
-          <i class="bx bxs-edit"></i>
-        </button>
-        <button *ngIf="config.showDeleteButton" class="action-button delete" (click)="delete(item)">
-          <i class="bx bxs-trash"></i>
-        </button>
-      </td>
-    </tr>
+          <!-- Coluna de ações -->
+          @if (config.showEditButton || config.showDeleteButton) {
+            <td class="actions">
+              @if (config.showEditButton) {
+                <button class="action-button edit" (click)="edit(item)">
+                  <i class="bx bxs-edit"></i>
+                </button>
+              }
+              @if (config.showDeleteButton) {
+                <button class="action-button delete" (click)="delete(item)">
+                  <i class="bx bxs-trash"></i>
+                </button>
+              }
+            </td>
+          }
+        </tr>
+      }
     </tbody>
     <tfoot>
     <tr>
       <td colspan="100%">
 
       </td>
+    </tr>
     </tfoot>
   </table>
 
-  <div class="table-footer" *ngIf="paginate">
-    <ub-pagination
-      [currentPage]="paginate.current_page"
-      [lastPage]="paginate.last_page"
-      [perPage]="paginate.per_page"
-      [total]="paginate.total"
-      [from]="paginate.from"
-      [to]="paginate.from"
-      (pageChange)="onPageChange($event)"
-      (perPageChange)="onPerPageChange($event)"
-    ></ub-pagination>
-  </div>
+  @if (paginate) {
+    <div class="table-footer">
+      <ub-pagination
+        [currentPage]="paginate.current_page"
+        [lastPage]="paginate.last_page"
+        [perPage]="paginate.per_page"
+        [total]="paginate.total"
+        [from]="paginate.from"
+        [to]="paginate.from"
+        (pageChange)="onPageChange($event)"
+        (perPageChange)="onPerPageChange($event)"
+      ></ub-pagination>
+    </div>
+  }
 
-  <div class="filter-popup" *ngIf="filterPopupVisible">
-    <div class="filter-content">
-      <h4>Filtrar por {{ selectedFilterColumn?.name }}</h4>
-      <ub-input type="text" [(ngModel)]="filterValue" placeholder="Digite para filtrar..."></ub-input>
-      <div class="filter-actions">
-        <ub-button (click)="applyFilter()" icon="bx bx-check">Aplicar</ub-button>
-        <ub-button (click)="closeFilterPopup()" icon="bx bx-x" severity="danger">Fechar</ub-button>
+  @if (filterPopupVisible) {
+    <div class="filter-popup">
+      <div class="filter-content">
+        <h4>Filtrar por {{ selectedFilterColumn?.name }}</h4>
+        <ub-input type="text" [(ngModel)]="filterValue" placeholder="Digite para filtrar..."></ub-input>
+        <div class="filter-actions">
+          <ub-button (click)="applyFilter()" icon="bx bx-check">Aplicar</ub-button>
+          <ub-button (click)="closeFilterPopup()" icon="bx bx-x" severity="danger">Fechar</ub-button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

@@ -8,13 +8,12 @@ import {
   AfterContentInit,
   HostListener,
 } from '@angular/core';
-import { NgFor } from '@angular/common';
 import { TabComponent } from './tab/tab.component';
 
 @Component({
   selector: 'ub-tabs',
   standalone: true,
-  imports: [NgFor],
+  imports: [],
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.scss'],
 })

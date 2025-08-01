@@ -5,53 +5,49 @@
   [success]="success"
 >
   <div class="multiselect-container">
-    <div
-      class="multiselect-header"
-      [class.open]="isOpen"
-      (click)="toggleMultiselect()"
-    >
-      <span *ngIf="selectedOptions.length === 0">{{ placeholder }}</span>
-      <span *ngIf="selectedOptions.length > 0">
-        {{ selectedOptions.length > 3 ? "Selecionado " + selectedOptions.length + " itens" : selectedOptions.join(', ') }}
-      </span>
+    <div class="multiselect-header" [class.open]="isOpen" (click)="toggleMultiselect()">
+      @if (selectedOptions.length === 0) {
+        <span>{{ placeholder }}</span>
+      }
+      @if (selectedOptions.length > 0) {
+        <span>
+          {{ selectedOptions.length > 3 ? "Selecionado " + selectedOptions.length + " itens" : selectedOptions.join(', ') }}
+        </span>
+      }
       <i class='bx bxs-chevron-down dropdown-icon'></i>
     </div>
-    <div class="multiselect-content" *ngIf="isOpen">
-      <div class="filter-container">
-        <label class="select-all-checkbox">
-          <input
-            type="checkbox"
-            [checked]="areAllSelected()"
-            (change)="toggleSelectAll($event)"
-          />
-          <span class="checkmark"></span>
-        </label>
-        <input
-          *ngIf="filter"
-          type="text"
-          class="filter-input"
-          placeholder="Filtrar..."
-          [(ngModel)]="filterText"
-          (input)="onFilterChange()"
-        />
-      </div>
-      <div class="options-list">
-        <div
-          *ngFor="let option of filteredOptions"
-          class="option"
-          (click)="toggleOption(option)"
-        >
-          <label class="checkbox-container">
-            <input
-              type="checkbox"
-              [checked]="isSelected(option)"
-              (change)="toggleOption(option)"
-            />
+
+    @if (isOpen) {
+      <div class="multiselect-content">
+        <div class="filter-container">
+          <label class="select-all-checkbox">
+            <input type="checkbox" [checked]="areAllSelected()" (change)="toggleSelectAll($event)"/>
             <span class="checkmark"></span>
-            {{ option[optionLabel] }}
           </label>
+
+          @if (filter) {
+            <input
+              type="text"
+              class="filter-input"
+              placeholder="Filtrar..."
+              [(ngModel)]="filterText"
+              (input)="onFilterChange()"
+            />
+          }
+        </div>
+
+        <div class="options-list">
+          @for (option of filteredOptions; track option) {
+            <div class="option" (click)="toggleOption(option)">
+              <label class="checkbox-container">
+                <input type="checkbox" [checked]="isSelected(option)" (change)="toggleOption(option)"/>
+                <span class="checkmark"></span>
+                {{ option[optionLabel] }}
+              </label>
+            </div>
+          }
         </div>
       </div>
-    </div>
+    }
   </div>
 </ub-base-input>

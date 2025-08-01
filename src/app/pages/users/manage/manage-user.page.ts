@@ -18,7 +18,6 @@ import {HasPermissionDirective} from '../../../directives/has-permission.directi
 import {TabsComponent} from "../../../components/tabs/tabs.component";
 import {TabComponent} from '../../../components/tabs/tab/tab.component';
 import {UserAccessSettingsComponent} from '../user-access-settings/user-access-settings.component';
-import {NgIf} from '@angular/common';
 import {User} from '../../../models/user';
 
 @Component({
@@ -34,7 +33,6 @@ import {User} from '../../../models/user';
     TabsComponent,
     TabComponent,
     UserAccessSettingsComponent,
-    NgIf,
   ],
   templateUrl: './manage-user.page.html',
   standalone: true,

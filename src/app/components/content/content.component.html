@@ -1,9 +1,11 @@
 <div class="content-container" [class.loading]="loading">
   <div class="header">
     <!-- Botão de voltar -->
-    <button *ngIf="showBackButton" class="back-button" (click)="onBack()">
-      <i class="bx bx-arrow-back"></i>
-    </button>
+    @if (showBackButton) {
+      <button class="back-button" (click)="onBack()">
+        <i class="bx bx-arrow-back"></i>
+      </button>
+    }
     <h5>{{ title }}</h5>
     <!-- Slot para conteúdo personalizado no header -->
     <ng-content select="[header-content]"></ng-content>
@@ -15,8 +17,10 @@
   </div>
 
   <!-- Overlay de loading -->
-  <div *ngIf="loading" class="loading-overlay">
-    <div class="loading-spinner"></div>
-    <p>{{ loadingMessage }}</p>
-  </div>
+  @if (loading) {
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>{{ loadingMessage }}</p>
+    </div>
+  }
 </div>

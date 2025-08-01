@@ -6,19 +6,15 @@
 >
   <div class="image-upload-container">
     <!-- Input para selecionar a imagem -->
-    <input
-      type="file"
-      (change)="onFileChange($event)"
-      accept="image/*"
-      [class.error]="error"
-    />
+    <input type="file" (change)="onFileChange($event)" accept="image/*" [class.error]="error"/>
 
-    <!-- Preview da imagem -->
-    <div class="image-preview" *ngIf="imageUrl">
-      <img [src]="imageUrl" alt="Preview da imagem" />
-      <button class="remove-button" type="button" (click)="onRemoveImage()">
-        <i class='bx bx-trash'></i>
-      </button>
-    </div>
+    @if (imageUrl) {
+      <div class="image-preview">
+        <img [src]="imageUrl" alt="Preview da imagem" />
+        <button class="remove-button" type="button" (click)="onRemoveImage()">
+          <i class='bx bx-trash'></i>
+        </button>
+      </div>
+    }
   </div>
 </ub-base-input>

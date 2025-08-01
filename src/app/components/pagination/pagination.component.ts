@@ -1,7 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {ButtonComponent} from '../form/button/button.component';
 import {FormsModule} from '@angular/forms';
-import {NgForOf, NgIf} from '@angular/common';
 
 export interface Pagination {
   current_page: number;
@@ -15,9 +13,7 @@ export interface Pagination {
 @Component({
   selector: 'ub-pagination',
   imports: [
-    FormsModule,
-    NgForOf,
-    NgIf
+    FormsModule
   ],
   templateUrl: './pagination.component.html',
   standalone: true,

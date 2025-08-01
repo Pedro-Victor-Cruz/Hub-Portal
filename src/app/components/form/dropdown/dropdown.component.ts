@@ -3,21 +3,24 @@ import {
   ElementRef,
   EventEmitter,
   forwardRef,
-  HostListener,
   Input,
   OnChanges,
   OnInit,
-  Output, SimpleChanges
+  Output,
+  SimpleChanges,
+  ViewChild,
+  TemplateRef, ViewContainerRef
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { BaseInputComponent } from '../base-input.component';
-import { NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 
 @Component({
   selector: 'ub-dropdown',
   standalone: true,
-  imports: [BaseInputComponent, NgForOf, NgIf, FormsModule],
+  imports: [BaseInputComponent, FormsModule],
   templateUrl: './dropdown.component.html',
   styleUrls: ['../base-input.component.scss'],
   providers: [
@@ -36,8 +39,8 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() optionDescription: string | undefined = undefined;
   @Input() optionValue: string = 'value';
   @Input() placeholder: string = 'Selecione uma opção';
-  @Input() filter: boolean = true; // Habilita ou desabilita o filtro
-  @Input() clearable: boolean = false; // Habilita ou desabilita a opção de limpar seleção
+  @Input() filter: boolean = true;
+  @Input() clearable: boolean = false;
   @Input() error: string = '';
   @Input() success: string = '';
   @Input() value: any | null = null;
@@ -45,12 +48,19 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();
 
+  @ViewChild('dropdownContent') dropdownContent!: TemplateRef<any>;
+
   isOpen: boolean = false;
   filterText: string = '';
   filteredOptions: any[] = [];
   selectedOptionLabel: string = '';
+  private overlayRef!: OverlayRef;
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(
+    private elementRef: ElementRef,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef
+  ) {}
 
   onChange: any = () => {};
   onTouched: any = () => {};
@@ -84,11 +94,59 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   }
 
   toggleDropdown(): void {
-    this.isOpen = !this.isOpen;
     if (this.isOpen) {
-      this.filterText = '';
-      this.onFilterChange();
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
     }
+  }
+
+  openDropdown(): void {
+    if (this.isOpen) return;
+
+    const portal = new TemplatePortal(this.dropdownContent, this.viewContainerRef);
+
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo(this.elementRef.nativeElement.querySelector('.dropdown-header'))
+      .withPositions([
+        {
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top',
+          offsetY: 4
+        },
+        {
+          originX: 'start',
+          originY: 'top',
+          overlayX: 'start',
+          overlayY: 'bottom',
+          offsetY: -4
+        }
+      ]);
+
+    this.overlayRef = this.overlay.create({
+      positionStrategy,
+      hasBackdrop: true,
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      width: this.elementRef.nativeElement.offsetWidth
+    });
+
+    this.overlayRef.attach(portal);
+
+    this.overlayRef.backdropClick().subscribe(() => {
+      this.closeDropdown();
+    });
+
+    this.isOpen = true;
+  }
+
+  closeDropdown(): void {
+    if (this.overlayRef) {
+      this.overlayRef.dispose();
+    }
+    this.isOpen = false;
   }
 
   selectOption(option: any): void {
@@ -96,7 +154,7 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
     this.selectedOptionLabel = option[this.optionLabel];
     this.onChange(this.value);
     this.valueChange.emit(this.value);
-    this.isOpen = false;
+    this.closeDropdown();
   }
 
   onFilterChange(): void {
@@ -106,16 +164,15 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   }
 
   clearSelection(event: Event): void {
-    event.stopPropagation(); // Previne a abertura do dropdown
+    event.stopPropagation();
     this.value = '';
     this.selectedOptionLabel = '';
     this.onChange(this.value);
     this.valueChange.emit(this.value);
-    this.isOpen = false;
+    this.closeDropdown();
   }
 
   updateSelectedOptionLabel(): void {
-    console.log("Novo updateSelectedOptionLabel chamado com value:", this.value);
     if ((this.value === undefined || this.value === null || this.value === '') && this.clearable) {
       this.selectedOptionLabel = '';
       return;
@@ -126,10 +183,9 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
     this.selectedOptionLabel = selectedOption ? selectedOption[this.optionLabel] : this.placeholder;
   }
 
-  @HostListener('document:click', ['$event'])
-  onClickOutside(event: MouseEvent): void {
-    if (this.isOpen && !this.elementRef.nativeElement.contains(event.target)) {
-      this.isOpen = false;
+  ngOnDestroy(): void {
+    if (this.overlayRef) {
+      this.overlayRef.dispose();
     }
   }
 }

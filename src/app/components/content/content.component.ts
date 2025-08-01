@@ -1,10 +1,8 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'ub-content',
   imports: [
-    NgIf
   ],
   templateUrl: './content.component.html',
   standalone: true,

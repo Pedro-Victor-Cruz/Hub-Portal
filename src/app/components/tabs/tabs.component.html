@@ -4,14 +4,15 @@
 
     <!-- Lista de abas -->
     <div class="tab-header-scroll">
-      <button *ngFor="let tab of tabs; let i = index" type="button" class="tab-header"
-        [class.active]="tab.active"
-        (click)="selectTab(tab)"
-        [attr.aria-selected]="tab.active"
-        [attr.tabindex]="tab.active ? '0' : '-1'"
-      >
-        {{ tab.label }}
-      </button>
+      @for (tab of tabs; track tab.label; let i = $index) {
+        <button type="button" class="tab-header"
+                [class.active]="tab.active"
+                (click)="selectTab(tab)"
+                [attr.aria-selected]="tab.active"
+                [attr.tabindex]="tab.active ? '0' : '-1'">
+          {{ tab.label }}
+        </button>
+      }
     </div>
   </div>
 

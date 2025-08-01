@@ -1,5 +1,4 @@
 import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
-import {NgForOf, NgIf} from '@angular/common';
 import { BaseInputComponent } from '../base-input.component';
 
 export interface Action {
@@ -10,7 +9,7 @@ export interface Action {
 
 @Component({
   selector: 'ub-actionbutton',
-  imports: [NgIf, BaseInputComponent, NgForOf],
+  imports: [BaseInputComponent],
   templateUrl: './actionbutton.component.html',
   standalone: true,
   styleUrl: './actionbutton.component.scss',

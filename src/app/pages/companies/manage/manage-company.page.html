@@ -53,7 +53,7 @@
     </div>
   </form>
 
-  <ng-container *ngIf="idCompany">
+  @if (idCompany) {
     <ub-tabs>
 
       <ub-tab label="Configurações ERP">
@@ -61,6 +61,6 @@
       </ub-tab>
 
     </ub-tabs>
-  </ng-container>
+  }
 
 </ub-content>

@@ -14,13 +14,15 @@
 
         <div class="col-12 md:col-6">
           <ub-input label="Descrição" placeholder="Digite a descrição do parâmetro"
-                    [(ngModel)]="form.description" [error]="FormErrorHandlerService.getError('description', errors)"></ub-input>
+                    [(ngModel)]="form.description"
+                    [error]="FormErrorHandlerService.getError('description', errors)"></ub-input>
         </div>
 
         <div class="col-12 md:col-6">
           <ub-input label="Categoria" placeholder="Selecione a categoria do parâmetro"
-                       [suggestions]="categories"
-                       [(ngModel)]="form.category" [error]="FormErrorHandlerService.getError('category', errors)"></ub-input>
+                    [suggestions]="categories"
+                    [(ngModel)]="form.category"
+                    [error]="FormErrorHandlerService.getError('category', errors)"></ub-input>
         </div>
 
         <div class="col-12 md:col-6">
@@ -49,14 +51,16 @@
                 [error]="FormErrorHandlerService.getError('default_value', errors)">
               </ub-input>
             }
-<!--            @case ('date') {-->
-<!--&lt;!&ndash;              <ub-datepicker&ndash;&gt;-->
-<!--&lt;!&ndash;                label="Data"&ndash;&gt;-->
-<!--&lt;!&ndash;                placeholder="Selecione a data padrão"&ndash;&gt;-->
-<!--&lt;!&ndash;                [(ngModel)]="form.default_value"&ndash;&gt;-->
-<!--&lt;!&ndash;                [error]="FormErrorHandlerService.getError('default_value', errors)">&ndash;&gt;-->
-<!--&lt;!&ndash;              </ub-datepicker>&ndash;&gt;-->
-<!--            }-->
+            <!--
+            @case ('date') {
+              <ub-datepicker
+                label="Data"
+                placeholder="Selecione a data padrão"
+                [(ngModel)]="form.default_value"
+                [error]="FormErrorHandlerService.getError('default_value', errors)">
+              </ub-datepicker>
+            }
+            -->
             @case ('list') {
               <div class="p-fluid">
                 <div class="flex align-items-end">
@@ -71,20 +75,22 @@
                   <ub-button severity="primary" icon="bx bx-cog" (click)="showOptions = !showOptions"></ub-button>
                 </div>
 
-                <div class="mt-3" *ngIf="showOptions">
+                @if (showOptions) {
                   <label class="block mb-2">Opções da Lista</label>
-                  <div *ngFor="let option of form.options; let i = index" class="flex align-items-center mb-2">
-                    <ub-input
-                      [label]="'Opção ' + (i + 1)"
-                      [placeholder]="'Opção ' + (i + 1)"
-                      [(ngModel)]="optionValue[i]"
-                      (blur)="updateOption(i)"
-                      class="flex-grow-1 mr-2">
-                    </ub-input>
-                    <ub-button severity="danger" icon="bx bx-trash" (click)="removeOption(i)"></ub-button>
-                  </div>
+                  @for (option of form.options; track i; let i = $index) {
+                    <div class="flex align-items-center mb-2">
+                      <ub-input
+                        [label]="'Opção ' + (i + 1)"
+                        [placeholder]="'Opção ' + (i + 1)"
+                        [(ngModel)]="optionValue[i]"
+                        (blur)="updateOption(i)"
+                        class="flex-grow-1 mr-2">
+                      </ub-input>
+                      <ub-button severity="danger" icon="bx bx-trash" (click)="removeOption(i)"></ub-button>
+                    </div>
+                  }
                   <ub-button severity="success" icon="bx bx-plus" (click)="addOption()">Adicionar Opção</ub-button>
-                </div>
+                }
               </div>
             }
             @case ('boolean') {
@@ -107,20 +113,22 @@
           }
         </div>
 
-        <div class="col-12 md:col-6" *ngIf="accessLevels.length > 1">
-          <ub-dropdown
-            label="Nível de Acesso"
-            placeholder="Selecione o nível de acesso do parâmetro"
-            helpText="Ao definir o nível de acesso, o parâmetro será visível apenas para usuários com esse nível ou superior."
-            [clearable]="true"
-            [options]="accessLevels"
-            optionLabel="label"
-            optionDescription="description"
-            optionValue="value"
-            [error]="FormErrorHandlerService.getError('access_level', errors)"
-            [(value)]="form.access_level">
-          </ub-dropdown>
-        </div>
+        @if (accessLevels.length > 1) {
+          <div class="col-12 md:col-6">
+            <ub-dropdown
+              label="Nível de Acesso"
+              placeholder="Selecione o nível de acesso do parâmetro"
+              helpText="Ao definir o nível de acesso, o parâmetro será visível apenas para usuários com esse nível ou superior."
+              [clearable]="true"
+              [options]="accessLevels"
+              optionLabel="label"
+              optionDescription="description"
+              optionValue="value"
+              [error]="FormErrorHandlerService.getError('access_level', errors)"
+              [(value)]="form.access_level">
+            </ub-dropdown>
+          </div>
+        }
 
         <div class="flex justify-content-end">
           <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>

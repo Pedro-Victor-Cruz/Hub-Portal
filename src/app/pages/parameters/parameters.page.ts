@@ -10,7 +10,6 @@ import {FormsModule} from '@angular/forms';
 import {Utils} from '../../services/utils.service';
 import {FormErrorHandlerService} from '../../components/form/form-error-handler.service';
 import {DropdownComponent} from '../../components/form/dropdown/dropdown.component';
-import {NgForOf, NgIf} from '@angular/common';
 import {PermissionService} from '../../services/permission.service';
 import {ToggleSwitchComponent} from '../../components/form/toggle-switch/toggle-switch.component';
 import {ButtonComponent} from '../../components/form/button/button.component';
@@ -24,10 +23,8 @@ import {ButtonComponent} from '../../components/form/button/button.component';
     InputComponent,
     FormsModule,
     DropdownComponent,
-    NgIf,
     ToggleSwitchComponent,
     ButtonComponent,
-    NgForOf
   ],
   templateUrl: './parameters.page.html',
   standalone: true,

@@ -38,20 +38,22 @@
       </ub-dropdown>
     </div>
 
-    <div class="col-12 md:col-6" *ngIf="accessLevels.length > 1">
-      <ub-dropdown
-        label="Nível de Acesso"
-        placeholder="Selecione o nível de acesso do grupo"
-        helpText="Defina o nível de acesso do grupo"
-        [clearable]="true"
-        [options]="accessLevels"
-        optionLabel="label"
-        optionDescription="description"
-        optionValue="value"
-        [error]="FormErrorHandlerService.getError('access_level', errors)"
-        [(value)]="form.access_level">
-      </ub-dropdown>
-    </div>
+    @if (accessLevels.length > 1) {
+      <div class="col-12 md:col-6">
+        <ub-dropdown
+          label="Nível de Acesso"
+          placeholder="Selecione o nível de acesso do grupo"
+          helpText="Defina o nível de acesso do grupo"
+          [clearable]="true"
+          [options]="accessLevels"
+          optionLabel="label"
+          optionDescription="description"
+          optionValue="value"
+          [error]="FormErrorHandlerService.getError('access_level', errors)"
+          [(value)]="form.access_level">
+        </ub-dropdown>
+      </div>
+    }
 
     <div class="col-12">
       <ub-folder-view
@@ -63,8 +65,10 @@
       </ub-folder-view>
     </div>
 
-    <div class="flex justify-content-end">
-      <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>
+    <div class="col-12">
+      <div class="flex justify-content-end">
+        <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>
+      </div>
     </div>
   </div>
 

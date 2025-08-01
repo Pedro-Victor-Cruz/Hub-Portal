@@ -11,20 +11,22 @@ import { CommonModule } from '@angular/common';
          [class.vertical]="direction === 'vertical'"
          [class.horizontal]="direction === 'horizontal'"
          [class.dragging]="isDragging">
-      <ng-container *ngFor="let panel of visiblePanels; let i = index; trackBy: trackByPanel">
+
+      @for (panel of visiblePanels; track panel?.id; let i = $index) {
         <div class="panel-wrapper" [style.flex]="getPanelFlex(panel)">
           <ng-container [ngTemplateOutlet]="panel.template"></ng-container>
         </div>
 
-        <div *ngIf="i < visiblePanels.length - 1"
-             class="panel-gutter"
-             [class.vertical]="direction === 'vertical'"
-             [class.horizontal]="direction === 'horizontal'"
-             [class.dragging]="draggingGutterIndex === i"
-             (mousedown)="startDrag($event, i)"
-             (touchstart)="startDrag($event, i)">
-        </div>
-      </ng-container>
+        @if (i < visiblePanels.length - 1) {
+          <div class="panel-gutter"
+               [class.vertical]="direction === 'vertical'"
+               [class.horizontal]="direction === 'horizontal'"
+               [class.dragging]="draggingGutterIndex === i"
+               (mousedown)="startDrag($event, i)"
+               (touchstart)="startDrag($event, i)">
+          </div>
+        }
+      }
     </div>
   `,
   styleUrls: ['./panel-area.component.scss']
