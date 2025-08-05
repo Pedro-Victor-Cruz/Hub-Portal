@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UserAuthRequest;
 use App\Http\Requests\User\UserRequest;
 use App\Models\User;

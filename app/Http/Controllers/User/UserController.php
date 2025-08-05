@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UserCreateOrUpdateRequest;
 use App\Http\Requests\User\UserRequest;
 use App\Models\User;
@@ -59,7 +60,13 @@ class UserController extends Controller
 
     public function store(UserCreateOrUpdateRequest $request): JsonResponse
     {
+        /** @var User $auth */
+        $auth = Auth::guard('auth')->user();
         $data = $request->validated();
+
+        if (!$auth->hasPermissionTo('company.create_other')) {
+            $data['company_id'] = $auth->company_id;
+        }
 
         try {
             $user = User::query()->create([
@@ -84,6 +91,8 @@ class UserController extends Controller
 
     public function update(UserCreateOrUpdateRequest $request, $id): JsonResponse
     {
+        /** @var User $auth */
+        $auth = Auth::guard('auth')->user();
         $user = User::query()->findOrFail($id);
         $data = $request->validated();
 
@@ -92,6 +101,10 @@ class UserController extends Controller
                 'message' => 'Usuário não encontrado',
                 'data' => null
             ], 404);
+        }
+
+        if (!$auth->hasPermissionTo('company.edit_other')) {
+            $data['company_id'] = $user->company_id;
         }
 
         try {

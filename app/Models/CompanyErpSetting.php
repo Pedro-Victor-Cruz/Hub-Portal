@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Class CompanyErpSetting
@@ -49,6 +50,11 @@ class CompanyErpSetting extends Model
         'extra_config' => 'array',
     ];
 
+    public function setErpNameAttribute($value): void
+    {
+        $this->attributes['erp_name'] = strtolower(str_replace(' ', '-', $value));
+    }
+
     /**
      * Relacionamento: Configuração pertence a uma empresa
      */
@@ -56,4 +62,28 @@ class CompanyErpSetting extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    /**
+     * Retorna a classe do driver ERP configurada
+     */
+    public function getDriverClass(): string
+    {
+        return config("erp.drivers.{$this->erp_name}");
+    }
+
+    /**
+     * Retorna uma configuração específica do ERP para esta empresa.
+     * Se a configuração não existir, retorna o valor padrão fornecido.
+     *
+     * Exemplo de uso:
+     * $timeout = $companyErpSetting->getErpConfig('timeout', 30);
+     *
+     * @param string $key Chave da configuração desejada
+     * @param mixed|null $default Valor padrão se a configuração não existir
+     */
+    public function getErpConfig(string $key, mixed $default = null)
+    {
+        return config("erp.settings.{$this->erp_name}.{$key}", $default);
+    }
+
 }

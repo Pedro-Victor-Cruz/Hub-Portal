@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\UserAuthController;
+use App\Http\Controllers\User\UserAuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,5 +24,6 @@ Route::prefix('auth')->group(function () {
 require __DIR__ . '/subroutes/users.php';
 require __DIR__ . '/subroutes/companies.php';
 require __DIR__ . '/subroutes/permissions.php';
+require __DIR__ . '/subroutes/parameters.php';
 
 

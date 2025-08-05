@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Auth;
  * @property string $name
  * @property string $description
  * @property string|null $group
- * @property string|null $group_description
  * @property PermissionStatus $access_level
  * @property-read Collection<int, PermissionGroup> $groups
  */
@@ -30,7 +29,6 @@ class Permission extends Model
         'name',
         'description',
         'group',
-        'group_description',
         'access_level'
     ];
 

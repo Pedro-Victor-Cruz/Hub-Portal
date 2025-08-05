@@ -175,11 +175,10 @@ class PermissionGroup extends Model
                 $q->whereNull('company_id')
                     // Do admin OU
                     ->orWhere(function($q) use ($user) {
-                        if ($user->isAdmin()) {
-                            // Admin pode ver grupos de qualquer empresa
+                        // Se o usuário tenha permissão para ver outros grupos de empresa
+                        if ($user->hasPermissionTo('company.view_other')) {
                             $q->whereNotNull('company_id');
                         } else {
-                            // Não-admin só pode ver grupos da própria empresa
                             $q->where('company_id', $user->company_id);
                         }
                     });

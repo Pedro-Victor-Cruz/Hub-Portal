@@ -14,15 +14,6 @@ class UserCreateOrUpdateRequest extends ApiRequest
      */
     public function rules(): array
     {
-        $auth = Auth::guard('auth')->user();
-
-        // Se company_id foi enviado, valida se o usuário tem permissão
-        if ($this->filled('company_id') && $auth && !$auth->hasPermissionTo('company.assign_user')) {
-            throw ValidationException::withMessages([
-                'company_id' => 'Você não tem permissão para atribuir uma empresa.',
-            ]);
-        }
-
         return [
             'email' => [
                 //ignora caso coluna deleted_at esteja preenchida
@@ -44,22 +35,9 @@ class UserCreateOrUpdateRequest extends ApiRequest
         ];
     }
 
-    protected function prepareForValidation(): void
-    {
-        if (!$this->filled('company_id')) {
-            $auth = Auth::guard('auth')->user();
-            if ($auth && $auth->company_id && !$auth->hasPermissionTo('company.assign_user')) {
-                $this->merge([
-                    'company_id' => $auth->company_id,
-                ]);
-            }
-        }
-    }
-
     public function messages(): array
     {
         return [
-
             'email.unique' => 'Este email já está em uso.',
             'email.required' => 'O email é obrigatório.',
             'email.email' => 'O email deve ser um email válido.',

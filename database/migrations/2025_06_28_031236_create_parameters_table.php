@@ -11,11 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('permissions', function (Blueprint $table) {
+        Schema::create('parameters', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Ex: 'user.create', 'company.edit'
-            $table->string('description')->nullable();
-            $table->string('group')->nullable(); // Para agrupar permissões (Ex: 'users', 'companies')
+            $table->string('key')->unique();
+            $table->string('description');
+            $table->string('category');
+            $table->enum('type', ['boolean', 'integer', 'decimal', 'date', 'text', 'list']);
+            $table->text('default_value')->nullable();
+            $table->json('options')->nullable();
+            $table->boolean('is_system')->default(false);
             $table->unsignedTinyInteger('access_level')->default(1);
             $table->timestamps();
         });
@@ -26,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('permissions');
+        Schema::dropIfExists('parameters');
     }
 };

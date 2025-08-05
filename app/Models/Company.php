@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Utils\Helpers\CpfCnpjHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property string $name Nome da empresa
+ * @property string $key Chave única da empresa (geralmente um identificador único)
  * @property string|null $email Email de contato da empresa
  * @property string|null $cnpj CNPJ da empresa (apenas números)
  * @property int|null $responsible_user_id ID do usuário responsável principal pela empresa
@@ -35,9 +37,14 @@ class Company extends Model
 
     protected $fillable = [
         'name',
+        'key',
         'email',
         'responsible_user_id',
         'cnpj',
+    ];
+
+    protected $appends = [
+        'cnpj_formatted',
     ];
 
     /**
@@ -63,4 +70,59 @@ class Company extends Model
     {
         return $this->hasMany(CompanyErpSetting::class, 'company_id');
     }
+
+    /**
+     * Retorna a configuração de ERP ativa, se existir.
+     *
+     * @return CompanyErpSetting|null
+     */
+    public function activeErpSetting(): ?CompanyErpSetting
+    {
+        /** @var CompanyErpSetting|null */
+        return $this->erpSettings()->where('active', true)->first();
+    }
+
+    /**
+     * Verifica se a empresa possui alguma configuração de ERP ativa.
+     *
+     * @return bool
+     */
+    public function hasActiveErpSetting(): bool
+    {
+        return $this->erpSettings()->where('active', true)->exists();
+    }
+
+    /**
+     * Define o valor do atributo 'key' como uma string formatada.
+     * Removendo espaços e caracteres especiais, e convertendo para maiúsculas.
+     * Exemplo: SAFIA, SAOPEDRO
+     *
+     * @param string $value
+     */
+    public function setKeyAttribute(string $value): void
+    {
+        $this->attributes['key'] = strtoupper(preg_replace('/[^A-Z0-9]/', '', $value));
+    }
+
+    /**
+     * Define o valor do atributo 'cnpj' como uma string formatada.
+     * Removendo espaços e caracteres especiais, e garantindo que tenha 14 dígitos.
+     *
+     * @param string $value
+     */
+    public function setCnpjAttribute(string $value): void
+    {
+        $this->attributes['cnpj'] = CpfCnpjHelper::unformat($value);
+    }
+
+    /**
+     * Obtém o CNPJ formatado com pontos e traço.
+     *
+     * @return string
+     */
+    public function getCnpjFormattedAttribute(): string
+    {
+        return CpfCnpjHelper::format($this->cnpj);
+    }
+
 }

@@ -9,70 +9,55 @@ use Illuminate\Database\Seeder;
 class PermissionSeeder extends Seeder
 {
     private array $systemPermissions = [
-        // Users
+        // Usuários
         [
             'name'              => 'user.view',
             'description'       => 'Visualizar usuários',
-            'group'             => 'users',
-            'group_description' => 'Gerenciamento de usuários do sistema',
+            'group'             => 'Usuários',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'user.create',
             'description'       => 'Criar usuários',
-            'group'             => 'users',
-            'group_description' => 'Gerenciamento de usuários do sistema',
+            'group'             => 'Usuários',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'user.edit',
             'description'       => 'Editar usuários',
-            'group'             => 'users',
-            'group_description' => 'Gerenciamento de usuários do sistema',
+            'group'             => 'Usuários',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'user.delete',
             'description'       => 'Excluir usuários',
-            'group'             => 'users',
-            'group_description' => 'Gerenciamento de usuários do sistema',
+            'group'             => 'Usuários',
             'access_level' => PermissionStatus::USER
         ],
 
-        // Companies
+        // Empresas
         [
             'name'              => 'company.view',
             'description'       => 'Visualizar empresas',
-            'group'             => 'companies',
-            'group_description' => 'Gerenciamento de empresas cadastradas',
+            'group'             => 'Empresas',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'company.create',
             'description'       => 'Criar empresas',
-            'group'             => 'companies',
-            'group_description' => 'Gerenciamento de empresas cadastradas',
+            'group'             => 'Empresas',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'company.edit',
             'description'       => 'Editar empresas',
-            'group'             => 'companies',
-            'group_description' => 'Gerenciamento de empresas cadastradas',
+            'group'             => 'Empresas',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'company.delete',
             'description'       => 'Excluir empresas',
-            'group'             => 'companies',
-            'group_description' => 'Gerenciamento de empresas cadastradas',
-            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
-        ],
-        [
-            'name'              => 'company.assign_user',
-            'description'       => 'Atribuir usuários a empresas',
-            'group'             => 'companies',
-            'group_description' => 'Gerenciamento de empresas cadastradas',
+            'group'             => 'Empresas',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
 
@@ -81,29 +66,25 @@ class PermissionSeeder extends Seeder
         [
             'name'              => 'company.erp_settings.view',
             'description'       => 'Visualizar configurações de ERP da empresa',
-            'group'             => 'company_erp_settings',
-            'group_description' => 'Configurações de ERP específicas por empresa',
+            'group'             => 'ERP Configurações',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'company.erp_settings.create',
             'description'       => 'Criar configurações de ERP da empresa',
-            'group'             => 'company_erp_settings',
-            'group_description' => 'Configurações de ERP específicas por empresa',
+            'group'             => 'ERP Configurações',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'company.erp_settings.edit',
             'description'       => 'Editar configurações de ERP da empresa',
-            'group'             => 'company_erp_settings',
-            'group_description' => 'Configurações de ERP específicas por empresa',
+            'group'             => 'ERP Configurações',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'company.erp_settings.delete',
             'description'       => 'Excluir configurações de ERP da empresa',
-            'group'             => 'company_erp_settings',
-            'group_description' => 'Configurações de ERP específicas por empresa',
+            'group'             => 'ERP Configurações',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
 
@@ -111,36 +92,31 @@ class PermissionSeeder extends Seeder
         [
             'name'              => 'permission.view',
             'description'       => 'Visualizar permissões',
-            'group'             => 'permissions',
-            'group_description' => 'Gerenciamento de permissões do sistema',
+            'group'             => 'Permissões',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'permission.create',
             'description'       => 'Criar permissões',
-            'group'             => 'permissions',
-            'group_description' => 'Gerenciamento de permissões do sistema',
+            'group'             => 'Permissões',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'permission.edit',
             'description'       => 'Editar permissões',
-            'group'             => 'permissions',
-            'group_description' => 'Gerenciamento de permissões do sistema',
+            'group'             => 'Permissões',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'permission.delete',
             'description'       => 'Excluir permissões',
-            'group'             => 'permissions',
-            'group_description' => 'Gerenciamento de permissões do sistema',
+            'group'             => 'Permissões',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
         [
             'name'              => 'permission.assign',
             'description'       => 'Atribuir permissões específicas a usuários',
-            'group'             => 'permissions',
-            'group_description' => 'Gerenciamento de permissões do sistema',
+            'group'             => 'Permissões',
             'access_level' => PermissionStatus::USER
         ],
 
@@ -148,36 +124,63 @@ class PermissionSeeder extends Seeder
         [
             'name'              => 'permission_group.view',
             'description'       => 'Visualizar grupos de permissões',
-            'group'             => 'permission_groups',
-            'group_description' => 'Gerenciamento de grupos de permissões',
+            'group'             => 'Grupos',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'permission_group.create',
             'description'       => 'Criar grupos de permissões',
-            'group'             => 'permission_groups',
-            'group_description' => 'Gerenciamento de grupos de permissões',
+            'group'             => 'Grupos',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'permission_group.edit',
             'description'       => 'Editar grupos de permissões',
-            'group'             => 'permission_groups',
-            'group_description' => 'Gerenciamento de grupos de permissões',
+            'group'             => 'Grupos',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'permission_group.delete',
             'description'       => 'Excluir grupos de permissões',
-            'group'             => 'permission_groups',
-            'group_description' => 'Gerenciamento de grupos de permissões',
+            'group'             => 'Grupos',
             'access_level' => PermissionStatus::USER
         ],
         [
             'name'              => 'permission_group.assign',
             'description'       => 'Atribuir grupos de permissões a usuários',
-            'group'             => 'permission_groups',
-            'group_description' => 'Gerenciamento de grupos de permissões',
+            'group'             => 'Grupos',
+            'access_level' => PermissionStatus::USER
+        ],
+
+        // Parâmetros
+        [
+            'name'              => 'parameter.view',
+            'description'       => 'Visualizar parâmetros do sistema',
+            'group'             => 'Parâmetros',
+            'access_level' => PermissionStatus::USER
+        ],
+        [
+            'name'              => 'parameter.create',
+            'description'       => 'Criar parâmetros do sistema',
+            'group'             => 'Parâmetros',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'parameter.edit',
+            'description'       => 'Editar parâmetros do sistema',
+            'group'             => 'Parâmetros',
+            'access_level' => PermissionStatus::USER
+        ],
+        [
+            'name'              => 'parameter.delete',
+            'description'       => 'Excluir parâmetros do sistema',
+            'group'             => 'Parâmetros',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'parameter.company.update',
+            'description'       => 'Atualizar valores de parâmetros específicos por empresa',
+            'group'             => 'Parâmetros',
             'access_level' => PermissionStatus::USER
         ],
 
@@ -185,8 +188,19 @@ class PermissionSeeder extends Seeder
         [
             'name'              => 'system.settings',
             'description'       => 'Gerenciar configurações do sistema',
-            'group'             => 'system',
-            'group_description' => 'Configurações gerais do sistema',
+            'group'             => 'Sistema',
+            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
+        ],
+        [
+            'name'              => 'company.view_other',
+            'description'       => 'Visualizar dados de outras empresas',
+            'group'             => 'Sistema',
+            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
+        ],
+        [
+            'name'              => 'company.edit_other',
+            'description'       => 'Editar dados de outras empresas',
+            'group'             => 'Sistema',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
     ];

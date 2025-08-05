@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
-use App\Http\Requests\Permission\AssignPermissionGroupToUserRequest;
-use App\Http\Requests\Permission\AssignPermissionsToUserRequest;
-use App\Http\Requests\Permission\PermissionGroupRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\User\AssignPermissionGroupToUserRequest;
+use App\Http\Requests\User\AssignPermissionsToUserRequest;
+use App\Http\Requests\User\PermissionGroupRequest;
 use App\Models\Permission;
 use App\Models\PermissionGroup;
 use App\Models\User;
