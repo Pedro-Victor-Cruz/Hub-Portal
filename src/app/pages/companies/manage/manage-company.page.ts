@@ -58,6 +58,7 @@ export class ManageCompanyPage implements OnInit {
 
     this.form = this.fb.group({
       name: ['', [Validators.required]],
+      key: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       cnpj: ['', [Validators.required]],
       responsible_user_id: [null],
@@ -120,4 +121,12 @@ export class ManageCompanyPage implements OnInit {
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;
+
+  generateKey(event: FocusEvent) {
+    let value = event.target ? (event.target as HTMLInputElement).value : '';
+    value = value.trim().replace(" ", "");
+    this.form.patchValue({
+      key: Utils.slug(value).toUpperCase()
+    })
+  }
 }

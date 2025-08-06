@@ -9,6 +9,16 @@
           placeholder="Digite o nome da empresa"
           formControlName="name"
           [error]="FormErrorHandlerService.getError('name', errors)"
+          (blur)="generateKey($event)"
+        ></ub-input>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <ub-input
+          label="Chave"
+          placeholder="Digite a chave única"
+          formControlName="key"
+          [error]="FormErrorHandlerService.getError('key', errors)"
         ></ub-input>
       </div>
 
