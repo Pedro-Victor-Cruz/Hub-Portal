@@ -10,6 +10,7 @@ use App\Models\CompanyErpSetting;
 use App\Services\Erp\Drivers\Handlers\Auth\ErpAuthFactory;
 use App\Services\Erp\Request\SankhyaRequestBuilder;
 use App\Services\Erp\Response\SankhyaResponseProcessor;
+use App\Services\Erp\Services\Sankhya\SankhyaQueryService;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -27,7 +28,7 @@ class SankhyaDriver implements ErpIntegrationInterface
      * Mapeamento de serviços suportados
      */
     private const SUPPORTED_SERVICES = [
-        'QUERY' => \App\Services\Erp\Services\Sankhya\SankhyaQueryService::class,
+        'QUERY' => SankhyaQueryService::class,
     ];
 
     public function __construct(CompanyErpSetting $settings)

@@ -18,8 +18,7 @@ class CompanyErpSettingRequest extends ApiRequest
             'erp_name' => [
                 'required',
                 'string',
-                'max:255',
-                Rule::in(['sankhya']) // Adicione outros ERPs conforme necessário
+                'max:255'
             ],
             'username' => [
                 'nullable',

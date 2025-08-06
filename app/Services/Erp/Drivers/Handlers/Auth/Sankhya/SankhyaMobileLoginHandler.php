@@ -36,11 +36,12 @@ class SankhyaMobileLoginHandler extends BaseAuthHandler
         // Valida configurações obrigatórias
         $this->validateSettings(['base_url', 'username', 'secret_key']);
 
-        $response = Http::timeout(30)->post($this->settings->base_url . '/mge/service.sbr', [
+        $response = Http::timeout(30)->post($this->settings->base_url . '/mge/service.sbr?serviceName=MobileLoginSP.login&outputType=json', [
             'serviceName' => 'MobileLoginSP.login',
             'requestBody' => [
-                'userName' => $this->settings->username,
-                'password' => $this->settings->secret_key,
+                'NOMUSU' => ['$' => $this->settings->username],
+                'INTERNO' => ['$' => $this->settings->secret_key],
+                'KEEPCONNECTED' => ['$' => 'S'],
             ],
         ]);
 
@@ -53,15 +54,17 @@ class SankhyaMobileLoginHandler extends BaseAuthHandler
         $responseData = $response->json();
 
         // Verifica se houve erro na resposta
-        if (isset($responseData['status']) && $responseData['status'] !== 1) {
+        if (isset($responseData['status']) && $responseData['status'] !== '1') {
             $errorMessage = $responseData['statusMessage'] ?? 'Erro desconhecido na autenticação';
             throw new ErpAuthenticationException("Erro do Sankhya: {$errorMessage}");
         }
 
-        $token = $responseData['responseBody']['token'] ?? null;
+        $token = $responseData['responseBody']['jsessionid']['$'] ?? null;
+
+
 
         if (empty($token)) {
-            throw new ErpAuthenticationException('Token não retornado pelo servidor Sankhya');
+            throw new ErpAuthenticationException('Token não retornado pelo servidor Sankhya. Erro json: ' . json_encode($responseData));
         }
 
         // Salva o token no cache

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
  */
 class SankhyaJsonAuthHandler extends BaseAuthHandler
 {
-    private const AUTH_TYPE = 'json_auth';
+    private const AUTH_TYPE = 'token_auth';
     private const TOKEN_TTL_SECONDS = 300; // 5 minutos
 
     /**
@@ -35,26 +35,33 @@ class SankhyaJsonAuthHandler extends BaseAuthHandler
     protected function performAuthentication(): bool
     {
         // Valida configurações obrigatórias
-        $this->validateSettings(['base_url', 'username', 'secret_key']);
+        $this->validateSettings(['token']);
 
-        // Para JSON auth, precisamos de configurações extras: token fixo e appkey
-        $extraConfig = $this->settings->extra_config ?? [];
+        // Validando configurações de autenticação
+        $appKey = $this->settings->getErpConfig('appkey');
+        if (empty($appKey)) {
+            throw new ErpAuthenticationException('Chave do aplicativo (appkey) não configurada.');
+        }
 
-        if (empty($extraConfig['token']) || empty($extraConfig['appkey'])) {
-            throw new ErpAuthenticationException(
-                'Para autenticação JSON são necessários "token" e "appkey" em extra_config'
-            );
+        $username = $this->settings->getErpConfig('username');
+        if (empty($username)) {
+            throw new ErpAuthenticationException('Nome de usuário (username) não configurado.');
+        }
+
+        $password = $this->settings->getErpConfig('password');
+        if (empty($password)) {
+            throw new ErpAuthenticationException('Senha (password) não configurada.');
         }
 
         $response = Http::timeout(30)
             ->withHeaders([
-                'token' => $this->settings->getErpConfig('token'),
-                'appkey' => $this->settings->getErpConfig('appkey'),
-                'username' => $this->settings->username,
-                'password' => $this->settings->secret_key,
+                'token' => $this->settings->token,
+                'appkey' => $appKey,
+                'username' => $username,
+                'password' => $password,
                 'Content-Type' => 'application/json',
             ])
-            ->post($this->settings->base_url . '/login', []);
+            ->post('https://api.sankhya.com.br/login', []);
 
         if (!$response->successful()) {
             throw new ErpAuthenticationException(
@@ -71,7 +78,7 @@ class SankhyaJsonAuthHandler extends BaseAuthHandler
         }
 
         // Para JSON auth, geralmente o token retornado é um session token
-        $sessionToken = $responseData['sessionId'] ?? $responseData['token'] ?? null;
+        $sessionToken = $responseData['bearerToken'] ?? null;
 
         if (empty($sessionToken)) {
             throw new ErpAuthenticationException('Token de sessão não retornado pelo servidor Sankhya');

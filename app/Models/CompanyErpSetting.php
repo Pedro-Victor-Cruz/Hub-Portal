@@ -52,7 +52,7 @@ class CompanyErpSetting extends Model
 
     public function setErpNameAttribute($value): void
     {
-        $this->attributes['erp_name'] = strtolower(str_replace(' ', '-', $value));
+        $this->attributes['erp_name'] = strtoupper(str_replace(' ', '-', $value));
     }
 
     /**
@@ -66,7 +66,7 @@ class CompanyErpSetting extends Model
     /**
      * Retorna a classe do driver ERP configurada
      */
-    public function getDriverClass(): string
+    public function getDriverClass(): mixed
     {
         return config("erp.drivers.{$this->erp_name}");
     }
@@ -84,6 +84,16 @@ class CompanyErpSetting extends Model
     public function getErpConfig(string $key, mixed $default = null)
     {
         return config("erp.settings.{$this->erp_name}.{$key}", $default);
+    }
+
+    /**
+     * Verifica se a configuração de ERP está ativa.
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->active;
     }
 
 }
