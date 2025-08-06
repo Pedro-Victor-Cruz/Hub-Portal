@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Erp;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Company\CompanyErpSettingRequest;
-use App\Models\CompanyErpSetting;
-use App\Services\Erp\ErpManager;
 use App\Models\Company;
-use Illuminate\Http\Request;
+use App\Models\CompanyErpSetting;
+use App\Services\Erp\Core\ErpManager;
 use Illuminate\Http\JsonResponse;
 
 class ErpController extends Controller

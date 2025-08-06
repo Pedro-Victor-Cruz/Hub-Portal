@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Erp\Request;
+namespace App\Services\Erp\Drivers\Sankhya\Request;
 
 use App\Contracts\Erp\ErpRequestBuilderInterface;
 

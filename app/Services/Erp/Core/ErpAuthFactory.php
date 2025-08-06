@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Erp\Drivers\Handlers\Auth;
+namespace App\Services\Erp\Core;
 
 use App\Contracts\Erp\ErpAuthInterface;
 use App\Exceptions\Erp\ErpAuthenticationException;
 use App\Models\CompanyErpSetting;
-use App\Services\Erp\Drivers\Handlers\Auth\Sankhya\SankhyaJsonAuthHandler;
-use App\Services\Erp\Drivers\Handlers\Auth\Sankhya\SankhyaMobileLoginHandler;
+use App\Services\Erp\Drivers\Sankhya\Auth\SankhyaJsonAuthHandler;
+use App\Services\Erp\Drivers\Sankhya\Auth\SankhyaMobileLoginHandler;
 
 /**
  * Factory responsável por criar instâncias dos manipuladores de autenticação

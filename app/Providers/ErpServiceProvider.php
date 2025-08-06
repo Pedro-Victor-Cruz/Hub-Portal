@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Repositories\Erp\ErpSettingsRepository;
-use App\Services\Erp\ErpManager;
+use App\Services\Erp\Core\ErpManager;
 use Illuminate\Support\ServiceProvider;
 
 class ErpServiceProvider extends ServiceProvider

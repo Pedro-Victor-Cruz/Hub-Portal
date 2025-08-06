@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Services\Erp\Drivers;
+namespace App\Services\Erp\Drivers\Sankhya;
 
 use App\Contracts\Erp\ErpAuthInterface;
 use App\Contracts\Erp\ErpIntegrationInterface;
 use App\Contracts\Erp\ErpServiceInterface;
 use App\Exceptions\Erp\ErpServiceNotSupportedException;
 use App\Models\CompanyErpSetting;
-use App\Services\Erp\Drivers\Handlers\Auth\ErpAuthFactory;
-use App\Services\Erp\Request\SankhyaRequestBuilder;
-use App\Services\Erp\Response\SankhyaResponseProcessor;
-use App\Services\Erp\Services\Sankhya\SankhyaQueryService;
-use Illuminate\Support\Facades\Log;
+use App\Services\Erp\Core\ErpAuthFactory;
+use App\Services\Erp\Drivers\Sankhya\Request\SankhyaRequestBuilder;
+use App\Services\Erp\Drivers\Sankhya\Response\SankhyaResponseProcessor;
+use App\Services\Erp\Drivers\Sankhya\Services\SankhyaQueryService;
 
 /**
  * Driver atualizado para integração com o ERP Sankhya
@@ -36,12 +35,6 @@ class SankhyaDriver implements ErpIntegrationInterface
         $this->settings = $settings;
         $this->requestBuilder = new SankhyaRequestBuilder($settings->base_url);
         $this->responseProcessor = new SankhyaResponseProcessor();
-
-        Log::info("Inicializando driver Sankhya com nova arquitetura", [
-            'company_id' => $settings->company_id,
-            'auth_type' => $settings->auth_type,
-            'erp_setting_id' => $settings->id
-        ]);
     }
 
     public function authenticate(): bool
@@ -49,11 +42,6 @@ class SankhyaDriver implements ErpIntegrationInterface
         try {
             return $this->getAuthHandler()->authenticate();
         } catch (\Exception $e) {
-            Log::error("Falha na autenticação do driver Sankhya", [
-                'company_id' => $this->settings->company_id,
-                'auth_type' => $this->settings->auth_type,
-                'error' => $e->getMessage()
-            ]);
             return false;
         }
     }

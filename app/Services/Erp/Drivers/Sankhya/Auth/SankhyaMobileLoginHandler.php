@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Erp\Drivers\Handlers\Auth\Sankhya;
+namespace App\Services\Erp\Drivers\Sankhya\Auth;
 
 use App\Exceptions\Erp\ErpAuthenticationException;
-use App\Services\Erp\Drivers\Handlers\Auth\BaseAuthHandler;
+use App\Services\Erp\Core\BaseAuthHandler;
 use Illuminate\Support\Facades\Http;
 
 /**

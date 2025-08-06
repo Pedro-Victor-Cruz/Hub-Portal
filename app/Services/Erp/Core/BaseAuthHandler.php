@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Erp\Drivers\Handlers\Auth;
+namespace App\Services\Erp\Core;
 
 use App\Contracts\Erp\ErpAuthInterface;
 use App\Exceptions\Erp\ErpAuthenticationException;

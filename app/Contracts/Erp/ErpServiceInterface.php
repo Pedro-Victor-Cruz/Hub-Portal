@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Erp;
 
-use App\Services\Erp\Response\ErpServiceResponse;
+use App\Services\Erp\Core\ErpServiceResponse;
 
 interface ErpServiceInterface
 {

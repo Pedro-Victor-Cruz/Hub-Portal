@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Services\Erp\Response;
+namespace App\Services\Erp\Drivers\Sankhya\Response;
 
 use App\Contracts\Erp\ErpResponseProcessorInterface;
+use App\Services\Erp\Core\ErpServiceResponse;
 
 /**
  * Processador de respostas do Sankhya

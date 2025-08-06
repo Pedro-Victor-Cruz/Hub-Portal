@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Services\Erp\Services\Sankhya;
-
-use App\Services\Erp\Response\ErpServiceResponse;
+namespace App\Services\Erp\Drivers\Sankhya\Services;
 
 class SankhyaQueryService extends BaseSankhyaService
 {

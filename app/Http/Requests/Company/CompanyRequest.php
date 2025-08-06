@@ -15,6 +15,11 @@ class CompanyRequest extends ApiRequest
                 'required',
                 'string',
                 'max:255',
+            ],
+            'key' => [
+                'nullable',
+                'string',
+                'max:255',
                 Rule::unique('companies')->ignore($this->route('id')),
             ],
             'cnpj' => [

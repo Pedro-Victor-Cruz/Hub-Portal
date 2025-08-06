@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Erp\Services\Sankhya;
+namespace App\Services\Erp\Drivers\Sankhya\Services;
 
 use App\Exceptions\Erp\ErpAuthenticationException;
 use App\Exceptions\Erp\ErpServiceException;
-use App\Services\Erp\Services\BaseErpService;
-use App\Services\Erp\Response\ErpServiceResponse;
+use App\Services\Erp\Core\BaseErpService;
+use App\Services\Erp\Core\ErpServiceResponse;
 
 /**
  * Classe base para todos os serviços do Sankhya
@@ -15,14 +15,13 @@ abstract class BaseSankhyaService extends BaseErpService
     protected function initializeService(): void
     {
         // Configurações específicas do Sankhya
-        $this->setTimeout(45); // Sankhya pode ser mais lento
-        $this->setRetryCount(2); // Menos tentativas para o Sankhya
+        $this->setTimeout(45);
+        $this->setRetryCount(2);
 
         // Headers padrão do Sankhya
         $this->setDefaultHeaders([
             'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-            'User-Agent' => 'MyApp-SankhyaIntegration/1.0',
+            'Accept' => 'application/json'
         ]);
     }
 

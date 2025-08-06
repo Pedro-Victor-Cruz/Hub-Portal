@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\Erp\Drivers\SankhyaDriver;
+use App\Services\Erp\Drivers\Sankhya\SankhyaDriver;
 
 return [
     'drivers' => [

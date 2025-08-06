@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Services\Erp;
+namespace App\Services\Erp\Core;
 
 use App\Contracts\Erp\ErpIntegrationInterface;
 use App\Exceptions\Erp\ErpServiceNotSupportedException;
 use App\Models\Company;
 use App\Models\CompanyErpSetting;
 use App\Repositories\Erp\ErpSettingsRepository;
-use App\Services\Erp\Response\ErpServiceResponse;
-use Illuminate\Support\Facades\Log;
 
 class ErpManager
 {
