@@ -47,4 +47,9 @@ export class ErpSettingsService {
       return err;
     }
   }
+
+  testConnection(idCompany: string) {
+    return firstValueFrom(this.http.get<any>(`${this.API_URL}/company/erp-settings/${idCompany}/test-connection`));
+  }
+
 }
