@@ -2,110 +2,122 @@
 
 namespace App\Services\Erp\Core;
 
-use App\Contracts\Erp\ErpServiceInterface;
-use App\Models\CompanyErpSetting;
+use App\Contracts\Erp\ErpIntegrationInterface;
+use App\Exceptions\Erp\ErpAuthenticationException;
+use App\Models\Company;
+use App\Services\Core\BaseService;
+use App\Facades\ErpManager;
+use App\Services\Core\ApiResponse;
 use Exception;
 
 /**
- * Classe base simplificada para serviços ERP
+ * Classe base para serviços de ERP com método execute()
+ * Atualizada para ser mais flexível com diferentes tipos de requisições HTTP
  */
-abstract class BaseErpService implements ErpServiceInterface
+abstract class BaseErpService extends BaseService
 {
-    protected CompanyErpSetting $settings;
-    protected int $timeout = 30;
-    protected int $retryCount = 3;
-
-    public function __construct(CompanyErpSetting $settings)
-    {
-        $this->settings = $settings;
-        $this->initialize();
-    }
+    protected ErpIntegrationInterface $erpDriver;
 
     /**
-     * Executa o serviço
-     * @param array $params
-     */
-    public function execute(array $params = []): ErpServiceResponse
-    {
-
-        try {
-            // Validação
-            $this->validate($params);
-
-            // Preparação
-            $params = $this->prepare($params);
-
-            // Execução
-            return $this->perform($params);
-        } catch (Exception $e) {
-            return ErpServiceResponse::error($e->getMessage());
-        }
-    }
-
-    /**
-     * Valida os parâmetros de entrada
-     * @param array $params
      * @throws Exception
      */
-    protected function validate(array $params): void
+    public function __construct(?Company $company = null)
     {
-        $required = $this->getRequiredParams();
-        $missing = [];
+        parent::__construct($company);
 
-        foreach ($required as $param) {
-            if (!isset($params[$param]) || $params[$param] === '') {
-                $missing[] = $param;
-            }
+        $this->erpDriver = ErpManager::forCompany($this->company);
+    }
+
+    /**
+     * Método principal para execução do serviço
+     *
+     * @param array $params Parâmetros para execução
+     * @return ApiResponse Resultado da execução
+     * @throws Exception
+     */
+    public function execute(array $params = []): ApiResponse
+    {
+        try {
+            // Garante autenticação antes da execução
+            $this->ensureAuthenticated();
+
+            // Executa o serviço específico
+            return $this->performService($params);
+
+        } catch (\App\Exceptions\Services\ServiceValidationException $e) {
+            return $this->error(
+                'Erro de validação',
+                $e->getValidationErrors(),
+                ['exception_type' => get_class($e)]
+            );
+
+        } catch (ErpAuthenticationException $e) {
+            return $this->error(
+                'Erro de autenticação com o ERP',
+                [$e->getMessage()],
+                [
+                    'exception_type' => get_class($e),
+                    'erp_type' => $this->erpDriver->getSettings()->erp_type ?? 'unknown',
+                ]
+            );
+
+        } catch (Exception $e) {
+            return $this->error(
+                'Erro interno na execução do serviço',
+                [$e->getMessage()],
+                [
+                    'exception_type' => get_class($e),
+                    'file' => basename($e->getFile()),
+                    'line' => $e->getLine(),
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null,
+                ]
+            );
         }
+    }
 
-        if (!empty($missing)) {
-            throw new Exception("Parâmetros obrigatórios ausentes: " . implode(', ', $missing));
+    /**
+     * Verifica se o ERP está autenticado antes da execução
+     * @throws Exception
+     */
+    protected function ensureAuthenticated(): void
+    {
+        if (!$this->erpDriver->authenticate()) {
+            throw new ErpAuthenticationException(
+                'Falha na autenticação com o ERP: ' . ($this->erpDriver->getSettings()->erp_type ?? 'Desconhecido')
+            );
         }
     }
 
     /**
-     * Prepara os parâmetros para execução
+     * Obtém o driver ERP atual
      */
-    protected function prepare(array $params): array
+    protected function getErpDriver(): ErpIntegrationInterface
     {
-        return array_merge($this->getDefaultParams(), $params);
+        return $this->erpDriver;
     }
 
     /**
-     * Executa a operação principal do serviço
+     * Obtém as configurações do ERP
      */
-    abstract protected function perform(array $params): ErpServiceResponse;
-
-    /**
-     * Inicialização específica do serviço
-     */
-    protected function initialize(): void
+    protected function getErpSettings(): \App\Models\CompanyErpSetting
     {
-        // Override se necessário
+        return $this->erpDriver->getSettings();
     }
 
     /**
-     * Retorna parâmetros padrão
+     * Obtém o handler de autenticação do ERP
      */
-    protected function getDefaultParams(): array
+    protected function getAuthHandler(): \App\Contracts\Erp\ErpAuthInterface
     {
-        return [];
+        return $this->erpDriver->getAuthHandler();
     }
 
-    // Métodos abstratos
-    abstract public function getServiceName(): string;
-    abstract public function getRequiredParams(): array;
 
-    // Getters e Setters
-    public function setTimeout(int $timeout): self
-    {
-        $this->timeout = $timeout;
-        return $this;
-    }
-
-    public function setRetryCount(int $retryCount): self
-    {
-        $this->retryCount = $retryCount;
-        return $this;
-    }
+    /**
+     * Método abstrato que deve ser implementado pelos services específicos
+     *
+     * @param array $params Parâmetros do serviço
+     * @return ApiResponse Resultado do serviço
+     */
+    abstract protected function performService(array $params): ApiResponse;
 }

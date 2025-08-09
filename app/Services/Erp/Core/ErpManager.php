@@ -3,11 +3,13 @@
 namespace App\Services\Erp\Core;
 
 use App\Contracts\Erp\ErpIntegrationInterface;
-use App\Exceptions\Erp\ErpServiceNotSupportedException;
 use App\Models\Company;
 use App\Models\CompanyErpSetting;
 use App\Repositories\Erp\ErpSettingsRepository;
 
+/**
+ * @internal
+ */
 class ErpManager
 {
 
@@ -69,45 +71,6 @@ class ErpManager
 
         /** @var ErpIntegrationInterface */
         return $this->drivers[$cacheKey];
-    }
-
-    /**
-     * Executa um serviço específico do ERP para a empresa.
-     *
-     * @param Company $company
-     * @param string $serviceName
-     * @param array $params
-     * @return ErpServiceResponse
-     */
-    public function executeService(Company $company, string $serviceName, array $params = []): ErpServiceResponse
-    {
-        try {
-            $driver = $this->forCompany($company);
-            $service = $driver->getServiceHandler($serviceName);
-            return $service->execute($params);
-        } catch (ErpServiceNotSupportedException $e) {
-            return new ErpServiceResponse(false, null, $e->getMessage());
-        } catch (\Exception $e) {
-            return new ErpServiceResponse(false, null,
-                '(' . $serviceName . ') Ocorreu um erro ao executar o serviço: ' . $e->getMessage()
-            );
-        }
-    }
-
-    /**
-     * Retorna os serviços suportados pelo ERP da empresa.
-     *
-     * @param Company $company
-     * @return array
-     */
-    public function getSupportedServices(Company $company): array
-    {
-        try {
-            $driver = $this->forCompany($company);
-            return $driver->getSupportedServices();
-        } catch (\Exception $e) {
-            return [];
-        }
     }
 
 

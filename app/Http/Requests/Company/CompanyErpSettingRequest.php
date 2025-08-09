@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Company;
 
+use App\Enums\ErpType;
 use App\Http\Requests\ApiRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class CompanyErpSettingRequest extends ApiRequest
@@ -18,7 +18,8 @@ class CompanyErpSettingRequest extends ApiRequest
             'erp_name' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
+                Rule::in(ErpType::getValues())
             ],
             'username' => [
                 'nullable',

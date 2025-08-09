@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ErpType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,11 +51,6 @@ class CompanyErpSetting extends Model
         'extra_config' => 'array',
     ];
 
-    public function setErpNameAttribute($value): void
-    {
-        $this->attributes['erp_name'] = strtoupper(str_replace(' ', '-', $value));
-    }
-
     /**
      * Relacionamento: Configuração pertence a uma empresa
      */
@@ -94,6 +90,11 @@ class CompanyErpSetting extends Model
     public function isActive(): bool
     {
         return $this->active;
+    }
+
+    public function getErpType(): ErpType
+    {
+        return ErpType::from($this->erp_name);
     }
 
 }

@@ -179,13 +179,6 @@ abstract class BaseAuthHandler implements ErpAuthInterface
     {
         $this->token = $token;
         ErpTokenCache::put($this->getCacheKey(), $token, $ttlSeconds);
-
-        Log::debug("Token ERP salvo no cache", [
-            'erp' => $this->settings->erp_name,
-            'auth_type' => $this->settings->auth_type,
-            'company_id' => $this->settings->company_id,
-            'ttl_seconds' => $ttlSeconds
-        ]);
     }
 
     /**

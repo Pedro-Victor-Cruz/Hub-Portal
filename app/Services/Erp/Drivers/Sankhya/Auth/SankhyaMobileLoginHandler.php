@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 class SankhyaMobileLoginHandler extends BaseAuthHandler
 {
     private const AUTH_TYPE = 'mobile_login';
-    private const TOKEN_TTL_SECONDS = 300; // 5 minutos
+    private const TOKEN_TTL_SECONDS = 100; // 5 minutos
 
     /**
      * Retorna o tipo de autenticação.
@@ -60,8 +60,6 @@ class SankhyaMobileLoginHandler extends BaseAuthHandler
         }
 
         $token = $responseData['responseBody']['jsessionid']['$'] ?? null;
-
-
 
         if (empty($token)) {
             throw new ErpAuthenticationException('Token não retornado pelo servidor Sankhya. Erro json: ' . json_encode($responseData));
