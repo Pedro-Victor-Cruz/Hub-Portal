@@ -135,89 +135,6 @@ class DynamicQueryManager
     }
 
     /**
-     * Obtém estatísticas de uso das consultas
-     */
-    public function getQueryStatistics(?Company $company = null): array
-    {
-        $queries = $this->repository->getAvailableQueries($company);
-
-        $stats = [
-            'total_queries'    => $queries->count(),
-            'global_queries'   => $queries->where('is_global', true)->count(),
-            'company_queries'  => $queries->where('is_global', false)->count(),
-            'active_queries'   => $queries->where('active', true)->count(),
-            'inactive_queries' => $queries->where('active', false)->count(),
-            'by_service'       => []
-        ];
-
-        // Agrupa por classe de serviço
-        $byService = $queries->groupBy('service_slug');
-        foreach ($byService as $serviceClass => $serviceQueries) {
-            $stats['by_service'][class_basename($serviceClass)] = $serviceQueries->count();
-        }
-
-        return $stats;
-    }
-
-    /**
-     * Executa múltiplas consultas em lote
-     */
-    public function executeBatch(array $queryKeys, ?Company $company = null, array $globalParams = []): ApiResponse
-    {
-        try {
-            $results = [];
-            $errors = [];
-
-            foreach ($queryKeys as $key) {
-                $params = array_merge($globalParams, $globalParams[$key] ?? []);
-                $response = $this->executeQuery($key, $company, $params);
-
-                if ($response->isSuccess()) {
-                    $results[$key] = [
-                        'success'  => true,
-                        'data'     => $response->getData(),
-                        'metadata' => $response->getMetadata()
-                    ];
-                } else {
-                    $errors[$key] = [
-                        'success' => false,
-                        'message' => $response->getMessage(),
-                        'errors'  => $response->getErrors()
-                    ];
-                }
-            }
-
-            return ApiResponse::success([
-                'results'       => $results,
-                'errors'        => $errors,
-                'success_count' => count($results),
-                'error_count'   => count($errors)
-            ], 'Execução em lote concluída');
-
-        } catch (\Exception $e) {
-            return ApiResponse::error(
-                'Erro na execução em lote',
-                [$e->getMessage()]
-            );
-        }
-    }
-
-    /**
-     * Busca consultas por termo
-     */
-    public function searchQueries(string $searchTerm, ?Company $company = null): array
-    {
-        $queries = $this->repository->getAvailableQueries($company);
-
-        return $queries->filter(function (DynamicQuery $query) use ($searchTerm) {
-            $term = strtolower($searchTerm);
-            return str_contains(strtolower($query->name), $term) ||
-                str_contains(strtolower($query->key), $term) ||
-                str_contains(strtolower($query->description ?? ''), $term);
-        })->values()->toArray();
-    }
-
-    /**
      * Exporta configuração de consulta para array
      */
     public function exportQuery(string $key, ?Company $company = null): ApiResponse
@@ -351,18 +268,15 @@ class DynamicQueryManager
     /**
      * Extrai parâmetros obrigatórios da configuração da consulta
      */
-    private function extractRequiredParams(DynamicQuery $query): array
+    public function extractRequiredParams(DynamicQuery $query): array
     {
         $requiredParams = [];
 
-        // Obtém parâmetros obrigatórios da classe do serviço
-        if (class_exists($query->service_slug)) {
-            try {
-                $serviceInstance = ServiceManager::getServiceInstance($query->service_slug);
-                $requiredParams = $serviceInstance->getRequiredParams();
-            } catch (\Exception $e) {
-                // Ignora erros de instanciação
-            }
+        try {
+            $serviceInstance = ServiceManager::getServiceInstance($query->service_slug);
+            $requiredParams = $serviceInstance->getRequiredParams();
+        } catch (\Exception $e) {
+            // Ignora erros de instanciação
         }
 
         return $requiredParams;
@@ -386,10 +300,23 @@ class DynamicQueryManager
             throw new \InvalidArgumentException("Slug do serviço não encontrada: {$data['service_slug']}");
         }
 
-        // Valida formato da chave (apenas letras, números e underscore)
-        if (!preg_match('/^[a-z0-9_]+$/', $data['key'])) {
-            throw new \InvalidArgumentException("Chave da consulta deve conter apenas letras minúsculas, números e underscore");
+        // Valida se o tipo de serviço é suportado pela empresa
+        if (isset($data['company_id']) && $data['company_id']) {
+            $company = Company::find($data['company_id']);
+            if (!$company) {
+                throw new \InvalidArgumentException("Empresa com ID {$data['company_id']} não encontrada");
+            }
+
+            if (!ServiceManager::isServiceAvailableForCompany($data['service_slug'], $company)) {
+                throw new \InvalidArgumentException("Serviço '{$data['service_slug']}' não disponível para a empresa");
+            }
         }
+
+        // Valida formato da chave (apenas letras, números e hifens)
+        if (!preg_match('/^[a-z0-9-]+$/', $data['key'])) {
+            throw new \InvalidArgumentException("Chave '{$data['key']}' inválida. Deve conter apenas letras minúsculas, números e hífenes (-).");
+        }
+
     }
 
     /**
@@ -454,7 +381,7 @@ class DynamicQueryManager
         }
 
         if (!$query->isValidServiceSlug()) {
-            return ApiResponse::error("Classe do serviço inválida: {$query->service_slug}");
+            return ApiResponse::error("Identificador (slug) do serviço inválida: {$query->service_slug}");
         }
 
         return ApiResponse::success([
@@ -469,19 +396,7 @@ class DynamicQueryManager
      */
     public function getAvailableQueries(?Company $company = null): array
     {
-        $queries = $this->repository->getAvailableQueries($company);
-
-        return $queries->map(function (DynamicQuery $query) {
-            return [
-                'key'             => $query->key,
-                'name'            => $query->name,
-                'description'     => $query->description,
-                'is_global'       => $query->is_global,
-                'service_slug'    => $query->service_slug,
-                'required_params' => $this->extractRequiredParams($query),
-                'fields_metadata' => $query->fields_metadata,
-            ];
-        })->values()->toArray();
+        return $this->repository->getAvailableQueries($company)->toArray();
     }
 
     /**
@@ -492,6 +407,13 @@ class DynamicQueryManager
         try {
             // Valida dados obrigatórios
             $this->validateQueryData($data);
+
+            if (isset($data['company_id']) && $data['company_id']) {
+                $data['is_global'] = false;
+            } else {
+                $data['is_global'] = true;
+                $data['company_id'] = null;
+            }
 
             $query = $this->repository->createOrUpdate($data);
 

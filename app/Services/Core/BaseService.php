@@ -5,8 +5,8 @@ namespace App\Services\Core;
 use App\Contracts\Services\ServiceInterface;
 use App\Enums\ServiceType;
 use App\Exceptions\Services\ServiceValidationException;
-use App\Facades\ErpManager;
 use App\Models\Company;
+use App\Services\Parameter\ServiceParameterManager;
 use Exception;
 
 /**
@@ -14,54 +14,91 @@ use Exception;
  */
 abstract class BaseService implements ServiceInterface
 {
-    protected array $requiredParams = [];
+    protected ServiceParameterManager $parameterManager;
     protected ServiceType $serviceType;
     protected string $serviceName;
     protected string $description;
-    protected Company | null $company = null;
+    protected Company|null $company = null;
 
     /**
      * @throws Exception
      */
     public function __construct(?Company $company = null)
     {
-        $this->company = $company ?? $this->resolveCompanyFromRequest();
+        $this->company = $company ?? request()->get('company') ?? null;
+        $this->parameterManager = new ServiceParameterManager();
+
+        // Configura os parâmetros do serviço
+        $this->configureParameters();
     }
 
-    protected function resolveCompanyFromRequest(): Company
-    {
-        $company = request()->get('company');
-
-        if (!$company instanceof Company) {
-            throw new Exception('Empresa não encontrada na requisição.');
-        }
-
-        return $company;
-    }
+    /**
+     * Método abstrato para configurar os parâmetros do serviço
+     * Deve ser implementado por cada serviço específico
+     */
+    abstract protected function configureParameters(): void;
 
     public function validateParams(array $params): bool
     {
-        $errors = [];
+        $validation = $this->parameterManager->validate($params);
 
-        foreach ($this->getRequiredParams() as $required) {
-            if (empty($params[$required])) {
-                $errors[] = "Parâmetro obrigatório '{$required}' não foi fornecido";
-            }
-        }
-
-        if (!empty($errors)) {
+        if (!$validation['valid']) {
             throw new ServiceValidationException(
                 'Parâmetros inválidos fornecidos',
-                $errors
+                $validation['errors']
             );
         }
 
         return true;
     }
 
+    /**
+     * Valida e sanitiza os parâmetros
+     */
+    public function validateAndSanitizeParams(array $params): array
+    {
+        $validation = $this->parameterManager->validate($params);
+
+        if (!$validation['valid']) {
+            throw new ServiceValidationException(
+                'Parâmetros inválidos fornecidos',
+                $validation['errors']
+            );
+        }
+
+        return $validation['sanitized'];
+    }
+
+    /**
+     * Obtém os nomes dos parâmetros obrigatórios (para manter compatibilidade)
+     */
     public function getRequiredParams(): array
     {
-        return $this->requiredParams;
+        return $this->parameterManager->getRequiredNames();
+    }
+
+    /**
+     * Obtém a configuração completa dos parâmetros
+     */
+    public function getParametersConfig(): array
+    {
+        return $this->parameterManager->toArray();
+    }
+
+    /**
+     * Obtém parâmetros agrupados (útil para UI)
+     */
+    public function getGroupedParameters(): array
+    {
+        return $this->parameterManager->getGrouped();
+    }
+
+    /**
+     * Obtém o gerenciador de parâmetros (para casos avançados)
+     */
+    public function getParameterManager(): ServiceParameterManager
+    {
+        return $this->parameterManager;
     }
 
     public function getServiceType(): string

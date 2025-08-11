@@ -54,10 +54,10 @@ class DynamicQueryController extends Controller
     public function store(StoreDynamicQueryRequest $request): JsonResponse
     {
         $data = $request->validated();
+        $company = $request->get('company');
 
-        if (!($data['is_global'] ?? false)) {
-            $company = $request->get('company');
-            $data['company_id'] = $company?->id;
+        if ($company) {
+            $data['company_id'] = $company->id;
         }
 
         $response = DynamicQueryManager::createQuery($data);

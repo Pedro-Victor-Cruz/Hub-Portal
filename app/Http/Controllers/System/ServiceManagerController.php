@@ -6,6 +6,7 @@ use App\Enums\ServiceType;
 use App\Facades\ServiceManager;
 use App\Http\Controllers\Controller;
 use App\Services\Core\ApiResponse;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,8 +23,35 @@ class ServiceManagerController extends Controller
     public function index(Request $request): JsonResponse
     {
         $company = $request->get('company');
-        $services = ServiceManager::getServicesByType(ServiceType::QUERY, $company);
+        $serviceType = $request->get('service_type');
 
-        return ApiResponse::success($services, "Lista de serviços")->toJson();
+        if ($serviceType) {
+            $serviceType = ServiceType::from($serviceType);
+            $services = ServiceManager::getServicesByType($serviceType, $company);
+
+            return ApiResponse::success($services, "Lista de serviços")->toJson();
+        }
+
+        return ApiResponse::error("Tipo de serviço inválido ou não especificado.")->toJson();
     }
+
+    /**
+     * Busca os parâmetros de um serviço específico
+     * GET /api/services/{serviceSlug}/parameters
+     */
+    public function getServiceParameters(string $serviceSlug): JsonResponse
+    {
+        try {
+            $instance = ServiceManager::getServiceInstance($serviceSlug);
+            $parameters = $instance->getGroupedParameters();
+
+            return ApiResponse::success($parameters, "Parâmetros do serviço")->toJson();
+        } catch (Exception $exception) {
+            return ApiResponse::error(
+                "Erro ao buscar parâmetros do serviço: {$exception->getMessage()}",
+                ['exception_type' => get_class($exception)]
+            )->toJson();
+        }
+    }
+
 }

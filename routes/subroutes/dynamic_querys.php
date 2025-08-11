@@ -8,37 +8,45 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'identify.company:false'])->prefix('queries')->group(function () {
 
     // Listar todas as consultas disponíveis
-    Route::get('/', [DynamicQueryController::class, 'index']);
+    Route::get('/', [DynamicQueryController::class, 'index'])
+        ->middleware('permission:dynamic_query.view');
 
     // Listar apenas as chaves das consultas
-    Route::get('/keys', [DynamicQueryController::class, 'keys']);
+    Route::get('/keys', [DynamicQueryController::class, 'keys'])
+        ->middleware('permission:dynamic_query.view');
 
     // Testar uma consulta sem salvar
     Route::post('/test', [DynamicQueryController::class, 'testQuery']);
 
     // Criar nova consulta dinâmica
-    Route::post('/create', [DynamicQueryController::class, 'store']);
+    Route::post('/create', [DynamicQueryController::class, 'store'])
+        ->middleware('permission:dynamic_query.create');
 
     // Operações específicas por chave de consulta
     Route::prefix('{key}')->group(function () {
 
         // Obter informações da consulta
-        Route::get('/', [DynamicQueryController::class, 'show']);
+        Route::get('/', [DynamicQueryController::class, 'show'])
+            ->middleware('permission:dynamic_query.view');
 
         // Executar consulta dinâmica
         Route::post('/execute', [DynamicQueryController::class, 'execute']);
 
         // Validar se consulta pode ser executada
-        Route::get('/validate', [DynamicQueryController::class, 'validateQuery']);
+        Route::get('/validate', [DynamicQueryController::class, 'validateQuery'])
+            ->middleware('permission:dynamic_query.view');
 
         // Duplicar consulta global para empresa
-        Route::post('/duplicate', [DynamicQueryController::class, 'duplicate']);
+        Route::post('/duplicate', [DynamicQueryController::class, 'duplicate'])
+            ->middleware('permission:dynamic_query.create');
 
         // Atualizar consulta existente
-        Route::put('/update', [DynamicQueryController::class, 'update']);
+        Route::put('/update', [DynamicQueryController::class, 'update'])
+            ->middleware('permission:dynamic_query.edit');
 
         // Remover consulta
-        Route::delete('/delete', [DynamicQueryController::class, 'destroy']);
+        Route::delete('/delete', [DynamicQueryController::class, 'destroy'])
+            ->middleware('permission:dynamic_query.delete');
 
     });
 

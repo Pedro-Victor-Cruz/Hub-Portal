@@ -24,16 +24,19 @@ class IdentifyCompany
     {
         $required = filter_var($required, FILTER_VALIDATE_BOOLEAN);
 
-        // Pega chave do header ou query param
-        $keyCompany = $request->header('Chave') ?? $request->query('company_key');
-
         /** @var User $auth */
         $auth = Auth::guard('auth')->user();
+
+        // Pega chave ou id de empresa seguindo a prioridade:
+        // Header 'Chave' → query 'company_key' → query 'company_id'
+        $keyCompany = $request->header('Chave')
+            ?? $request->query('company_key')
+            ?? $request->query('company_id');
 
         if (empty($keyCompany)) {
             if ($required) {
                 return response()->json([
-                    'message' => 'A chave de empresa é obrigatória (informe no cabeçalho "Chave" ou query param "company_key").'
+                    'message' => 'A chave ou ID de empresa é obrigatória (informe no cabeçalho "Chave", query param "company_key" ou "company_id").'
                 ], Response::HTTP_FORBIDDEN);
             }
 
@@ -44,22 +47,27 @@ class IdentifyCompany
         // Controle de cache
         $useCache = !$request->headers->has('No-Cache') || $request->headers->get('No-Cache') !== 'S';
 
+        // Busca a empresa pela chave ou ID
         $company = $useCache
             ? cache()->remember("company_api_key_{$keyCompany}", now()->addMinutes(5), function () use ($keyCompany) {
-                return Company::where('key', $keyCompany)->first();
+                return Company::where('key', $keyCompany)
+                    ->orWhere('id', $keyCompany)
+                    ->first();
             })
-            : Company::where('key', $keyCompany)->first();
+            : Company::where('key', $keyCompany)
+                ->orWhere('id', $keyCompany)
+                ->first();
 
         if (!$company) {
             return response()->json([
-                'message' => 'A chave de empresa fornecida é inválida.'
+                'message' => 'A chave ou ID de empresa fornecida é inválida.'
             ], Response::HTTP_FORBIDDEN);
         }
 
         // Valida se o usuário tem acesso
         if (!$auth->isAdmin() && (!$auth->company_id || $auth->company_id != $company->id)) {
             return response()->json([
-                'message' => 'A chave de empresa fornecida não pertence à empresa do usuário autenticado.'
+                'message' => 'A empresa fornecida não pertence ao usuário autenticado.'
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -70,4 +78,5 @@ class IdentifyCompany
 
         return $next($request);
     }
+
 }

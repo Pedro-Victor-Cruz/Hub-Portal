@@ -144,13 +144,11 @@ class ServiceManager
 
         // Se não há ERP configurado, retorna apenas serviços globais
         if ($erpSetting === null) {
-            $result = $this->getGlobalServicesByType($type, $company);
+            $result = $this->getGlobalServices($type);
         } else {
-            // Combina serviços ERP + globais
-            $erpType = $erpSetting->getErpType();
             $result = array_merge(
-                $this->getErpServicesByType($type, $erpType, $company),
-                $this->getGlobalServicesByType($type, $company)
+                $this->getErpServices($type, $company),
+                $this->getGlobalServices($type)
             );
         }
 
@@ -161,14 +159,16 @@ class ServiceManager
     /**
      * Obtém serviços globais por tipo
      */
-    private function getGlobalServicesByType(ServiceType $type, ?Company $company): array
+    private function getGlobalServices(?ServiceType $type = null): array
     {
         $result = [];
 
         foreach ($this->serviceRegistry['global'] ?? [] as $slug => $serviceData) {
-            $details = $this->getServiceDetails($serviceData, $company);
+            $details = $this->getServiceDetails($serviceData, null);
 
-            if ($details && $details['service_type'] === $type->value) {
+            if (!$type) {
+                $result[] = $details;
+            } elseif ($details && $details['service_type'] === $type->value) {
                 $result[] = $details;
             }
         }
@@ -179,14 +179,17 @@ class ServiceManager
     /**
      * Obtém serviços ERP por tipo
      */
-    private function getErpServicesByType(ServiceType $type, ErpType $erpType, ?Company $company): array
+    private function getErpServices(?ServiceType $type, ?Company $company): array
     {
         $result = [];
+        $erpType = $company?->activeErpSetting()?->getErpType();
 
         foreach ($this->serviceRegistry['erp'][$erpType->value] ?? [] as $slug => $serviceData) {
             $details = $this->getServiceDetails($serviceData, $company);
 
-            if ($details && $details['service_type'] === $type->value) {
+            if (!$type) {
+                $result[] = $details;
+            } elseif ($details && $details['service_type'] === $type->value) {
                 $result[] = $details;
             }
         }
@@ -207,7 +210,7 @@ class ServiceManager
 
         try {
             /** @var ServiceInterface $instance */
-            $instance = $this->getServiceInstance($serviceClass, $company);
+            $instance = $this->getServiceInstanceByClass($serviceClass, $company);
 
             if (!$instance instanceof ServiceInterface) {
                 throw new \RuntimeException("O serviço {$serviceClass} deve implementar ServiceInterface");
@@ -251,15 +254,19 @@ class ServiceManager
     }
 
     /**
-     * Lista todos os serviços disponíveis (para debugging/admin)
+     * Lista todos os serviços disponíveis
      */
-    public function getAllServices(): array
+    public function getAllServices(?Company $company = null): array
     {
         $this->ensureInitialized();
-        return [
-            'services_by_slug' => array_keys($this->servicesBySlug),
-            'registry' => $this->serviceRegistry
-        ];
+
+        $services = $this->getGlobalServices();
+
+        if ($company) {
+            $services[] = $this->getErpServices(null,  $company);
+        }
+
+        return $services;
     }
 
     /**
@@ -318,11 +325,8 @@ class ServiceManager
             return null;
         }
 
-        try {
-            return app($serviceClass, ['company' => $company]);
-        } catch (\Exception $e) {
-            return null; // Retorna null se não conseguir instanciar
-        }
+
+        return app($serviceClass, ['company' => $company]);
     }
 
     public function getServiceInstanceByClass(string $serviceClass, ?Company $company = null): ?ServiceInterface
@@ -342,6 +346,34 @@ class ServiceManager
     {
         $this->ensureInitialized();
         return isset($this->servicesBySlug[$serviceSlug]);
+    }
+
+    public function isServiceAvailableForCompany(string $serviceSlug, Company $company): bool
+    {
+        $this->ensureInitialized();
+        $isGlobal = isset($this->serviceRegistry['global'][$serviceSlug]);
+
+        // Se o serviço é global
+        if ($isGlobal) return true;
+
+        // Verifica se o serviço é específico de ERP e se a empresa tem um ERP ativo
+        $erpSettings = $company->activeErpSetting();
+        if ($erpSettings && isset($this->serviceRegistry['erp'][$erpSettings->getErpType()->value][$serviceSlug])) {
+            return true;
+        }
+
+        // Se não é global e não está registrado para o ERP da empresa
+        return false;
+    }
+
+
+    public function getServiceParameters(string $serviceSlug): array
+    {
+        $serviceInstance = $this->getServiceInstance($serviceSlug);
+        if ($serviceInstance) {
+            return $serviceInstance->getRequiredParams();
+        }
+        return [];
     }
 
 }

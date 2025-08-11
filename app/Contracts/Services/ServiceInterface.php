@@ -4,6 +4,7 @@ namespace App\Contracts\Services;
 
 use App\Exceptions\Services\ServiceValidationException;
 use App\Services\Core\ApiResponse;
+use App\Services\Parameter\ServiceParameterManager;
 
 /**
  * Interface base para todos os serviços da aplicação
@@ -33,6 +34,27 @@ interface ServiceInterface
      * @return array Lista de parâmetros obrigatórios
      */
     public function getRequiredParams(): array;
+
+    /**
+     * Retorna a configuração completa dos parâmetros do serviço
+     *
+     * @return array Configuração dos parâmetros
+     */
+    public function getParametersConfig(): array;
+
+    /**
+     * Retorna os parâmetros agrupados (útil para UI)
+     *
+     * @return array Parâmetros agrupados
+     */
+    public function getGroupedParameters(): array;
+
+    /**
+     * Retorna o gerenciador de parâmetros (para casos avançados)
+     *
+     * @return ServiceParameterManager Instância do gerenciador de parâmetros
+     */
+    public function getParameterManager(): ServiceParameterManager;
 
     /**
      * Retorna o tipo do serviço

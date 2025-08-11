@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Facades\DynamicQueryManager;
 use App\Facades\ErpManager;
 use App\Facades\ServiceManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -61,6 +62,15 @@ class DynamicQuery extends Model
         'active' => 'boolean',
         'is_global' => 'boolean',
         'priority' => 'integer',
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $appends = [
+        'required_params'
     ];
 
     /**
@@ -153,4 +163,17 @@ class DynamicQuery extends Model
     {
         return $this->getFieldMetadata($fieldName, 'format');
     }
+
+    /**
+     * Obtém os parâmetros obrigatórios para a consulta
+     */
+    public function getRequiredParamsAttribute(): array
+    {
+        try {
+            return DynamicQueryManager::extractRequiredParams($this);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
 }

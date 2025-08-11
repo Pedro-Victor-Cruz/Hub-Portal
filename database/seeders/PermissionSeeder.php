@@ -203,6 +203,32 @@ class PermissionSeeder extends Seeder
             'group'             => 'Sistema',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
+
+        // Dynamic Queries
+        [
+            'name'              => 'dynamic_query.view',
+            'description'       => 'Visualizar consultas dinâmicas',
+            'group'             => 'Consultas Dinâmicas',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'dynamic_query.create',
+            'description'       => 'Criar consultas dinâmicas',
+            'group'             => 'Consultas Dinâmicas',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'dynamic_query.edit',
+            'description'       => 'Editar consultas dinâmicas',
+            'group'             => 'Consultas Dinâmicas',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'dynamic_query.delete',
+            'description'       => 'Excluir consultas dinâmicas',
+            'group'             => 'Consultas Dinâmicas',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
     ];
 
     public function run()

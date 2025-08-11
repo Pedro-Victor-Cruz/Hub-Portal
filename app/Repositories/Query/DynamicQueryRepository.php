@@ -42,28 +42,25 @@ class DynamicQueryRepository
      */
     public function getAvailableQueries(?Company $company = null): Collection
     {
-        $queries = collect();
-
-        // Busca consultas globais
         $globalQueries = DynamicQuery::active()
             ->global()
-            ->get()
-            ->keyBy('key');
+            ->get();
 
-        // Se tem empresa, busca consultas específicas
         if ($company) {
             $companyQueries = DynamicQuery::active()
                 ->forCompany($company)
-                ->get()
-                ->keyBy('key');
+                ->get();
 
             // Sobrescreve consultas globais com as específicas da empresa
-            $queries = $globalQueries->merge($companyQueries);
+            $queries = $globalQueries
+                ->keyBy('key')
+                ->merge($companyQueries->keyBy('key'))
+                ->values(); // 🔹 reseta para array numérico
         } else {
-            $queries = $globalQueries;
+            $queries = $globalQueries->values(); // 🔹 array numérico
         }
 
-        return $queries->sortBy('name');
+        return $queries->sortBy('name')->values();
     }
 
     /**

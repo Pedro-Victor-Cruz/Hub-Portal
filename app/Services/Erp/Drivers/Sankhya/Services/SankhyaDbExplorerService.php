@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Services\Core\ApiResponse;
 use App\Services\Erp\Core\BaseErpService;
 use App\Services\Erp\Drivers\Sankhya\SankhyaHttpRequest;
+use App\Services\Parameter\ServiceParameter;
 use App\Services\Utils\ResponseFormatters\SankhyaResponseFormatter;
 use Exception;
 
@@ -19,15 +20,13 @@ class SankhyaDbExplorerService extends BaseErpService
     protected string $serviceName = 'Sankhya DB Explorer';
     protected string $description = 'Executa consultas SQL no banco de dados do Sankhya';
     protected ServiceType $serviceType = ServiceType::QUERY;
-    protected array $requiredParams = ['sql'];
-
     protected SankhyaHttpRequest $sankhyaRequest;
 
     /**
      * Inicializa o serviço com requisição específica do Sankhya
      * @throws Exception
      */
-    public function __construct(Company $company)
+    public function __construct(?Company $company)
     {
         parent::__construct($company);
 
@@ -44,9 +43,9 @@ class SankhyaDbExplorerService extends BaseErpService
     protected function performService(array $params): ApiResponse
     {
         try {
-            $this->validateParams($params);
+            $validatedParams = $this->validateAndSanitizeParams($params);
 
-            $sql = $params['sql'];
+            $sql = $validatedParams['sql'];
 
             // Valida se é uma consulta SELECT segura
             if (!$this->validateSelectQuery($sql)) {
@@ -132,7 +131,7 @@ class SankhyaDbExplorerService extends BaseErpService
             $sql = str_replace(":{$param}", $this->escapeValue($value), $sql);
         }
 
-        return $this->executeQuery($sql, $maxRows);
+        return $this->executeQuery($sql);
     }
 
     /**
@@ -217,4 +216,24 @@ class SankhyaDbExplorerService extends BaseErpService
         return true;
     }
 
+    /**
+     * Configura os parâmetros específicos deste serviço
+     */
+    protected function configureParameters(): void
+    {
+        $this->parameterManager->addMany([
+            // Parâmetro principal - SQL obrigatória
+            ServiceParameter::text(
+                name: 'sql',
+                required: true,
+                description: 'Consulta SQL SELECT para execução no banco do Sankhya',
+                validation: [
+                    'min_length' => 10,
+                    'max_length' => 50000
+                ]
+            )->withLabel('Consulta SQL')
+            ->withPlaceholder('SELECT * FROM TABELA WHERE CONDICAO')
+            ->withGroup('query'),
+        ]);
+    }
 }

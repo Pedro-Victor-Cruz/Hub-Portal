@@ -21,9 +21,13 @@ abstract class BaseErpService extends BaseService
     /**
      * @throws Exception
      */
-    public function __construct(?Company $company = null)
+    public function __construct(?Company $company)
     {
         parent::__construct($company);
+
+        if (!$this->company) {
+            throw new Exception('Empresa não especificada ou inválida.');
+        }
 
         $this->erpDriver = ErpManager::forCompany($this->company);
     }

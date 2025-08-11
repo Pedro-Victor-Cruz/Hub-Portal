@@ -8,4 +8,10 @@ Route::middleware(['auth', 'identify.company:false'])->prefix('services')->group
 
     // Listar todas as consultas disponíveis
     Route::get('/', [ServiceManagerController::class, 'index']);
+
+    Route::prefix('{serviceSlug}')->group(function () {
+
+        // Obter parâmetros de um serviço específico
+        Route::get('parameters', [ServiceManagerController::class, 'getServiceParameters']);
+    });
 });

@@ -3,6 +3,7 @@
 namespace App\Facades;
 
 use App\Models\Company;
+use App\Models\DynamicQuery;
 use App\Services\Core\ApiResponse;
 use Illuminate\Support\Facades\Facade;
 
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static ApiResponse duplicateQueryForCompany(string $key, Company $company, array $overrides = [])
  * @method static ApiResponse testQuery(array $queryData, array $testParams = [])
  * @method static ApiResponse validateQueryExecution(string $key, ?Company $company = null)
+ * @method static array extractRequiredParams(DynamicQuery $query)
  */
 class DynamicQueryManager extends Facade
 {
