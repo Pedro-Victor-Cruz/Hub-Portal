@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable, Injector} from '@angular/core';
 import {
   HttpEvent,
   HttpHandler,
@@ -15,7 +15,8 @@ export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
-  constructor(private authService: AuthService) {}
+  // Use Injector para obter o AuthService de forma lazy
+  constructor(private injector: Injector) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Não adiciona token para requisições de autenticação
@@ -43,7 +44,8 @@ export class AuthInterceptor implements HttpInterceptor {
    * Adiciona o token de autenticação à requisição
    */
   private addTokenToRequest(req: HttpRequest<any>): HttpRequest<any> {
-    const token = this.authService.getToken();
+    const authService = this.injector.get(AuthService);
+    const token = authService.getToken();
 
     if (token) {
       return req.clone({
@@ -64,13 +66,14 @@ export class AuthInterceptor implements HttpInterceptor {
       this.isRefreshing = true;
       this.refreshTokenSubject.next(null);
 
-      const refreshToken = this.authService.getRefreshToken();
+      const authService = this.injector.get(AuthService);
+      const refreshToken = authService.getRefreshToken();
 
       if (refreshToken) {
-        return this.authService.refreshToken().pipe(
+        return authService.refreshToken().pipe(
           switchMap(() => {
             this.isRefreshing = false;
-            const newToken = this.authService.getToken();
+            const newToken = authService.getToken();
             this.refreshTokenSubject.next(newToken);
 
             // Repete a requisição original com o novo token
@@ -81,7 +84,7 @@ export class AuthInterceptor implements HttpInterceptor {
             this.refreshTokenSubject.next(null);
 
             // Se falhar ao renovar, faz logout
-            this.authService.logout();
+            authService.logout();
             return throwError(() => error);
           }),
           finalize(() => {
@@ -91,7 +94,7 @@ export class AuthInterceptor implements HttpInterceptor {
       } else {
         // Sem refresh token disponível, faz logout
         this.isRefreshing = false;
-        this.authService.logout();
+        authService.logout();
         return throwError(() => new Error('No refresh token available'));
       }
     } else {

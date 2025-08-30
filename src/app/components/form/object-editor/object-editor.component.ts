@@ -7,6 +7,7 @@ import { ToggleSwitchComponent } from '../toggle-switch/toggle-switch.component'
 import { ButtonComponent } from '../button/button.component';
 import { TextareaComponent } from '../textarea/textarea.component';
 import { BaseInputComponent } from '../base-input.component';
+import { NgxJsonViewerModule } from 'ngx-json-viewer';
 
 // Interface para opções de tipo
 interface TypeOption {
@@ -19,6 +20,14 @@ export interface ObjectAttribute {
   name: string;
   value: any;
   type: string;
+  collapsed?: boolean;
+}
+
+// Enum para modos de visualização
+export enum ViewMode {
+  VISUAL = 'visual',
+  JSON = 'json',
+  VIEWER = 'viewer'
 }
 
 @Component({
@@ -31,7 +40,8 @@ export interface ObjectAttribute {
     DropdownComponent,
     ToggleSwitchComponent,
     ButtonComponent,
-    TextareaComponent
+    TextareaComponent,
+    NgxJsonViewerModule
   ],
   templateUrl: './object-editor.component.html',
   styleUrls: ['./object-editor.component.scss'],
@@ -52,6 +62,10 @@ export class ObjectEditorComponent implements ControlValueAccessor {
 
   @Output() valueChange = new EventEmitter<Record<string, any>>();
 
+  // Enums e constantes
+  ViewMode = ViewMode;
+  currentViewMode: ViewMode = ViewMode.VISUAL;
+
   // Opções de tipo para o dropdown
   typeOptions: TypeOption[] = [
     { label: 'Texto', value: 'string' },
@@ -62,10 +76,20 @@ export class ObjectEditorComponent implements ControlValueAccessor {
     { label: 'Data', value: 'date' }
   ];
 
+  // Opções do modo de visualização
+  viewModeOptions = [
+    { label: 'Editor Visual', value: ViewMode.VISUAL, icon: 'bx-edit' },
+    { label: 'Editor JSON', value: ViewMode.JSON, icon: 'bx-code-alt' },
+    { label: 'Visualizador', value: ViewMode.VIEWER, icon: 'bx-show' }
+  ];
+
   attributes: ObjectAttribute[] = [];
   newAttributeName: string = '';
   newAttributeType: string = 'string';
   isAdding: boolean = false;
+  jsonString: string = '';
+  jsonError: string = '';
+  allCollapsed: boolean = false;
 
   // ControlValueAccessor methods
   onChange: any = () => {};
@@ -76,11 +100,13 @@ export class ObjectEditorComponent implements ControlValueAccessor {
       this.attributes = Object.entries(value).map(([name, val]) => ({
         name,
         value: val,
-        type: this.detectType(val)
+        type: this.detectType(val),
+        collapsed: false
       }));
     } else {
       this.attributes = [];
     }
+    this.updateJsonString();
   }
 
   registerOnChange(fn: any): void {
@@ -96,15 +122,137 @@ export class ObjectEditorComponent implements ControlValueAccessor {
     if (value === null || value === undefined) return 'string';
     if (Array.isArray(value)) return 'array';
     if (typeof value === 'object') {
-      // Verificar se é uma data
       if (value instanceof Date) return 'date';
-      // Verificar se é um objeto válido de data (comum em JSON)
       if (typeof value.getMonth === 'function') return 'date';
       return 'object';
     }
     if (typeof value === 'boolean') return 'boolean';
     if (typeof value === 'number') return 'number';
     return 'string';
+  }
+
+  // Gerenciamento de modos de visualização
+  setViewMode(mode: ViewMode): void {
+    // Se estamos saindo do modo JSON, tentar aplicar as mudanças
+    if (this.currentViewMode === ViewMode.JSON && mode !== ViewMode.JSON) {
+      this.applyJsonChanges();
+    }
+
+    this.currentViewMode = mode;
+
+    // Se estamos entrando no modo JSON, atualizar a string
+    if (mode === ViewMode.JSON) {
+      this.updateJsonString();
+    }
+  }
+
+  // Atualizar string JSON baseada nos atributos atuais
+  private updateJsonString(): void {
+    const obj = this.getObjectValue();
+    this.jsonString = JSON.stringify(obj, null, 2);
+  }
+
+  // Aplicar mudanças do editor JSON
+  applyJsonChanges(): void {
+    if (!this.jsonString.trim()) {
+      this.attributes = [];
+      this.emitValue();
+      this.jsonError = '';
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(this.jsonString);
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        this.attributes = Object.entries(parsed).map(([name, val]) => ({
+          name,
+          value: val,
+          type: this.detectType(val),
+          collapsed: false
+        }));
+        this.emitValue();
+        this.jsonError = '';
+        this.success = 'JSON aplicado com sucesso!';
+        setTimeout(() => this.success = '', 3000);
+      } else {
+        this.jsonError = 'O JSON deve ser um objeto válido';
+      }
+    } catch (error) {
+      this.jsonError = 'JSON inválido: ' + (error as Error).message;
+    }
+  }
+
+  // Exportar JSON
+  exportJson(): void {
+    const obj = this.getObjectValue();
+    const jsonString = JSON.stringify(obj, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'object-config.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Importar JSON
+  onFileSelect(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsed = JSON.parse(content);
+
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+          this.attributes = Object.entries(parsed).map(([name, val]) => ({
+            name,
+            value: val,
+            type: this.detectType(val),
+            collapsed: false
+          }));
+          this.emitValue();
+          this.updateJsonString();
+          this.success = 'JSON importado com sucesso!';
+          setTimeout(() => this.success = '', 3000);
+        } else {
+          this.error = 'O arquivo deve conter um objeto JSON válido';
+          setTimeout(() => this.error = '', 5000);
+        }
+      } catch (error) {
+        this.error = 'Erro ao processar o arquivo: ' + (error as Error).message;
+        setTimeout(() => this.error = '', 5000);
+      }
+    };
+    reader.readAsText(file);
+
+    // Limpar o input
+    event.target.value = '';
+  }
+
+  // Gerenciamento de accordion
+  toggleAttribute(index: number): void {
+    this.attributes[index].collapsed = !this.attributes[index].collapsed;
+  }
+
+  toggleAllAttributes(): void {
+    this.allCollapsed = !this.allCollapsed;
+    this.attributes.forEach(attr => {
+      attr.collapsed = this.allCollapsed;
+    });
+  }
+
+  // Obter valor do objeto atual
+  getObjectValue(): Record<string, any> {
+    const result: Record<string, any> = {};
+    this.attributes.forEach(attr => {
+      if (attr.name) {
+        result[attr.name] = attr.value;
+      }
+    });
+    return result;
   }
 
   // Iniciar adição de nova propriedade
@@ -130,34 +278,31 @@ export class ObjectEditorComponent implements ControlValueAccessor {
 
     const attributeName = this.newAttributeName.trim();
 
-    // Verificar se a propriedade já existe
     if (this.attributes.some(attr => attr.name === attributeName)) {
       this.error = `A propriedade "${attributeName}" já existe`;
       return;
     }
 
-    // Valor padrão baseado no tipo selecionado
     let defaultValue: any;
     switch (this.newAttributeType) {
       case 'number': defaultValue = 0; break;
       case 'boolean': defaultValue = false; break;
       case 'array': defaultValue = []; break;
       case 'object': defaultValue = {}; break;
-      case 'date': defaultValue = new Date(); break;
+      case 'date': defaultValue = new Date().toISOString().split('T')[0]; break;
       default: defaultValue = ''; break;
     }
 
-    // Adicionar nova propriedade
     const newAttr: ObjectAttribute = {
       name: attributeName,
       value: defaultValue,
-      type: this.newAttributeType
+      type: this.newAttributeType,
+      collapsed: false
     };
 
     this.attributes.push(newAttr);
     this.emitValue();
 
-    // Resetar estado
     this.isAdding = false;
     this.newAttributeName = '';
     this.error = '';
@@ -177,7 +322,6 @@ export class ObjectEditorComponent implements ControlValueAccessor {
 
   // Atualizar o tipo de uma propriedade
   updateAttributeType(index: number, type: string): void {
-    // Se o tipo mudou, ajustar o valor para o padrão do novo tipo
     if (this.attributes[index].type !== type) {
       let defaultValue: any;
       switch (type) {
@@ -185,7 +329,7 @@ export class ObjectEditorComponent implements ControlValueAccessor {
         case 'boolean': defaultValue = false; break;
         case 'array': defaultValue = []; break;
         case 'object': defaultValue = {}; break;
-        case 'date': defaultValue = new Date(); break;
+        case 'date': defaultValue = new Date().toISOString().split('T')[0]; break;
         default: defaultValue = ''; break;
       }
       this.attributes[index].value = defaultValue;
@@ -204,7 +348,6 @@ export class ObjectEditorComponent implements ControlValueAccessor {
       return;
     }
 
-    // Verificar se o novo nome já existe (exceto para a própria propriedade)
     if (this.attributes.some((attr, i) => i !== index && attr.name === newName)) {
       this.error = `A propriedade "${newName}" já existe`;
       return;
@@ -217,16 +360,14 @@ export class ObjectEditorComponent implements ControlValueAccessor {
 
   // Emitir o valor atualizado
   private emitValue(): void {
-    const result: Record<string, any> = {};
-
-    this.attributes.forEach(attr => {
-      if (attr.name) { // Apenas adicionar propriedades com nome válido
-        result[attr.name] = attr.value;
-      }
-    });
-
+    const result = this.getObjectValue();
     this.onChange(result);
     this.valueChange.emit(result);
+
+    // Atualizar JSON string se estamos no modo JSON
+    if (this.currentViewMode === ViewMode.JSON) {
+      this.updateJsonString();
+    }
   }
 
   // Obter o tipo de input para uma propriedade
@@ -276,7 +417,7 @@ export class ObjectEditorComponent implements ControlValueAccessor {
         case 'boolean': return false;
         case 'array': return [];
         case 'object': return {};
-        case 'date': return new Date();
+        case 'date': return new Date().toISOString().split('T')[0];
         default: return '';
       }
     }
@@ -293,7 +434,6 @@ export class ObjectEditorComponent implements ControlValueAccessor {
         try {
           return JSON.parse(value);
         } catch {
-          // Tentar interpretar como lista separada por vírgulas
           return value.split(',').map(item => item.trim()).filter(item => item);
         }
 
@@ -305,11 +445,14 @@ export class ObjectEditorComponent implements ControlValueAccessor {
         }
 
       case 'date':
-        const date = new Date(value);
-        return isNaN(date.getTime()) ? new Date() : date;
+        return value;
 
       default:
         return value;
     }
+  }
+
+  getLabelType(attr: ObjectAttribute) {
+    return this.typeOptions.find(t => t.value === attr.type)?.label;
   }
 }

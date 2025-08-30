@@ -1,133 +1,258 @@
-<ub-base-input [label]="label" [helpText]="helpText" [error]="error" [success]="success">
+<div class="input-container object-container">
+  <div class="object-header">
+    <div class="header">
+      @if (label) {
+        <label>{{ label }}</label>
+      }
+      <div class="header-actions">
+        <!-- Seletor de modo de visualização -->
+        <div class="view-mode-selector">
+          @for (mode of viewModeOptions; track mode.value) {
+            <button
+              class="mode-btn"
+              [class.active]="currentViewMode === mode.value"
+              (click)="setViewMode(mode.value)"
+              [title]="mode.label">
+              <i class="bx {{ mode.icon }}"></i>
+            </button>
+          }
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="action-buttons">
+          <!-- Botão de importar -->
+          <label class="import-btn" title="Importar JSON">
+            <i class="bx bx-upload"></i>
+            <input
+              type="file"
+              accept=".json"
+              (change)="onFileSelect($event)"
+              style="display: none;">
+          </label>
+
+          <!-- Botão de exportar -->
+          <button
+            class="export-btn"
+            (click)="exportJson()"
+            title="Exportar JSON">
+            <i class="bx bx-download"></i>
+          </button>
+
+          <!-- Botão de colapsar/expandir todos (apenas no modo visual) -->
+          @if (currentViewMode === ViewMode.VISUAL && attributes.length > 0) {
+            <button
+              class="collapse-btn"
+              (click)="toggleAllAttributes()"
+              [title]="allCollapsed ? 'Expandir todos' : 'Colapsar todos'">
+              <i class="bx {{ allCollapsed ? 'bx-expand' : 'bx-collapse' }}"></i>
+            </button>
+          }
+
+          <!-- Botão de adicionar (apenas no modo visual) -->
+          @if (currentViewMode === ViewMode.VISUAL && !isAdding) {
+            <button
+              class="add-btn"
+              (click)="startAddAttribute()"
+              title="Adicionar Propriedade">
+              <i class="bx bx-plus"></i>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="info">
+      @if (error || jsonError) {
+        <div class="feedback error">{{ error || jsonError }}</div>
+      } @else if (success) {
+        <div class="feedback success">{{ success }}</div>
+      }
+    </div>
+  </div>
+
   <div class="object-editor">
-    <!-- Formulário para adicionar nova propriedade -->
-    @if (isAdding) {
-      <div class="add-form">
-        <div class="form-grid">
-          <ub-input
-            label="Nome da propriedade"
-            placeholder="Ex: nome, idade, ativo"
-            [(value)]="newAttributeName"
-            [error]="error"
-            class="name-input">
-          </ub-input>
+    <!-- MODO VISUAL -->
+    @if (currentViewMode === ViewMode.VISUAL) {
+      <!-- Formulário para adicionar nova propriedade -->
+      @if (isAdding) {
+        <div class="add-form">
+          <div class="form-grid">
+            <ub-input
+              label="Nome da propriedade"
+              placeholder="Ex: nome, idade, ativo"
+              [(value)]="newAttributeName"
+              class="name-input">
+            </ub-input>
 
-          <ub-dropdown
-            label="Tipo"
-            placeholder="Selecione o tipo"
-            [options]="typeOptions"
-            optionLabel="label"
-            optionValue="value"
-            [(value)]="newAttributeType"
-            class="type-dropdown">
-          </ub-dropdown>
+            <ub-dropdown
+              label="Tipo"
+              placeholder="Selecione o tipo"
+              [options]="typeOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(value)]="newAttributeType"
+              class="type-dropdown">
+            </ub-dropdown>
 
-          <div class="form-actions">
-            <ub-button
-              (click)="addAttribute()"
-              class="btn-primary">
-              Adicionar
-            </ub-button>
+            <div class="form-actions">
+              <ub-button
+                (click)="addAttribute()"
+                class="btn-primary">
+                Adicionar
+              </ub-button>
 
-            <ub-button
-              (click)="cancelAddAttribute()">
-              Cancelar
-            </ub-button>
+              <ub-button
+                (click)="cancelAddAttribute()">
+                Cancelar
+              </ub-button>
+            </div>
           </div>
+        </div>
+      }
+
+      <!-- Lista de propriedades existentes com accordion -->
+      @if (attributes.length > 0) {
+        <div class="properties-accordion">
+          @for (attr of attributes; track attr.name; let i = $index) {
+            <div class="accordion-item" [class.collapsed]="attr.collapsed">
+              <div class="accordion-header" (click)="toggleAttribute(i)">
+                <div class="accordion-title">
+                  <i class="bx expand-icon" [class.bx-chevron-right]="attr.collapsed" [class.bx-chevron-down]="!attr.collapsed"></i>
+                  <span class="property-name">{{ attr.name }}</span>
+                  <span class="property-type">({{ getLabelType(attr) }})</span>
+                </div>
+                <div class="accordion-actions" (click)="$event.stopPropagation()">
+                  <button class="btn-remove" (click)="removeAttribute(i)" title="Remover propriedade">
+                    <i class="bx bx-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              @if (!attr.collapsed) {
+                <div class="accordion-content">
+                  <div class="property-editor">
+                    <div class="property-config">
+                      <ub-input
+                        label="Nome"
+                        [value]="attr.name"
+                        (valueChange)="updateAttributeName(i, $event)"
+                        placeholder="Nome da propriedade"
+                        class="name-input">
+                      </ub-input>
+
+                      <ub-dropdown
+                        label="Tipo"
+                        [options]="typeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        [value]="attr.type"
+                        (valueChange)="updateAttributeType(i, $event)"
+                        class="type-dropdown">
+                      </ub-dropdown>
+                    </div>
+
+                    <div class="property-value">
+                      <!-- Campos de texto simples -->
+                      @if (isTextInput(attr)) {
+                        <ub-input
+                          label="Valor"
+                          [value]="attr.value"
+                          [type]="getInputType(attr)"
+                          (valueChange)="updateAttributeValue(i, $event)"
+                          [placeholder]="getValuePlaceholder(attr.type)"
+                          class="value-input">
+                        </ub-input>
+                      }
+
+                      <!-- Checkbox para booleanos -->
+                      @if (attr.type === 'boolean') {
+                        <div class="toggle-field">
+                          <label>Valor:</label>
+                          <div class="toggle-wrapper">
+                            <ub-toggle-switch
+                              [value]="attr.value"
+                              (valueChange)="updateAttributeValue(i, $event)">
+                            </ub-toggle-switch>
+                            <span class="toggle-label">{{ attr.value ? 'Verdadeiro' : 'Falso' }}</span>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Textarea para arrays e objetos -->
+                      @if (isTextareaInput(attr)) {
+                        <div class="textarea-field">
+                          <label>Valor:</label>
+                          <div class="textarea-wrapper">
+                            <ub-textarea
+                              [value]="formatValueForDisplay(attr.value)"
+                              (valueChange)="updateAttributeValue(i, parseInputValue(attr.type, $event))"
+                              [placeholder]="getValuePlaceholder(attr.type)"
+                              [rows]="4"
+                              class="value-textarea">
+                            </ub-textarea>
+                            <div class="textarea-hint">Use JSON válido</div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Estado vazio -->
+      @if (attributes.length === 0 && !isAdding) {
+        <div class="empty-state" (click)="startAddAttribute()">
+          <div class="empty-icon">📋</div>
+          <h4>Nenhum atributo criado</h4>
+          <p>Clique aqui para criar o primeiro atributo</p>
+        </div>
+      }
+    }
+
+    <!-- MODO EDITOR JSON -->
+    @if (currentViewMode === ViewMode.JSON) {
+      <div class="json-editor">
+        <div class="json-editor-header">
+          <label>Editor JSON</label>
+          <button
+            class="apply-btn btn-primary"
+            (click)="applyJsonChanges()"
+            title="Aplicar alterações">
+            <i class="bx bx-check"></i>
+            Aplicar
+          </button>
+        </div>
+
+        <ub-textarea
+          [(value)]="jsonString"
+          placeholder="Cole ou edite o JSON aqui..."
+          [rows]="15"
+          class="json-textarea">
+        </ub-textarea>
+      </div>
+    }
+
+    <!-- MODO VISUALIZADOR -->
+    @if (currentViewMode === ViewMode.VIEWER) {
+      <div class="json-viewer">
+        <div class="viewer-header">
+          <label>Visualizador JSON</label>
+        </div>
+        <div class="viewer-content">
+          <ngx-json-viewer
+            [json]="getObjectValue()"
+            [expanded]="true">
+          </ngx-json-viewer>
         </div>
       </div>
     }
-
-    <!-- Lista de propriedades existentes -->
-    @if (attributes.length > 0) {
-      <div class="properties-grid">
-        @for (attr of attributes; track attr.name; let i = $index) {
-          <div class="property-card">
-            <div class="property-header">
-              <div class="property-info">
-                <ub-input
-                  [value]="attr.name"
-                  (valueChange)="updateAttributeName(i, $event)"
-                  placeholder="Nome da propriedadeaa"
-                  class="compact-input">
-                </ub-input>
-
-                <ub-dropdown
-                  [options]="typeOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  [value]="attr.type"
-                  (valueChange)="updateAttributeType(i, $event)"
-                  class="type-dropdown compact">
-                </ub-dropdown>
-              </div>
-
-              <button class="btn-remove" (click)="removeAttribute(i)" title="Remover propriedade">
-                <i class="bx bx-trash"></i>
-              </button>
-            </div>
-
-            <div class="property-value">
-              <!-- Campos de texto simples -->
-              @if (isTextInput(attr)) {
-                <ub-input
-                  [value]="attr.value"
-                  [type]="getInputType(attr)"
-                  (valueChange)="updateAttributeValue(i, $event)"
-                  [placeholder]="getValuePlaceholder(attr.type)"
-                  class="value-input">
-                </ub-input>
-              }
-
-              <!-- Checkbox para booleanos -->
-              @if (attr.type === 'boolean') {
-                <div class="toggle-wrapper">
-                  <label>Valor:</label>
-                  <ub-toggle-switch
-                    [value]="attr.value"
-                    (valueChange)="updateAttributeValue(i, $event)">
-                  </ub-toggle-switch>
-                  <span class="toggle-label">{{ attr.value ? 'Verdadeiro' : 'Falso' }}</span>
-                </div>
-              }
-
-              <!-- Textarea para arrays e objetos -->
-              @if (isTextareaInput(attr)) {
-                <div class="textarea-wrapper">
-                  <ub-textarea
-                    [value]="formatValueForDisplay(attr.value)"
-                    (valueChange)="updateAttributeValue(i, parseInputValue(attr.type, $event))"
-                    [placeholder]="getValuePlaceholder(attr.type)"
-                    [rows]="3"
-                    class="value-textarea">
-                  </ub-textarea>
-                  <div class="textarea-hint">Use JSON válido</div>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- Estado vazio -->
-    @if (attributes.length === 0 && !isAdding) {
-      <div class="empty-state" (click)="startAddAttribute()">
-        <div class="empty-icon">📋</div>
-        <h4>Nenhum atributo criado</h4>
-        <p>Clique aqui para criar o primeiro atributo</p>
-      </div>
-    }
-
-    <!-- Botão para adicionar quando já existem propriedades -->
-    @if (attributes.length > 0 && !isAdding) {
-      <div class="add-section">
-        <ub-button
-          (click)="startAddAttribute()"
-          class="add-button">
-          + Adicionar outra propriedade
-        </ub-button>
-      </div>
-    }
   </div>
-</ub-base-input>
+
+  @if (helpText) {
+    <small class="help">{{ helpText }}</small>
+  }
+</div>
