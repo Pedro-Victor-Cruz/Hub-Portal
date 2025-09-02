@@ -45,7 +45,7 @@ class SankhyaDbExplorerService extends BaseErpService
         try {
             $validatedParams = $this->validateAndSanitizeParams($params);
 
-            $sql = $validatedParams['sql'];
+            $sql = $validatedParams['SQL'];
 
             // Valida se é uma consulta SELECT segura
             if (!$this->validateSelectQuery($sql)) {
@@ -199,14 +199,14 @@ class SankhyaDbExplorerService extends BaseErpService
     {
         parent::validateParams($params);
 
-        if (!isset($params['sql']) || empty(trim($params['sql']))) {
+        if (!isset($params['SQL']) || empty(trim($params['SQL']))) {
             throw new ServiceValidationException(
                 'SQL é obrigatória',
                 ['O parâmetro sql não pode estar vazio']
             );
         }
 
-        if (!$this->validateSelectQuery($params['sql'])) {
+        if (!$this->validateSelectQuery($params['SQL'])) {
             throw new ServiceValidationException(
                 'SQL inválida',
                 ['Apenas consultas SELECT são permitidas por motivos de segurança']
@@ -223,8 +223,8 @@ class SankhyaDbExplorerService extends BaseErpService
     {
         $this->parameterManager->addMany([
             // Parâmetro principal - SQL obrigatória
-            ServiceParameter::text(
-                name: 'sql',
+            ServiceParameter::sql(
+                name: 'SQL',
                 required: true,
                 description: 'Consulta SQL SELECT para execução no banco do Sankhya',
                 validation: [
@@ -234,6 +234,7 @@ class SankhyaDbExplorerService extends BaseErpService
             )->withLabel('Consulta SQL')
             ->withPlaceholder('SELECT * FROM TABELA WHERE CONDICAO')
             ->withGroup('query'),
+
         ]);
     }
 }

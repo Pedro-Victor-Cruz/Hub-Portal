@@ -16,4 +16,6 @@ enum ParameterType: string
     case FILE = 'file';
     case EMAIL = 'email';
     case URL = 'url';
+    case SQL = 'sql';
+    case JAVASCRIPT = 'javascript';
 }

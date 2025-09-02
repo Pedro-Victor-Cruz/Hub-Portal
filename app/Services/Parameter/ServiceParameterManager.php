@@ -345,7 +345,7 @@ class ServiceParameterManager {
     private function validateObject(ServiceParameter $parameter, mixed $value): array
     {
         if (!is_array($value)) {
-            throw new \InvalidArgumentException("deve ser um objeto/array associativo");
+            throw new \InvalidArgumentException("deve ser um objeto/array associativo. Valor fornecido: " . gettype($value));
         }
 
         // Validação das propriedades se especificadas

@@ -2,7 +2,7 @@
 
 
 use App\Http\Controllers\System\DynamicQueryController;
-use App\Models\DynamicQuery;
+use App\Http\Controllers\System\DynamicQueryFilterController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'identify.company:false'])->prefix('queries')->group(function () {
@@ -48,28 +48,51 @@ Route::middleware(['auth', 'identify.company:false'])->prefix('queries')->group(
         Route::delete('/delete', [DynamicQueryController::class, 'destroy'])
             ->middleware('permission:dynamic_query.delete');
 
+        Route::prefix('filters')->group(function () {
+
+            // Obter filtros da consulta
+            Route::get('/', [DynamicQueryFilterController::class, 'index'])
+                ->middleware('permission:dynamic_query.view');
+
+            // Obter configurações completa dos filtros para interface
+            Route::get('/config', [DynamicQueryFilterController::class, 'config'])
+                ->middleware('permission:dynamic_query.view');
+
+
+            // Obter sugestões de variáveis baseadas na configuração da consulta
+            Route::get('/variable-suggestions', [DynamicQueryFilterController::class, 'variableSuggestions'])
+                ->middleware('permission:dynamic_query.view');
+
+            // Criar novo filtro
+            Route::post('/create', [DynamicQueryFilterController::class, 'store'])
+                ->middleware('permission:dynamic_query.create');
+
+            // Atualizar filtro existente
+            Route::put('/{varName}/update', [DynamicQueryFilterController::class, 'update'])
+                ->middleware('permission:dynamic_query.edit');
+
+            // Remover filtro
+            Route::delete('/{varName}/delete', [DynamicQueryFilterController::class, 'destroy'])
+                ->middleware('permission:dynamic_query.delete');
+
+            // Reordenar filtros
+            Route::put('/reorder', [DynamicQueryFilterController::class, 'reorder'])
+                ->middleware('permission:dynamic_query.edit');
+
+        });
+
     });
 
-});
+    Route::prefix('filters')->group(function () {
 
-/*
-|--------------------------------------------------------------------------
-| Rotas públicas para consultas globais (sem autenticação)
-|--------------------------------------------------------------------------
-| Estas rotas permitem acesso a consultas globais básicas
-| Útil para integrações externas ou dashboards públicos
-|
-*/
+        // Obter tipos de filtros disponíveis (sem chave de consulta)
+        Route::get('/types', [DynamicQueryFilterController::class, 'filterTypes'])
+            ->middleware('permission:dynamic_query.view');
 
-Route::prefix('public/queries')->group(function () {
+        // Obter template para criação de filtro baseado no tipo (sem chave de consulta)
+        Route::get('/template/{type}', [DynamicQueryFilterController::class, 'filterTemplate'])
+            ->middleware('permission:dynamic_query.create');
 
-    // Listar consultas globais públicas
-    Route::get('/', function () {
-        $queries = DynamicQuery::global()->active()->get(['key', 'name', 'description']);
-        return response()->json([
-            'success' => true,
-            'data' => $queries
-        ]);
-    })->name('queries.public.index');
+    });
 
 });

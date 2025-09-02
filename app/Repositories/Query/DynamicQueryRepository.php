@@ -154,4 +154,13 @@ class DynamicQueryRepository
 
         return DynamicQuery::create($data);
     }
+
+    public function findGlobalByKey(string $key)
+    {
+        return DynamicQuery::active()
+            ->where('key', $key)
+            ->where('is_global', true)
+            ->orderBy('priority', 'desc')
+            ->first();
+    }
 }

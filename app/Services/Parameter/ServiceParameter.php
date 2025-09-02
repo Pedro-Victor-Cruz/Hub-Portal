@@ -203,6 +203,40 @@ class ServiceParameter
         );
     }
 
+    public static function sql(
+        string $name,
+        bool $required = false,
+        ?string $defaultValue = null,
+        ?string $description = null,
+        array $validation = []
+    ): self {
+        return new self(
+            name: $name,
+            type: ParameterType::SQL,
+            required: $required,
+            defaultValue: $defaultValue,
+            description: $description,
+            validation: $validation
+        );
+    }
+
+    public static function javascript(
+        string $name,
+        bool $required = false,
+        ?string $defaultValue = null,
+        ?string $description = null,
+        array $validation = []
+    ): self {
+        return new self(
+            name: $name,
+            type: ParameterType::JAVASCRIPT,
+            required: $required,
+            defaultValue: $defaultValue,
+            description: $description,
+            validation: $validation
+        );
+    }
+
     public function withLabel(string $string): ServiceParameter
     {
         return new self(
