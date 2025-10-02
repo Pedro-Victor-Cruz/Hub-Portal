@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\IntegrationType;
 use App\Services\Utils\Helpers\CpfCnpjHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Support\Carbon;
  * Class Company
  *
  * Representa uma empresa cliente no sistema.
- * Cada empresa pode ter vários usuários e uma configuração de ERP vinculada.
+ * Cada empresa pode ter vários usuários e múltiplas integrações vinculadas.
  *
  * @property int $id
  * @property string $name Nome da empresa
@@ -27,7 +28,7 @@ use Illuminate\Support\Carbon;
  *
  * @property User|null $responsibleUser Usuário responsável pela empresa
  * @property Collection|User[] $users Lista de usuários da empresa
- * @property Collection|CompanyErpSetting[] $erpSettings Configurações de ERP associadas à empresa
+ * @property Collection|Integration[] $integrations Lista de integrações da empresa
  */
 class Company extends Model
 {
@@ -64,32 +65,51 @@ class Company extends Model
     }
 
     /**
-     * Configurações de ERP vinculadas a esta empresa.
+     * Lista de integrações vinculadas à empresa.
      */
-    public function erpSettings(): HasMany
+    public function integrations(): HasMany
     {
-        return $this->hasMany(CompanyErpSetting::class, 'company_id');
+        return $this->hasMany(Integration::class, 'company_id');
     }
 
     /**
-     * Retorna a configuração de ERP ativa, se existir.
-     *
-     * @return CompanyErpSetting|null
+     * Obtém integrações ativas da empresa.
      */
-    public function activeErpSetting(): ?CompanyErpSetting
+    public function activeIntegrations(): HasMany
     {
-        /** @var CompanyErpSetting|null */
-        return $this->erpSettings()->where('active', true)->first();
+        return $this->integrations()->active();
     }
 
     /**
-     * Verifica se a empresa possui alguma configuração de ERP ativa.
-     *
-     * @return bool
+     * Obtém uma integração específica por nome.
      */
-    public function hasActiveErpSetting(): bool
+    public function getIntegration(string $integrationName): ?Integration
     {
-        return $this->erpSettings()->where('active', true)->exists();
+        return $this->integrations()->byType($integrationName)->first();
+    }
+
+    /**
+     * Obtém uma integração ativa específica por nome.
+     */
+    public function getActiveIntegration(IntegrationType $integration): ?Integration
+    {
+        return $this->activeIntegrations()->byType($integration->value)->first();
+    }
+
+    /**
+     * Verifica se a empresa possui uma integração específica ativa.
+     */
+    public function hasActiveIntegration(string $integrationName): bool
+    {
+        return $this->activeIntegrations()->byType($integrationName)->exists();
+    }
+
+    /**
+     * Verifica se a empresa possui alguma integração ativa.
+     */
+    public function hasAnyActiveIntegration(): bool
+    {
+        return $this->activeIntegrations()->exists();
     }
 
     /**
@@ -124,5 +144,4 @@ class Company extends Model
     {
         return CpfCnpjHelper::format($this->cnpj);
     }
-
 }

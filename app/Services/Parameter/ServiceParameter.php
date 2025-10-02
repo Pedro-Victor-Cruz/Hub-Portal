@@ -257,6 +257,46 @@ class ServiceParameter
         );
     }
 
+    public function withSensitive(bool $sensitive = true): ServiceParameter
+    {
+        return new self(
+            name: $this->name,
+            type: $this->type,
+            required: $this->required,
+            defaultValue: $this->defaultValue,
+            description: $this->description,
+            label: $this->label,
+            options: $this->options,
+            validation: $this->validation,
+            placeholder: $this->placeholder,
+            group: $this->group,
+            order: $this->order,
+            sensitive: $sensitive,
+            dependsOn: $this->dependsOn,
+            arrayItemType: $this->arrayItemType
+        );
+    }
+
+    public function withDependencies(array $dependsOn): ServiceParameter
+    {
+        return new self(
+            name: $this->name,
+            type: $this->type,
+            required: $this->required,
+            defaultValue: $this->defaultValue,
+            description: $this->description,
+            label: $this->label,
+            options: $this->options,
+            validation: $this->validation,
+            placeholder: $this->placeholder,
+            group: $this->group,
+            order: $this->order,
+            sensitive: $this->sensitive,
+            dependsOn: $dependsOn,
+            arrayItemType: $this->arrayItemType
+        );
+    }
+
     public function withPlaceholder(string $string): ServiceParameter
     {
         return new self(
@@ -295,5 +335,10 @@ class ServiceParameter
             dependsOn: $this->dependsOn,
             arrayItemType: $this->arrayItemType
         );
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label ?: ucfirst(str_replace('_', ' ', $this->name));
     }
 }

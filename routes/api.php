@@ -27,5 +27,6 @@ require __DIR__ . '/subroutes/permissions.php';
 require __DIR__ . '/subroutes/parameters.php';
 require __DIR__ . '/subroutes/dynamic_querys.php';
 require __DIR__ . '/subroutes/services.php';
+require __DIR__ . '/subroutes/integrations.php';
 
 

@@ -61,31 +61,12 @@ class PermissionSeeder extends Seeder
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
 
-
-        // ERP Settings
+        // Integrações | Permissão para poder configurar integrações
         [
-            'name'              => 'company.erp_settings.view',
-            'description'       => 'Visualizar configurações de ERP da empresa',
-            'group'             => 'ERP Configurações',
-            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
-        ],
-        [
-            'name'              => 'company.erp_settings.create',
-            'description'       => 'Criar configurações de ERP da empresa',
-            'group'             => 'ERP Configurações',
-            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
-        ],
-        [
-            'name'              => 'company.erp_settings.edit',
-            'description'       => 'Editar configurações de ERP da empresa',
-            'group'             => 'ERP Configurações',
-            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
-        ],
-        [
-            'name'              => 'company.erp_settings.delete',
-            'description'       => 'Excluir configurações de ERP da empresa',
-            'group'             => 'ERP Configurações',
-            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
+            'name'              => 'integration.manage',
+            'description'       => 'Gerenciar integrações',
+            'group'             => 'Integrações',
+            'access_level' => PermissionStatus::USER
         ],
 
         // Permissions

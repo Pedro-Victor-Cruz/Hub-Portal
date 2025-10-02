@@ -5,6 +5,7 @@ namespace App\Services\Global;
 use App\Enums\ServiceType;
 use App\Services\Core\ApiResponse;
 use App\Services\Core\BaseGlobalService;
+use App\Services\Core\BaseService;
 use App\Services\Parameter\ServiceParameter;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Response;
@@ -14,7 +15,7 @@ use Illuminate\Http\Client\ConnectionException;
 /**
  * Serviço global para consultar APIs externas
  */
-class ApiConsultService extends BaseGlobalService
+class ApiConsultService extends BaseService
 {
     protected ServiceType $serviceType = ServiceType::QUERY;
     protected string $serviceName = 'Consulta de API Externa';

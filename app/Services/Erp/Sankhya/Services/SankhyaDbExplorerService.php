@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Services\Erp\Drivers\Sankhya\Services;
+namespace App\Services\Erp\Sankhya\Services;
 
+use App\Enums\IntegrationType;
 use App\Enums\ServiceType;
 use App\Exceptions\Services\ServiceValidationException;
 use App\Models\Company;
 use App\Services\Core\ApiResponse;
-use App\Services\Erp\Core\BaseErpService;
-use App\Services\Erp\Drivers\Sankhya\SankhyaHttpRequest;
+use App\Services\Core\Integration\IntegrationService;
+use App\Services\Erp\Sankhya\SankhyaHttpRequest;
 use App\Services\Parameter\ServiceParameter;
 use App\Services\Utils\ResponseFormatters\SankhyaResponseFormatter;
 use Exception;
@@ -15,26 +16,20 @@ use Exception;
 /**
  * Serviço para executar consultas no Sankhya usando DbExplorerSP.executeQuery
  */
-class SankhyaDbExplorerService extends BaseErpService
+class SankhyaDbExplorerService extends IntegrationService
 {
-    protected string $serviceName = 'Sankhya DB Explorer';
+    protected string $serviceName = 'Sankhya | DB Explorer';
     protected string $description = 'Executa consultas SQL no banco de dados do Sankhya';
     protected ServiceType $serviceType = ServiceType::QUERY;
     protected SankhyaHttpRequest $sankhyaRequest;
+    protected IntegrationType $requiredIntegrationType = IntegrationType::SANKHYA;
 
-    /**
-     * Inicializa o serviço com requisição específica do Sankhya
-     * @throws Exception
-     */
-    public function __construct(?Company $company)
+    public function __construct(?Company $company = null)
     {
         parent::__construct($company);
 
-        // Substitui a requisição genérica pela específica do Sankhya
-        $this->sankhyaRequest = new SankhyaHttpRequest(
-            $this->erpDriver->getSettings(),
-            $this->erpDriver->getAuthHandler()
-        );
+        // Cria instância de requisição HTTP específica do Sankhya
+        $this->httpRequest = new SankhyaHttpRequest($this->integration);
     }
 
     /**
@@ -107,31 +102,6 @@ class SankhyaDbExplorerService extends BaseErpService
     protected function formatQueryResponse(mixed $data): mixed
     {
         return SankhyaResponseFormatter::formatExecuteQueryResponse($data);
-    }
-
-    /**
-     * Executa uma consulta simples (método auxiliar)
-     */
-    public function executeQuery(string $sql): ApiResponse
-    {
-        return $this->execute([
-            'sql' => $sql
-        ]);
-    }
-
-    /**
-     * Executa uma consulta com parâmetros nomeados
-     * @param string $sql Consulta SQL com parâmetros nomeados (ex: SELECT * FROM tabela WHERE coluna = :param)
-     * @param array $namedParams Parâmetros nomeados a serem substituídos na consulta
-     */
-    public function executeQueryWithParams(string $sql, array $namedParams = [], int $maxRows = 1000): ApiResponse
-    {
-        // Substitui parâmetros nomeados na SQL
-        foreach ($namedParams as $param => $value) {
-            $sql = str_replace(":{$param}", $this->escapeValue($value), $sql);
-        }
-
-        return $this->executeQuery($sql);
     }
 
     /**

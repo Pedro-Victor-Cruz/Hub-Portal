@@ -49,6 +49,51 @@ class SankhyaResponseFormatter
     }
 
     /**
+     * Formata a resposta do CRUDServiceProvider.loadView
+     */
+    public static function formatLoadViewResponse(array $response): array
+    {
+        if (empty($response['records'])) return [];
+
+        $records = $response['records']['record'];
+
+        if (!isset($records[0])) $records = [$records];
+
+        return array_map(function ($record) {
+            return self::formatRecordDynamically($record);
+        }, $records);
+    }
+
+    /**
+     * Formatar cada registro individualmente de forma dinâmica.
+     *
+     * @param array $record
+     * @return array
+     */
+    public static function formatRecordDynamically(array $record): array
+    {
+        $formattedRecord = [];
+
+        foreach ($record as $key => $value) {
+            if (is_array($value)) {
+                // Caso o array contenha o campo '$', processa o valor real
+                if (isset($value['$'])) {
+                    $formattedRecord[$key] = self::parseValue($value['$']);
+                } elseif (empty($value)) {
+                    $formattedRecord[$key] = null;  // Array vazio tratado como null
+                } else {
+                    $formattedRecord[$key] = $value;  // Mantém array não vazio
+                }
+            } else {
+                // Se não for array, processa diretamente
+                $formattedRecord[$key] = self::parseValue($value);
+            }
+        }
+
+        return $formattedRecord;
+    }
+
+    /**
      * Converte valores conforme necessário
      */
     public static function parseValue(mixed $value): mixed

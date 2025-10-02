@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Services\Erp\Drivers\Sankhya;
+namespace App\Services\Erp\Sankhya;
 
-use App\Contracts\Erp\ErpAuthInterface;
-use App\Exceptions\Erp\ErpAuthenticationException;
-use App\Models\CompanyErpSetting;
-use App\Services\Core\HttpRequest;
+use App\Contracts\Auth\AuthHandlerInterface;
 use App\Services\Core\ApiResponse;
+use App\Services\Core\HttpRequest;
+use App\Services\Core\Integration\BaseIntegration;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -14,14 +13,14 @@ use Psr\Http\Message\ResponseInterface;
  */
 class SankhyaHttpRequest extends HttpRequest
 {
-    protected CompanyErpSetting $settings;
-    protected ?ErpAuthInterface $authHandler = null;
+    protected BaseIntegration $integration;
+    protected ?AuthHandlerInterface $authHandler = null;
     protected string $endpoint = 'mge/service.sbr';
     private const OUTPUT_FORMAT = 'json';
 
-    public function __construct(CompanyErpSetting $settings, ?ErpAuthInterface $authHandler = null)
+    public function __construct(BaseIntegration $integration, ?AuthHandlerInterface  $authHandler = null)
     {
-        $this->settings = $settings;
+        $this->integration = $integration;
         $this->authHandler = $authHandler;
 
         parent::__construct($this->getBaseUrl(), [
@@ -32,7 +31,7 @@ class SankhyaHttpRequest extends HttpRequest
     private function getBaseUrl(): string
     {
         if ($this->authHandler && $this->authHandler->getAuthType() === 'mobile_login') {
-            return $this->settings->base_url;
+            return $this->integration->getConfig('base_url_mobile');
         } else {
             return 'https://api.sankhya.com.br/gateway/v1';
         }
@@ -58,17 +57,14 @@ class SankhyaHttpRequest extends HttpRequest
      */
     protected function applyAuthentication(): void
     {
-        if (!$this->authHandler) {
-            return;
-        }
+        if (!$this->authHandler) return;
 
         try {
             $authType = $this->authHandler->getAuthType();
-            $token = $this->authHandler->getToken();
+            $token = $this->authHandler->getAuthToken();
 
-            if (!$token) {
-                return;
-            }
+            if (!$token) return;
+
 
             // Adiciona o token como parâmetro da query string
             $this->addParam('mgeSession', $token);

@@ -2,11 +2,11 @@
 
 namespace App\Contracts\Erp;
 
-use App\Models\CompanyErpSetting;
+use App\Models\Integration;
 
 interface ErpIntegrationInterface
 {
     public function authenticate(): bool;
-    public function getSettings(): CompanyErpSetting;
+    public function getIntegration(): Integration;
     public function getAuthHandler(): ErpAuthInterface;
 }

@@ -161,6 +161,7 @@ class ServiceParameterManager {
     {
         $errors = [];
         $sanitizedValue = $value;
+        $parameterName = $parameter->label ?? $parameter->name;
 
         try {
             switch ($parameter->type) {
@@ -200,7 +201,7 @@ class ServiceParameterManager {
                     break;
             }
         } catch (\Exception $e) {
-            $errors[] = "Parâmetro '{$parameter->name}': {$e->getMessage()}";
+            $errors[] = "Parâmetro '{$parameterName}': {$e->getMessage()}";
         }
 
         return [
@@ -285,8 +286,16 @@ class ServiceParameterManager {
         }
 
         $options = $parameter->options;
-        if (!in_array($value, $options, true)) {
-            throw new \InvalidArgumentException("deve ser um dos valores: " . implode(', ', $options));
+
+        // Se options for associativo, as chaves são os valores válidos
+        $validValues = array_keys($options) !== range(0, count($options) - 1)
+            ? array_keys($options)
+            : $options;
+
+        if (!in_array($value, $validValues, true)) {
+            throw new \InvalidArgumentException(
+                "Valor inválido para '{$parameter->name}'. Deve ser um dos valores: " . implode(', ', $validValues)
+            );
         }
 
         return $value;

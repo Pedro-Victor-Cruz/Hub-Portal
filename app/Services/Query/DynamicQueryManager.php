@@ -403,92 +403,6 @@ class DynamicQueryManager
     }
 
     /**
-     * Exporta configuração de consulta para array
-     */
-    public function exportQuery(string $key, ?Company $company = null, bool $includeFilters = true): ApiResponse
-    {
-        try {
-            $query = $this->repository->findByKey($key, $company);
-
-            if (!$query) {
-                return ApiResponse::error("Consulta '{$key}' não encontrada");
-            }
-
-            $export = $query->toArray();
-
-            // Remove campos específicos da instância
-            unset($export['id'], $export['created_at'], $export['updated_at']);
-
-            // Inclui filtros se solicitado
-            if ($includeFilters) {
-                $export['filters'] = $query->filters->map(function($filter) {
-                    $filterData = $filter->toArray();
-                    unset($filterData['id'], $filterData['dynamic_query_id'], $filterData['created_at'], $filterData['updated_at']);
-                    return $filterData;
-                })->toArray();
-            }
-
-            // Adiciona metadados de exportação
-            $export['exported_at'] = now()->toISOString();
-            $export['exported_by'] = 'system';
-
-            return ApiResponse::success(
-                $export,
-                'Consulta exportada com sucesso'
-            );
-
-        } catch (\Exception $e) {
-            return ApiResponse::error(
-                'Erro ao exportar consulta',
-                [$e->getMessage()]
-            );
-        }
-    }
-
-    /**
-     * Importa configuração de consulta de array, incluindo filtros
-     */
-    public function importQuery(array $queryData, ?Company $company = null, bool $overwrite = false): ApiResponse
-    {
-        try {
-            // Remove metadados de exportação
-            unset($queryData['id'], $queryData['created_at'], $queryData['updated_at'],
-                $queryData['exported_at'], $queryData['exported_by']);
-
-            // Extrai dados dos filtros
-            $filtersData = $queryData['filters'] ?? [];
-            unset($queryData['filters']);
-
-            // Se não for para sobrescrever, verifica se já existe
-            if (!$overwrite && $this->repository->exists($queryData['key'], $company)) {
-                return ApiResponse::error("Consulta '{$queryData['key']}' já existe. Use overwrite=true para sobrescrever.");
-            }
-
-            // Adiciona company_id se necessário
-            if ($company && !($queryData['is_global'] ?? false)) {
-                $queryData['company_id'] = $company->id;
-            }
-
-            $response = $this->createQuery($queryData, $filtersData);
-
-            if ($response->isSuccess()) {
-                return ApiResponse::success(
-                    $response->getData(),
-                    'Consulta importada com sucesso'
-                );
-            }
-
-            return $response;
-
-        } catch (\Exception $e) {
-            return ApiResponse::error(
-                'Erro ao importar consulta',
-                [$e->getMessage()]
-            );
-        }
-    }
-
-    /**
      * Prepara a configuração da query para execução
      */
     private function prepareQueryConfig(mixed $queryConfig): array
@@ -606,6 +520,7 @@ class DynamicQueryManager
         // Valida se o tipo de serviço é suportado pela empresa
         if (isset($data['company_id']) && $data['company_id']) {
             $company = Company::find($data['company_id']);
+
             if (!$company) {
                 throw new \InvalidArgumentException("Empresa com ID {$data['company_id']} não encontrada");
             }
