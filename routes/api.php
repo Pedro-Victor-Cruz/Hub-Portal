@@ -18,7 +18,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/', [UserAuthController::class, 'auth']);
     Route::post('/refresh', [UserAuthController::class, 'refresh']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
-    Route::post('/register', [UserAuthController::class, 'register']);
 });
 
 require __DIR__ . '/subroutes/users.php';
@@ -28,5 +27,6 @@ require __DIR__ . '/subroutes/parameters.php';
 require __DIR__ . '/subroutes/dynamic_querys.php';
 require __DIR__ . '/subroutes/services.php';
 require __DIR__ . '/subroutes/integrations.php';
+require __DIR__ . '/subroutes/logs_system.php';
 
 

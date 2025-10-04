@@ -6,6 +6,11 @@ use App\Models\Permission;
 use App\Utils\PermissionStatus;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seeder para popular as permissões do sistema.
+ *
+ * Command: php artisan db:seed --class=PermissionSeeder
+ */
 class PermissionSeeder extends Seeder
 {
     private array $systemPermissions = [
@@ -209,6 +214,20 @@ class PermissionSeeder extends Seeder
             'description'       => 'Excluir consultas dinâmicas',
             'group'             => 'Consultas Dinâmicas',
             'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+
+        // Logs
+        [
+            'name'              => 'log.view',
+            'description'       => 'Visualizar logs de atividades',
+            'group'             => 'Logs',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'log.delete',
+            'description'       => 'Excluir logs de atividades',
+            'group'             => 'Logs',
+            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
     ];
 
