@@ -4,6 +4,7 @@ namespace App\Services\Core;
 
 use App\Contracts\Services\ServiceInterface;
 use App\Enums\IntegrationType;
+use App\Enums\ServiceType;
 use App\Models\Company;
 use App\Services\Erp\Sankhya\Services\SankhyaDbExplorerService;
 use App\Services\Erp\Sankhya\Services\SankhyaLoadViewService;
@@ -108,32 +109,6 @@ class ServiceManager
             return null;
         }
 
-        // Encontra os dados do registro
-        foreach ($this->serviceRegistry as $category => $services) {
-            if ($category === 'global' && isset($services[$slug])) {
-                return $this->getServiceDetails($services[$slug], $company);
-            } elseif ($category === 'erp') {
-                foreach ($services as $erpType => $erpServices) {
-                    foreach ($erpServices as $serviceSlug => $serviceData) {
-                        if ($serviceData['slug'] === $slug) {
-                            return $this->getServiceDetails($serviceData, $company);
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private function getServiceDetails(array $serviceData, ?Company $company): ?array
-    {
-        $serviceClass = $serviceData['class'];
-
-        if (!class_exists($serviceClass)) {
-            return null;
-        }
-
         try {
             /** @var ServiceInterface $instance */
             $instance = $this->getServiceInstance($serviceClass, $company);
@@ -143,9 +118,7 @@ class ServiceManager
             }
 
             return [
-                'slug' => $serviceData['slug'],
-                'category' => $serviceData['category'],
-                'erp_type' => $serviceData['erp_type']?->value,
+                'slug' => $slug,
                 'name' => $instance->getServiceName(),
                 'description' => $instance->getDescription(),
                 'service_type' => $instance->getServiceType(),
@@ -155,9 +128,7 @@ class ServiceManager
 
         } catch (\Exception $e) {
             return [
-                'slug' => $serviceData['slug'],
-                'category' => $serviceData['category'],
-                'erp_type' => $serviceData['erp_type']?->value,
+                'slug' => $slug,
                 'name' => class_basename($serviceClass),
                 'description' => 'Serviço temporariamente indisponível',
                 'service_type' => 'N/A',
@@ -168,9 +139,69 @@ class ServiceManager
         }
     }
 
+    /**
+     * Lista serviços filtrados por tipo e opcionalmente por ERP
+     * Versão otimizada com cache
+     */
+    public function getServicesByType(ServiceType $type, ?Company $company = null): array
+    {
+        $this->ensureInitialized();
+
+        $filteredServices = [];
+
+        foreach ($this->serviceRegistry as $category => $services) {
+            foreach ($services as $slug => $serviceInfo) {
+
+                // Se o "serviceInfo" ainda tiver arrays dentro (ex: sankhya)
+                if (is_array($serviceInfo) && !isset($serviceInfo['class'])) {
+                    foreach ($serviceInfo as $innerSlug => $innerServiceInfo) {
+                        $this->processService($innerServiceInfo, $innerSlug, $company, $type, $filteredServices);
+                    }
+                } else {
+                    $this->processService($serviceInfo, $slug, $company, $type, $filteredServices);
+                }
+            }
+        }
+
+
+        return $filteredServices;
+    }
+
+    private function processService(array $serviceInfo, string $slug, ?Company $company, ServiceType $type, array &$filteredServices): void
+    {
+        if (!isset($serviceInfo['class'])) {
+            return;
+        }
+
+        $serviceClass = $serviceInfo['class'];
+
+        try {
+            /** @var ServiceInterface $instance */
+            $instance = app($serviceClass, ['company' => $company]);
+
+            if ($instance->getServiceType() == $type) {
+                $filteredServices[] = [
+                    'slug' => $serviceInfo['slug'],
+                    'name' => $instance->getServiceName(),
+                    'description' => $instance->getDescription(),
+                    'required_params' => $instance->getRequiredParams(),
+                    'class_name' => class_basename($serviceClass),
+                ];
+            }
+        } catch (\Exception $e) {
+            // ignora
+        }
+    }
+
     private function getServiceClassBySlug(string $slug): ?string
     {
         $this->ensureInitialized();
         return $this->servicesBySlug[$slug] ?? null;
+    }
+
+    public function existsService(string $slug): bool
+    {
+        $this->ensureInitialized();
+        return isset($this->servicesBySlug[$slug]);
     }
 }

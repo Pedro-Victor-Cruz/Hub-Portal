@@ -61,9 +61,9 @@ abstract class BaseService implements ServiceInterface
         return $this->parameterManager->toArray();
     }
 
-    public function getServiceType(): string
+    public function getServiceType(): ?ServiceType
     {
-        return $this->serviceType->value;
+        return ServiceType::tryFrom($this->serviceType->value);
     }
 
     public function getServiceName(): string

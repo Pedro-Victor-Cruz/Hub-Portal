@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getServiceInfo(string $slug, ?Company $company = null)
  * @method static ServiceInterface getServiceInstance(string $slug, ?Company $company = null)
  * @method static bool existsService(string $slug)
- * @method static bool isServiceAvailableForCompany(string $slug, Company $company)
  * @method static array getServiceParameters(string $serviceSlug)
  */
 class ServiceManager extends Facade

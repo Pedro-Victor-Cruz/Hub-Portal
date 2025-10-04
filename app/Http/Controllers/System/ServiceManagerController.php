@@ -26,9 +26,13 @@ class ServiceManagerController extends Controller
         $serviceType = $request->get('service_type');
 
         if ($serviceType) {
-            $serviceType = ServiceType::from($serviceType);
-            $services = ServiceManager::getServicesByType($serviceType, $company);
+            $serviceType = ServiceType::tryFrom($serviceType);
 
+            if (!$serviceType) {
+                return ApiResponse::error("Tipo de serviço inválido.")->toJson();
+            }
+
+            $services = ServiceManager::getServicesByType($serviceType, $company);
             return ApiResponse::success($services, "Lista de serviços")->toJson();
         }
 

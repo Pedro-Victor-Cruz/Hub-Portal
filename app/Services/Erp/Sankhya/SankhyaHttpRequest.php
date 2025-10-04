@@ -18,10 +18,9 @@ class SankhyaHttpRequest extends HttpRequest
     protected string $endpoint = 'mge/service.sbr';
     private const OUTPUT_FORMAT = 'json';
 
-    public function __construct(BaseIntegration $integration, ?AuthHandlerInterface  $authHandler = null)
+    public function __construct(BaseIntegration $integration)
     {
         $this->integration = $integration;
-        $this->authHandler = $authHandler;
 
         parent::__construct($this->getBaseUrl(), [
             'verify' => config('app.env') === 'production', // SSL apenas em produção
@@ -30,11 +29,7 @@ class SankhyaHttpRequest extends HttpRequest
 
     private function getBaseUrl(): string
     {
-        if ($this->authHandler && $this->authHandler->getAuthType() === 'mobile_login') {
-            return $this->integration->getConfig('base_url_mobile');
-        } else {
-            return 'https://api.sankhya.com.br/gateway/v1';
-        }
+        return $this->integration->getConfig('base_url');
     }
 
     /**
@@ -46,9 +41,9 @@ class SankhyaHttpRequest extends HttpRequest
 
         // Headers específicos do Sankhya
         $this->headers = array_merge($this->headers, [
-            'Accept' => 'application/json, text/plain, */*',
+            'Accept'          => 'application/json, text/plain, */*',
             'Accept-Language' => 'pt-BR,pt;q=0.9,en;q=0.8',
-            'Content-Type' => 'application/json;charset=UTF-8',
+            'Content-Type'    => 'application/json;charset=UTF-8',
         ]);
     }
 
@@ -57,14 +52,18 @@ class SankhyaHttpRequest extends HttpRequest
      */
     protected function applyAuthentication(): void
     {
-        if (!$this->authHandler) return;
-
         try {
-            $authType = $this->authHandler->getAuthType();
+            $authType = $this->integration->getConfig('auth_type', 'json_auth');
+
+            $this->authHandler = match ($authType) {
+                'mobile_login' => new Auth\SankhyaMobileLoginHandler($this->integration),
+                'json_auth' => new Auth\SankhyaJsonAuthHandler($this->integration),
+                default => null,
+            };
+
             $token = $this->authHandler->getAuthToken();
 
             if (!$token) return;
-
 
             // Adiciona o token como parâmetro da query string
             $this->addParam('mgeSession', $token);
@@ -73,8 +72,7 @@ class SankhyaHttpRequest extends HttpRequest
                 case 'mobile_login':
                     $this->applySankhyaSessionAuth($token);
                     break;
-
-                case 'token_auth':
+                case 'json_auth':
                     $this->applySankhyaTokenAuth($token);
                     break;
 
@@ -97,6 +95,7 @@ class SankhyaHttpRequest extends HttpRequest
 
         $this->addHeader('JSESSIONID', $jsessionId);
         $this->addHeader('Cookie', 'JSESSIONID=' . $jsessionId);
+        $this->addHeader('Authorization', "Bearer {$sessionId}");
     }
 
     /**
@@ -138,11 +137,11 @@ class SankhyaHttpRequest extends HttpRequest
 
             // Debug: adiciona a resposta raw para análise
             $debugInfo = [
-                'url' => $this->baseUrl . '/' . $this->generateUrlForDebug(),
-                'method' => $this->method,
-                'headers' => $this->headers,
-                'params' => $this->params,
-                'body' => $this->body,
+                'url'          => $this->baseUrl . '/' . $this->generateUrlForDebug(),
+                'method'       => $this->method,
+                'headers'      => $this->headers,
+                'params'       => $this->params,
+                'body'         => $this->body,
                 'raw_response' => $data, // Adiciona a resposta completa
             ];
 
@@ -172,9 +171,9 @@ class SankhyaHttpRequest extends HttpRequest
                         "Erro do Sankhya: {$errorMessage}",
                         $errors,
                         array_merge($apiResponse->getMetadata(), [
-                            'sankhya_status' => $status,
+                            'sankhya_status'  => $status,
                             'sankhya_message' => $errorMessage,
-                            'debug_info' => $debugInfo
+                            'debug_info'      => $debugInfo
                         ])
                     );
                 }
@@ -185,7 +184,7 @@ class SankhyaHttpRequest extends HttpRequest
                         $data['responseBody'],
                         'Requisição Sankhya executada com sucesso',
                         array_merge($apiResponse->getMetadata(), [
-                            'sankhya_status' => $status,
+                            'sankhya_status'  => $status,
                             'sankhya_message' => $data['statusMessage'] ?? 'Sucesso',
                         ])
                     );
@@ -195,7 +194,7 @@ class SankhyaHttpRequest extends HttpRequest
                         $data,
                         'Requisição Sankhya executada com sucesso',
                         array_merge($apiResponse->getMetadata(), [
-                            'sankhya_status' => $status,
+                            'sankhya_status'  => $status,
                             'sankhya_message' => $data['statusMessage'] ?? 'Sucesso',
                         ])
                     );
@@ -207,7 +206,7 @@ class SankhyaHttpRequest extends HttpRequest
                     'Resposta recebida (estrutura não padrão)',
                     array_merge($apiResponse->getMetadata(), [
                         'debug_info' => $debugInfo,
-                        'note' => 'Resposta não segue estrutura padrão do Sankhya'
+                        'note'       => 'Resposta não segue estrutura padrão do Sankhya'
                     ])
                 );
             }

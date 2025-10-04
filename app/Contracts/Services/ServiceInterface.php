@@ -2,6 +2,7 @@
 
 namespace App\Contracts\Services;
 
+use App\Enums\ServiceType;
 use App\Exceptions\Services\ServiceValidationException;
 use App\Services\Core\ApiResponse;
 use App\Services\Parameter\ServiceParameterManager;
@@ -61,7 +62,7 @@ interface ServiceInterface
      *
      * @return string Tipo do serviço
      */
-    public function getServiceType(): string;
+    public function getServiceType(): ?ServiceType;
 
     /**
      * Retorna o nome identificador do serviço

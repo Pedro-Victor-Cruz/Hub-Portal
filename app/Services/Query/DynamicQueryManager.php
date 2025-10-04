@@ -525,9 +525,6 @@ class DynamicQueryManager
                 throw new \InvalidArgumentException("Empresa com ID {$data['company_id']} não encontrada");
             }
 
-            if (!ServiceManager::isServiceAvailableForCompany($data['service_slug'], $company)) {
-                throw new \InvalidArgumentException("Serviço '{$data['service_slug']}' não disponível para a empresa");
-            }
         }
 
         // Valida formato da chave (apenas letras, números e hifens)

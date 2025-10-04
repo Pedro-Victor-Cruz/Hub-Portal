@@ -29,7 +29,7 @@ class SankhyaDbExplorerService extends IntegrationService
         parent::__construct($company);
 
         // Cria instância de requisição HTTP específica do Sankhya
-        $this->httpRequest = new SankhyaHttpRequest($this->integration);
+        $this->sankhyaRequest = new SankhyaHttpRequest($this->integration);
     }
 
     /**
