@@ -63,14 +63,4 @@
     </div>
   </form>
 
-  @if (idCompany) {
-    <ub-tabs>
-
-      <ub-tab label="Configurações ERP">
-        <erp-settings [companyId]="idCompany" [(loading)]="loading"></erp-settings>
-      </ub-tab>
-
-    </ub-tabs>
-  }
-
 </ub-content>

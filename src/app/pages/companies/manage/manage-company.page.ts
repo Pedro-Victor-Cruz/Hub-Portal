@@ -18,7 +18,6 @@ import {InputmaskComponent} from '../../../components/form/inputmask/inputmask.c
 import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
 import {UserService} from '../../../services/user.service';
 import {ToastService} from '../../../components/toast/toast.service';
-import {ErpSettingsComponent} from '../erp-settings/erp-settings.component';
 
 @Component({
   selector: 'app-manage',
@@ -27,13 +26,10 @@ import {ErpSettingsComponent} from '../erp-settings/erp-settings.component';
   imports: [
     ReactiveFormsModule,
     InputComponent,
-    TabComponent,
-    TabsComponent,
     ContentComponent,
     ButtonComponent,
     InputmaskComponent,
-    DropdownComponent,
-    ErpSettingsComponent
+    DropdownComponent
   ],
   standalone: true
 })
