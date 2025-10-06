@@ -1,0 +1,263 @@
+<ub-content [loading]="loading">
+  <!-- Header com título e ações -->
+  <div class="logs-header">
+    <div class="logs-header-title">
+      <i class='bx bx-history'></i>
+      <h1>Logs do Sistema</h1>
+      <span class="logs-count">{{ logs.length }} registros</span>
+    </div>
+
+    <div class="logs-header-actions">
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <i class='bx bx-filter'></i>
+        Filtros
+      </button>
+      <button class="btn btn-outline" (click)="load()">
+        <i class='bx bx-refresh'></i>
+        Atualizar
+      </button>
+      <button class="btn btn-danger" (click)="cleanupLogs()">
+        <i class='bx bx-trash'></i>
+        Limpar Antigos
+      </button>
+    </div>
+  </div>
+
+  <!-- Painel de Filtros -->
+  <div class="filters-panel" *ngIf="showFilters">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Buscar</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          placeholder="Buscar em descrição ou URL..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Nível</label>
+        <select [(ngModel)]="filters.level" class="filter-select">
+          <option *ngFor="let level of levels" [value]="level.value">
+            {{ level.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Ação</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.action"
+          placeholder="Ex: create, update, delete..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Módulo</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.module"
+          placeholder="Ex: users, products..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Endereço IP</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.ip_address"
+          placeholder="Ex: 192.168.1.1"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Data Inicial</label>
+        <input
+          type="date"
+          [(ngModel)]="filters.start_date"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Data Final</label>
+        <input
+          type="date"
+          [(ngModel)]="filters.end_date"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>ID do Usuário</label>
+        <input
+          type="number"
+          [(ngModel)]="filters.user_id"
+          placeholder="ID do usuário"
+          class="filter-input"
+        />
+      </div>
+    </div>
+
+    <div class="filters-actions">
+      <button class="btn btn-primary" (click)="applyFilters()">
+        <i class='bx bx-check'></i>
+        Aplicar Filtros
+      </button>
+      <button class="btn btn-outline" (click)="clearFilters()">
+        <i class='bx bx-x'></i>
+        Limpar Filtros
+      </button>
+    </div>
+  </div>
+
+  <ub-panel-area >
+    <ub-panel [size]="70">
+      <!-- Tabela de Logs -->
+      <div class="logs-table-container">
+        <ub-table
+          [config]="tableConfig"
+          [data]="logs"
+          [loading]="loading"
+        ></ub-table>
+      </div>
+    </ub-panel>
+    <ub-panel [size]="30">
+      <!-- Painel de Estatísticas -->
+      <div class="stats-panel" *ngIf="stats">
+        <div class="stats-grid">
+          <!-- Total de Logs -->
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <i class='bx bx-data'></i>
+            </div>
+            <div class="stat-content">
+              <h3>{{ stats.total_logs || 0 }}</h3>
+              <p>Total de Logs</p>
+            </div>
+          </div>
+
+          <!-- Logs de Erro -->
+          <div class="stat-card">
+            <div class="stat-icon red">
+              <i class='bx bx-error'></i>
+            </div>
+            <div class="stat-content">
+              <h3>{{ stats.error_count || 0 }}</h3>
+              <p>Logs de Erro</p>
+            </div>
+          </div>
+
+          <!-- Tempo Médio de Resposta -->
+          <div class="stat-card" *ngIf="stats.avg_response_time">
+            <div class="stat-icon green">
+              <i class='bx bx-time'></i>
+            </div>
+            <div class="stat-content">
+              <h3>{{ (stats.avg_response_time || 0).toFixed(2) }}ms</h3>
+              <p>Tempo Médio de Resposta</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribuição por Nível -->
+        <div class="stats-section" *ngIf="stats.by_level">
+          <h3>Distribuição por Nível</h3>
+          <div class="level-distribution">
+            <div class="level-item" *ngFor="let item of stats.by_level | keyvalue">
+              <div class="level-label">
+                <span [class]="getLevelBadgeClass(item.key)">{{ item.key }}</span>
+                <span class="level-count">{{ item.value }}</span>
+              </div>
+              <div class="level-bar">
+                <div
+                  class="level-bar-fill"
+                  [class]="getLevelBadgeClass(item.key)"
+                  [style.width.%]="getStatPercentage(item.value, stats.total_logs)"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Usuários -->
+        <div class="stats-section" *ngIf="stats.top_users && stats.top_users.length > 0">
+          <h3>Usuários Mais Ativos</h3>
+          <div class="top-list">
+            <div class="top-item" *ngFor="let user of stats.top_users">
+              <div class="top-item-info">
+                <i class='bx bx-user'></i>
+                <span>{{ user.user_name }}</span>
+              </div>
+              <span class="top-item-count">{{ user.total }} ações</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Módulos -->
+        <div class="stats-section" *ngIf="stats.by_module && stats.by_module.length > 0">
+          <h3>Módulos Mais Acessados</h3>
+          <div class="top-list">
+            <div class="top-item" *ngFor="let module of stats.by_module">
+              <div class="top-item-info">
+                <i class='bx bx-cube'></i>
+                <span>{{ module.module }}</span>
+              </div>
+              <span class="top-item-count">{{ module.total }} logs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ub-panel>
+  </ub-panel-area>
+
+  <!-- Modal de Cleanup -->
+  <div class="modal-overlay" *ngIf="showCleanupModal" (click)="cancelCleanup()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Limpar Logs Antigos</h2>
+        <button class="modal-close" (click)="cancelCleanup()">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          <i class='bx bx-info-circle'></i>
+          Esta ação irá excluir permanentemente todos os logs com mais de X dias.
+          Esta operação não pode ser desfeita.
+        </p>
+
+        <div class="form-group">
+          <label for="cleanup-days">Manter logs dos últimos (dias):</label>
+          <input
+            id="cleanup-days"
+            type="number"
+            [(ngModel)]="cleanupDays"
+            min="1"
+            max="365"
+            class="form-input"
+            placeholder="Ex: 30"
+          />
+          <small>Logs com mais de {{ cleanupDays }} dias serão excluídos</small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="cancelCleanup()">
+          <i class='bx bx-x'></i>
+          Cancelar
+        </button>
+        <button class="btn btn-danger" (click)="confirmCleanup()">
+          <i class='bx bx-trash'></i>
+          Confirmar Limpeza
+        </button>
+      </div>
+    </div>
+  </div>
+</ub-content>

@@ -68,6 +68,13 @@ export class LayoutService {
       description: 'Crie e execute consultas personalizadas ',
       permission: 'dynamic_query.view'
     },
+    {
+      title: 'Logs do Sistema',
+      path: '/logs',
+      icon: 'bx bx-file',
+      description: 'Monitore atividades e eventos do sistema',
+      permission: 'log.view'
+    }
   ];
 
   private open_tabs: TabOpen[] = [];

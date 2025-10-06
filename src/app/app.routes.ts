@@ -16,6 +16,7 @@ import {ManagePermissionGroupPage} from './pages/permission-groups/manage/manage
 import {ParametersPage} from './pages/parameters/parameters.page';
 import {DynamicQueriesPage} from './pages/dynamic-queries/dynamic-queries.page';
 import {IntegrationsPage} from './pages/integrations/integrations.page';
+import {LogsSystemPage} from './pages/logs-system/logs-system.page';
 
 export const routes: Routes = [
   {
@@ -181,6 +182,14 @@ export const routes: Routes = [
             component: DynamicQueriesPage
           }
         ]
+      },
+      {
+        path: 'logs',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'log.view',
+        },
+        component: LogsSystemPage
       }
     ],
   },
