@@ -7,6 +7,11 @@ use App\Models\PermissionGroup;
 use App\Utils\PermissionStatus;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seeder para popular os grupos de permissão do sistema.
+ *
+ * Command: php artisan db:seed --class=PermissionGroupSeeder
+ */
 class PermissionGroupSeeder extends Seeder
 {
     private array $systemGroups = [

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Erp\Sankhya;
+namespace App\Services\Integrations\Sankhya;
 
 use App\Contracts\Auth\AuthHandlerInterface;
 use App\Services\Core\Integration\BaseIntegration;

@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\System;
 
 use App\Enums\IntegrationType;
+use App\Facades\ActivityLog;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\CreateIntegrationRequest;
 use App\Http\Requests\Integration\UpdateIntegrationRequest;
 use App\Models\Company;
 use App\Models\Integration;
+use App\Models\SystemLog;
 use App\Services\Core\ApiResponse;
 use App\Services\Core\Integration\IntegrationManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IntegrationsController extends Controller
 {
@@ -37,6 +40,13 @@ class IntegrationsController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Log de erro ao carregar integrações disponíveis
+            ActivityLog::logError(
+                description: "Erro ao carregar lista de integrações disponíveis: {$e->getMessage()}",
+                module: 'integration',
+                context: ['error' => $e->getMessage()]
+            );
+
             return response()->json([
                 'message' => 'Erro ao carregar integrações disponíveis',
                 'error' => $e->getMessage()
@@ -64,6 +74,16 @@ class IntegrationsController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Log de erro ao buscar informações
+            ActivityLog::logError(
+                description: "Erro ao carregar informações da integração '{$integrationName}': {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'integration_name' => $integrationName,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao carregar informações da integração',
                 'error' => $e->getMessage()
@@ -98,6 +118,17 @@ class IntegrationsController extends Controller
 
             return $response->toJson();
         } catch (\Exception $e) {
+            // Log de erro ao buscar integração da empresa
+            ActivityLog::logError(
+                description: "Erro ao carregar integração '{$integrationName}' da empresa: {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'company_id' => $company->id ?? null,
+                    'integration_name' => $integrationName,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao carregar integração da empresa',
                 'error' => $e->getMessage()
@@ -114,6 +145,8 @@ class IntegrationsController extends Controller
             $data = $request->validated();
             $company = Company::findOrFail($data['company_id']);
 
+            DB::beginTransaction();
+
             $response = $this->integrationManager->createIntegration(
                 $company,
                 $data['integration_name'],
@@ -121,8 +154,47 @@ class IntegrationsController extends Controller
                 $data['active'] ?? true
             );
 
-           return $response->toJson();
+            if ($response->isSuccess()) {
+                $integration = $response->getData();
+
+                // Log de criação de integração
+                ActivityLog::log(
+                    action: 'integration_created',
+                    description: "Nova integração criada: {$data['integration_name']} para empresa '{$company->name}'",
+                    level: SystemLog::LEVEL_INFO,
+                    module: 'integration',
+                    model: $integration instanceof Integration ? $integration : null,
+                    data: [
+                        'metadata' => [
+                            'company_id' => $company->id,
+                            'company_name' => $company->name,
+                            'integration_name' => $data['integration_name'],
+                            'active' => $data['active'] ?? true,
+                            'has_configuration' => !empty($data['configuration'])
+                        ]
+                    ]
+                );
+
+                DB::commit();
+            } else {
+                DB::rollBack();
+            }
+
+            return $response->toJson();
         } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Log de erro ao criar integração
+            ActivityLog::logError(
+                description: "Erro ao criar integração '{$data['integration_name']}': {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'company_id' => $data['company_id'] ?? null,
+                    'integration_name' => $data['integration_name'] ?? null,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao criar integração',
                 'error' => $e->getMessage()
@@ -139,14 +211,76 @@ class IntegrationsController extends Controller
             $integration = Integration::findOrFail($integrationId);
             $data = $request->validated();
 
+            // Salva dados antigos para log
+            $oldActive = $integration->active;
+            $oldConfiguration = $integration->configuration;
+
+            DB::beginTransaction();
+
             $response = $this->integrationManager->updateIntegration(
                 $integration,
                 $data['configuration'],
                 $data['active'] ?? null
             );
 
+            if ($response->isSuccess()) {
+                // Prepara informações das mudanças
+                $changes = [];
+
+                if (isset($data['active']) && $oldActive !== $data['active']) {
+                    $changes['status'] = $data['active'] ? 'ativada' : 'desativada';
+                }
+
+                if (isset($data['configuration']) && $oldConfiguration !== $data['configuration']) {
+                    $changes['configuration'] = 'atualizada';
+                }
+
+                $changeDescription = !empty($changes)
+                    ? implode(' e ', $changes)
+                    : 'atualizada';
+
+                // Log de atualização de integração
+                ActivityLog::log(
+                    action: 'integration_updated',
+                    description: "Integração {$integration->integration_name} {$changeDescription} (ID: {$integrationId})",
+                    level: SystemLog::LEVEL_INFO,
+                    module: 'integration',
+                    model: $integration,
+                    data: [
+                        'old_values' => [
+                            'active' => $oldActive,
+                        ],
+                        'new_values' => [
+                            'active' => $integration->active,
+                        ],
+                        'metadata' => [
+                            'company_id' => $integration->company_id,
+                            'integration_name' => $integration->integration_name,
+                            'configuration_changed' => isset($changes['configuration']),
+                            'status_changed' => isset($changes['status'])
+                        ]
+                    ]
+                );
+
+                DB::commit();
+            } else {
+                DB::rollBack();
+            }
+
             return $response->toJson();
         } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Log de erro ao atualizar integração
+            ActivityLog::logError(
+                description: "Erro ao atualizar integração ID {$integrationId}: {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'integration_id' => $integrationId,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao atualizar integração',
                 'error' => $e->getMessage()
@@ -162,13 +296,40 @@ class IntegrationsController extends Controller
         try {
             $integration = Integration::findOrFail($integrationId);
 
+            // Captura dados antes de deletar
+            $integrationName = $integration->integration_name;
+            $companyId = $integration->company_id;
+            $companyName = $integration->company->name ?? "ID {$companyId}";
+
+            DB::beginTransaction();
+
             $response = $this->integrationManager->deleteIntegration($integration);
 
             if ($response->isSuccess()) {
+                // Log de exclusão de integração
+                ActivityLog::log(
+                    action: 'integration_deleted',
+                    description: "Integração {$integrationName} removida da empresa '{$companyName}'",
+                    level: SystemLog::LEVEL_WARNING,
+                    module: 'integration',
+                    data: [
+                        'metadata' => [
+                            'integration_id' => $integrationId,
+                            'integration_name' => $integrationName,
+                            'company_id' => $companyId,
+                            'company_name' => $companyName
+                        ]
+                    ]
+                );
+
+                DB::commit();
+
                 return response()->json([
                     'message' => $response->getMessage()
                 ]);
             }
+
+            DB::rollBack();
 
             return response()->json([
                 'message' => $response->getMessage(),
@@ -176,6 +337,18 @@ class IntegrationsController extends Controller
             ], 400);
 
         } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Log de erro ao remover integração
+            ActivityLog::logError(
+                description: "Erro ao remover integração ID {$integrationId}: {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'integration_id' => $integrationId,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao remover integração',
                 'error' => $e->getMessage()
@@ -193,6 +366,27 @@ class IntegrationsController extends Controller
 
             $response = $this->integrationManager->testConnection($integration);
 
+            // Log do teste de conexão
+            $level = $response->isSuccess() ? SystemLog::LEVEL_INFO : SystemLog::LEVEL_WARNING;
+
+            ActivityLog::log(
+                action: 'integration_connection_tested',
+                description: "Teste de conexão da integração {$integration->integration_name}: " .
+                ($response->isSuccess() ? "SUCESSO" : "FALHOU"),
+                level: $level,
+                module: 'integration',
+                model: $integration,
+                data: [
+                    'metadata' => [
+                        'integration_name' => $integration->integration_name,
+                        'company_id' => $integration->company_id,
+                        'test_result' => $response->isSuccess() ? 'success' : 'failed',
+                        'message' => $response->getMessage(),
+                        'response_data' => $response->getData()
+                    ]
+                ]
+            );
+
             return response()->json([
                 'message' => $response->getMessage(),
                 'data' => $response->getData(),
@@ -201,68 +395,20 @@ class IntegrationsController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Log de erro no teste de conexão
+            ActivityLog::logError(
+                description: "Erro ao testar conexão da integração ID {$integrationId}: {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'integration_id' => $integrationId,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao testar conexão',
                 'error' => $e->getMessage(),
                 'success' => false
-            ], 500);
-        }
-    }
-
-    /**
-     * Sincroniza dados de uma integração
-     */
-    public function syncData(int $integrationId, Request $request): JsonResponse
-    {
-        try {
-            $integration = Integration::findOrFail($integrationId);
-            $options = $request->get('options', []);
-
-            $response = $this->integrationManager->syncData($integration, $options);
-
-            return response()->json([
-                'message' => $response->getMessage(),
-                'data' => $response->getData(),
-                'success' => $response->isSuccess(),
-                'metadata' => $response->getMetadata()
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro na sincronização',
-                'error' => $e->getMessage(),
-                'success' => false
-            ], 500);
-        }
-    }
-
-    /**
-     * Ativa/desativa uma integração
-     */
-    public function toggleStatus(int $integrationId, Request $request): JsonResponse
-    {
-        try {
-            $integration = Integration::findOrFail($integrationId);
-            $active = $request->boolean('active');
-
-            $response = $this->integrationManager->toggleIntegration($integration, $active);
-
-            if ($response->isSuccess()) {
-                return response()->json([
-                    'message' => $response->getMessage(),
-                    'data' => $response->getData()
-                ]);
-            }
-
-            return response()->json([
-                'message' => $response->getMessage(),
-                'errors' => $response->getErrors()
-            ], 400);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro ao alterar status da integração',
-                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -288,6 +434,16 @@ class IntegrationsController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Log de erro ao carregar integração
+            ActivityLog::logError(
+                description: "Erro ao carregar integração ID {$integrationId}: {$e->getMessage()}",
+                module: 'integration',
+                context: [
+                    'integration_id' => $integrationId,
+                    'error' => $e->getMessage()
+                ]
+            );
+
             return response()->json([
                 'message' => 'Erro ao carregar integração',
                 'error' => $e->getMessage()
@@ -295,47 +451,4 @@ class IntegrationsController extends Controller
         }
     }
 
-    /**
-     * Valida configuração de uma integração sem salvar
-     */
-    public function validateConfiguration(Request $request): JsonResponse
-    {
-        try {
-            $integrationName = $request->get('integration_name');
-            $configuration = $request->get('configuration', []);
-
-            if (!$integrationName) {
-                return response()->json([
-                    'message' => 'Nome da integração é obrigatório',
-                    'valid' => false
-                ], 400);
-            }
-
-            // Cria uma integração temporária para validação
-            $tempIntegration = new Integration([
-                'integration_name' => $integrationName,
-                'configuration' => $configuration,
-                'active' => false,
-            ]);
-
-            $driver = $this->integrationManager->getDriver($tempIntegration);
-            $validation = $driver->validateConfiguration($configuration);
-
-            return response()->json([
-                'message' => $validation['valid']
-                    ? 'Configuração válida'
-                    : 'Configuração inválida',
-                'valid' => $validation['valid'],
-                'errors' => $validation['errors'] ?? [],
-                'sanitized' => $validation['sanitized'] ?? null
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro na validação',
-                'error' => $e->getMessage(),
-                'valid' => false
-            ], 500);
-        }
-    }
 }

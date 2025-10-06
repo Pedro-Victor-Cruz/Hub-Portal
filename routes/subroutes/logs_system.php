@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
 
-    Route::prefix('logs')->group(function () {
 
         // Rotas de visualização de logs (apenas para admins)
         Route::middleware(['permission:log.view'])->prefix('logs')->group(function () {
@@ -28,11 +27,6 @@ Route::middleware('auth')->group(function () {
             // Logs de um batch específico
             Route::get('/batch/{batchId}', [LogViewerController::class, 'batchLogs']);
 
-            // Logs de segurança
-            Route::get('/security/alerts', [LogViewerController::class, 'securityLogs']);
-
-            // Exportar logs
-            Route::get('/export/csv', [LogViewerController::class, 'export']);
         });
 
         // Limpeza de logs (apenas para super admins)
@@ -40,6 +34,5 @@ Route::middleware('auth')->group(function () {
             Route::delete('/logs/cleanup', [LogViewerController::class, 'cleanup']);
         });
 
-    });
 
 });

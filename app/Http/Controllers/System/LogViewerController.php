@@ -4,12 +4,16 @@ namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
 use App\Models\SystemLog;
+use App\Traits\ApiResponder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LogViewerController extends Controller
 {
+
+    use ApiResponder;
+
     /**
      * Listagem de logs com filtros
      */
@@ -67,9 +71,7 @@ class LogViewerController extends Controller
         // Ordenação
         $query->orderBy('created_at', 'desc');
 
-        // Paginação
-        $perPage = $request->get('per_page', 50);
-        $logs = $query->paginate($perPage);
+        $logs = $query->limit(200)->get();
 
         return response()->json([
             'message' => 'Logs encontrados com sucesso',
@@ -228,104 +230,6 @@ class LogViewerController extends Controller
             'message' => 'Logs do batch encontrados',
             'data' => $logs
         ]);
-    }
-
-    /**
-     * Logs de segurança (tentativas de acesso, falhas de login, etc)
-     */
-    public function securityLogs(Request $request): JsonResponse
-    {
-        $query = SystemLog::query()
-            ->whereIn('action', [
-                SystemLog::ACTION_LOGIN_FAILED,
-                'delete_attempt_blocked',
-                'delete_superadmin_blocked',
-                'unauthorized_access',
-                'password_reset_failed'
-            ])
-            ->orWhere('level', SystemLog::LEVEL_WARNING)
-            ->orWhere('level', SystemLog::LEVEL_ERROR)
-            ->with('user');
-
-        // Filtro por período
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [
-                $request->start_date,
-                $request->end_date
-            ]);
-        }
-
-        $logs = $query->orderBy('created_at', 'desc')
-            ->paginate($request->get('per_page', 50));
-
-        return response()->json([
-            'message' => 'Logs de segurança encontrados',
-            'data' => $logs
-        ]);
-    }
-
-    /**
-     * Exportar logs (CSV)
-     */
-    public function export(Request $request)
-    {
-        $query = SystemLog::query()->with('user');
-
-        // Aplicar os mesmos filtros do index
-        if ($request->has('level')) {
-            $query->where('level', $request->level);
-        }
-        if ($request->has('action')) {
-            $query->where('action', $request->action);
-        }
-        if ($request->has('module')) {
-            $query->where('module', $request->module);
-        }
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
-        }
-
-        $logs = $query->orderBy('created_at', 'desc')->get();
-
-        $filename = 'logs_' . now()->format('Y-m-d_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($logs) {
-            $file = fopen('php://output', 'w');
-
-            // Cabeçalho do CSV
-            fputcsv($file, [
-                'ID',
-                'Data/Hora',
-                'Nível',
-                'Ação',
-                'Módulo',
-                'Usuário',
-                'IP',
-                'Descrição'
-            ]);
-
-            // Dados
-            foreach ($logs as $log) {
-                fputcsv($file, [
-                    $log->id,
-                    $log->created_at->format('Y-m-d H:i:s'),
-                    $log->level,
-                    $log->action,
-                    $log->module,
-                    $log->user_name ?? 'Sistema',
-                    $log->ip_address,
-                    $log->description
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
     }
 
     /**
