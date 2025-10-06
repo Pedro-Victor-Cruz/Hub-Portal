@@ -18,10 +18,10 @@ export class PermissionGroupsPage implements OnInit {
   groups: any[] = [];
   loading: boolean = true;
   configTable: TableConfig = {
-    cols: [
-      { name: "Descrição", path: "description" },
-      { name: "Nome", path: "name" },
-      { name: "Empresa", path: "company.name" }
+    columns: [
+      { headerName: "Descrição", field: "description" },
+      { headerName: "Nome", field: "name" },
+      { headerName: "Empresa", field: "company.name" }
     ],
     showAddButton: true,
     showEditButton: true,

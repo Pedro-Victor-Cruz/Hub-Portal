@@ -1,48 +1,67 @@
-import {Component, OnDestroy} from '@angular/core';
-import {ConfirmationService} from './confirmation-modal.service';
-import {ButtonComponent} from '../form/button/button.component';
+import { Component, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ConfirmationService, ConfirmationConfig } from './confirmation-modal.service';
+import { ButtonComponent } from '../form/button/button.component';
 
 @Component({
   selector: 'ub-confirmation-modal',
-  imports: [
-    ButtonComponent
-  ],
-  templateUrl: './confirmation-modal.component.html',
   standalone: true,
-  styleUrl: './confirmation-modal.component.scss'
+  imports: [CommonModule, ButtonComponent],
+  templateUrl: './confirmation-modal.component.html',
+  styleUrl: './confirmation-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConfirmationModalComponent implements OnDestroy {
-
   isVisible = false;
-  message: string = 'Você deseja prosseguir com essa ação?';
-  acceptText: string = 'Confirmar';
-  cancelText: string = 'Cancelar';
-  subscription: any;
+  message = '';
+  acceptText = '';
+  cancelText = '';
 
-  constructor(private confirmationService: ConfirmationService) {
-    this.subscription = this.confirmationService.showModal$.subscribe((config) => {
-      if (config) {
-        this.message = config.message;
-        this.acceptText = config.acceptText;
-        this.cancelText = config.cancelText;
-        this.isVisible = true;
-      } else {
-        this.isVisible = false;
-      }
-    });
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private confirmationService: ConfirmationService,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.initializeModal();
   }
 
-  onAccept() {
+  private initializeModal(): void {
+    this.confirmationService.modalState$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((config: ConfirmationConfig | null) => {
+        if (config) {
+          this.message = config.message;
+          this.acceptText = config.acceptText;
+          this.cancelText = config.cancelText;
+          this.isVisible = true;
+        } else {
+          this.isVisible = false;
+        }
+        // Força detecção de mudanças para garantir que o modal apareça
+        this.cdr.markForCheck();
+      });
+  }
+
+  onAccept(): void {
     this.confirmationService.accept();
   }
 
-  onCancel() {
+  onCancel(): void {
     this.confirmationService.cancel();
   }
 
-  ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
+  // Fecha o modal ao clicar no overlay
+  onOverlayClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.onCancel();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

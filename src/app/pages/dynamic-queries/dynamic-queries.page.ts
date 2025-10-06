@@ -22,22 +22,22 @@ export class DynamicQueriesPage implements OnInit {
   protected loading: boolean = false;
   protected data: DynamicQuery[] = [];
   protected configTable: TableConfig = {
-    cols: [
+    columns: [
       {
-        name: "ID",
-        path: "id"
+        headerName: "ID",
+        field: "id",
       },
       {
-        name: "Nome",
-        path: "name"
+        headerName: "Nome",
+        field: "name"
       },
       {
-        name: "Descrição",
-        path: "description"
+        headerName: "Descrição",
+        field: "description"
       },
       {
-        name: "Global",
-        path: "is_global",
+        headerName: "Global",
+        field: "is_global",
       }
     ],
     showAddButton: true,

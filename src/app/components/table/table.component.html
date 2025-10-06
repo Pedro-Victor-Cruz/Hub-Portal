@@ -1,141 +1,90 @@
-<div class="table-container">
-  <!-- Barra de ferramentas -->
-  <div class="toolbar">
-    <div class="actions">
-      <ub-multiselect [options]="config.cols" optionLabel="name" optionValue="path"
-                      placeholder="Selecionar colunas" [(value)]="selectedColumns"
-                      (valueChange)="console.log($event)"></ub-multiselect>
+<div class="table-wrapper">
+  <!-- Toolbar -->
+  <div class="table-toolbar">
+    <div class="toolbar-left">
+      <h2 class="table-title">
+        <ng-content select="[title]"></ng-content>
+      </h2>
+      <div class="toolbar-info" *ngIf="paginate">
+        <span class="info-badge">
+          {{ paginate.from }} - {{ paginate.to }} de {{ paginate.total }} registros
+        </span>
+      </div>
     </div>
-    <div class="actions">
-      @if (config.showAddButton) {
-        <ub-button (click)="create()" icon="bx bx-plus" severity="success">Adicionar</ub-button>
-      }
-      <ub-button icon="bx bx-refresh" (click)="reloadEvent.emit()">Recarregar</ub-button>
-      @if (config.showFilterButton) {
-        <ub-button icon="bx bx-filter-alt">Filtrar</ub-button>
-      }
-      @if (config.showExportButton ?? true) {
-        <ub-actionbutton [actions]="actionsExport" icon="bx bx-export">Exportar</ub-actionbutton>
-      }
+
+    <div class="toolbar-right">
+      <div class="toolbar-actions">
+        @if (config && config.showAddButton) {
+          <button class="toolbar-btn primary-btn" (click)="create()">
+            <i class="bx bx-plus"></i>
+            <span>Adicionar</span>
+          </button>
+        }
+
+        <button class="toolbar-btn" (click)="reload()">
+          <i class="bx bx-refresh"></i>
+          <span>Recarregar</span>
+        </button>
+
+        <button class="toolbar-btn" (click)="clearFilters()">
+          <i class="bx bx-filter-alt"></i>
+          <span>Limpar Filtros</span>
+        </button>
+
+        @if (config && config.selectable && selectedRows.length > 0) {
+          <button class="toolbar-btn warning-btn" (click)="clearSelection()">
+            <i class="bx bx-x-circle"></i>
+            <span>Limpar Seleção ({{ selectedRows.length }})</span>
+          </button>
+        }
+
+        @if (config && config.showExportButton) {
+          <div class="dropdown">
+            <button class="toolbar-btn dropdown-toggle">
+              <i class="bx bx-export"></i>
+              <span>Exportar</span>
+              <i class="bx bx-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" (click)="exportToCSV()">
+                <i class="bx bx-file"></i>
+                <span>Exportar CSV</span>
+              </button>
+              <button class="dropdown-item" (click)="exportToExcel()">
+                <i class="bx bxs-file-export"></i>
+                <span>Exportar Excel</span>
+              </button>
+              <button class="dropdown-item" (click)="print()">
+                <i class="bx bx-printer"></i>
+                <span>Imprimir</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </div>
 
-  <table>
-    <thead>
-    <tr>
-      <!-- Coluna de seleção -->
-      @if (config.selectable) {
-        <th>
-          <label class="checkbox-container">
-            <input
-              type="checkbox"
-              [checked]="selectedItems.length === data.length"
-              (change)="toggleSelectAll($event)"
-            />
-            <span class="checkmark"></span>
-          </label>
-        </th>
-      }
+  <!-- AG Grid -->
+  <div class="grid-container">
+    <ag-grid-angular
+      #agGrid
+      [rowData]="rowData"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef"
+      [gridOptions]="gridOptions"
+      (gridReady)="onGridReady($event)"
+      style="width: 100%; height: 100%;"
+    />
+  </div>
 
-      <!-- Cabeçalho das colunas -->
-      @for (col of config.cols; track col.path) {
-        @if (selectedColumns.includes(col.path)) {
-          <th class="sortable">
-            <div class="header-content">
-              {{ col.name }}
-              <i
-                class="bx bx-filter filter-icon"
-                (click)="openFilterPopup(col)"
-              ></i>
-            </div>
-          </th>
-        }
-      }
-
-      <!-- Coluna de ações -->
-      @if (config.showEditButton || config.showDeleteButton) {
-        <th>Ações</th>
-      }
-    </tr>
-    </thead>
-
-    <tbody>
-      @for (item of filteredData; track i; let i = $index) {
-        <tr>
-          <!-- Checkbox de seleção -->
-          @if (config.selectable) {
-            <td>
-              <label class="checkbox-container">
-                <input
-                  type="checkbox"
-                  [checked]="isSelected(item)"
-                  (change)="toggleSelect(item)"
-                />
-                <span class="checkmark"></span>
-              </label>
-            </td>
-          }
-
-          <!-- Dados das colunas -->
-          @for (col of config.cols; track col.path) {
-            @if (selectedColumns.includes(col.path)) {
-              <td>
-                {{ getNestedValue(item, col.path) }}
-              </td>
-            }
-          }
-
-          <!-- Coluna de ações -->
-          @if (config.showEditButton || config.showDeleteButton) {
-            <td class="actions">
-              @if (config.showEditButton) {
-                <button class="action-button edit" (click)="edit(item)">
-                  <i class="bx bxs-edit"></i>
-                </button>
-              }
-              @if (config.showDeleteButton) {
-                <button class="action-button delete" (click)="delete(item)">
-                  <i class="bx bxs-trash"></i>
-                </button>
-              }
-            </td>
-          }
-        </tr>
-      }
-    </tbody>
-    <tfoot>
-    <tr>
-      <td colspan="100%">
-
-      </td>
-    </tr>
-    </tfoot>
-  </table>
-
-  @if (paginate) {
+  <!-- Footer Info -->
+  @if (paginate && gridApi) {
     <div class="table-footer">
-      <ub-pagination
-        [currentPage]="paginate.current_page"
-        [lastPage]="paginate.last_page"
-        [perPage]="paginate.per_page"
-        [total]="paginate.total"
-        [from]="paginate.from"
-        [to]="paginate.from"
-        (pageChange)="onPageChange($event)"
-        (perPageChange)="onPerPageChange($event)"
-      ></ub-pagination>
-    </div>
-  }
-
-  @if (filterPopupVisible) {
-    <div class="filter-popup">
-      <div class="filter-content">
-        <h4>Filtrar por {{ selectedFilterColumn?.name }}</h4>
-        <ub-input type="text" [(ngModel)]="filterValue" placeholder="Digite para filtrar..."></ub-input>
-        <div class="filter-actions">
-          <ub-button (click)="applyFilter()" icon="bx bx-check">Aplicar</ub-button>
-          <ub-button (click)="closeFilterPopup()" icon="bx bx-x" severity="danger">Fechar</ub-button>
-        </div>
+      <div class="footer-info">
+        <span>
+          Página {{ paginate.current_page }} de {{ paginate.last_page }}
+        </span>
       </div>
     </div>
   }

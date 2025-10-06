@@ -1,11 +1,21 @@
 @if (isVisible) {
-  <div class="modal-overlay">
-    <div class="modal">
+  <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-message">
       <div class="modal-content">
-        <p>{{ message }}</p>
+        <p id="modal-message">{{ message }}</p>
         <div class="modal-actions">
-          <ub-button (click)="onCancel()" severity="danger">{{ cancelText }}</ub-button>
-          <ub-button (click)="onAccept()" severity="primary">{{ acceptText }}</ub-button>
+          <ub-button
+            (click)="onCancel()"
+            severity="danger"
+            [attr.aria-label]="cancelText">
+            {{ cancelText }}
+          </ub-button>
+          <ub-button
+            (click)="onAccept()"
+            severity="primary"
+            [attr.aria-label]="acceptText">
+            {{ acceptText }}
+          </ub-button>
         </div>
       </div>
     </div>

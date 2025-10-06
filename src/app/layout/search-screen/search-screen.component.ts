@@ -36,6 +36,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   } as const;
 
   private searchTimeout?: number;
+  private clickOutsideHandler?: (event: MouseEvent) => void;
 
   constructor(
     private router: Router,
@@ -46,11 +47,33 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadStoredData();
     this.loadAllPages();
+    this.setupClickOutsideListener();
   }
 
   ngOnDestroy(): void {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
+    }
+    this.removeClickOutsideListener();
+  }
+
+  private setupClickOutsideListener(): void {
+    this.clickOutsideHandler = this.handleClickOutside.bind(this);
+    document.addEventListener('click', this.clickOutsideHandler);
+  }
+
+  private removeClickOutsideListener(): void {
+    if (this.clickOutsideHandler) {
+      document.removeEventListener('click', this.clickOutsideHandler);
+    }
+  }
+
+  private handleClickOutside(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const searchContainer = target.closest('.selector-search');
+
+    if (!searchContainer && this.isSearchFocused) {
+      this.closeSearchResults();
     }
   }
 
@@ -118,7 +141,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
       this.addToRecentSearches(page);
       this.router.navigate([path]);
     }
-    this.closeAll();
+    this.closeSearchResults();
   }
 
   private addToRecentSearches(item: SearchItem): void {
@@ -162,35 +185,26 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   }
 
   onSearchFocus(): void {
-    setTimeout(() => {
-      this.isSearchFocused = true;
-    }, 250);
-
+    this.isSearchFocused = true;
     if (!this.searchQuery.trim()) {
       this.filteredResults = [];
     }
   }
 
   onSearchBlur(event: FocusEvent): void {
-    const relatedTarget = event.relatedTarget as HTMLElement;
+    // Delay para permitir cliques nos resultados
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      const searchResults = document.querySelector('.search-results');
 
-    // Verifica se o foco foi para um elemento dentro dos resultados de busca
-    if (relatedTarget && relatedTarget.closest('.search-results')) {
-      return; // Não remove o foco se clicou dentro dos resultados
-    }
+      // Mantém aberto se o foco está dentro dos resultados
+      if (searchResults && searchResults.contains(activeElement)) {
+        return;
+      }
 
-    this.isSearchFocused = false;
+      this.isSearchFocused = false;
+    }, 200);
   }
-
-  onSearchResultsClick(event: MouseEvent): void {
-    event.stopPropagation();
-
-    const container = (event.currentTarget as HTMLElement).closest('.selector-search');
-    const input = container?.querySelector('input') as HTMLInputElement | null;
-
-    input?.focus();
-  }
-
 
   isFavorite(item: SearchItem): boolean {
     return this.favoritePages.some(fav => fav.path === item.path);
@@ -228,6 +242,10 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   clearFavorites(): void {
     this.favoritePages = [];
     this.saveToLocalStorage();
+  }
+
+  closeSearchResults(): void {
+    this.isSearchFocused = false;
   }
 
   private closeAll(): void {

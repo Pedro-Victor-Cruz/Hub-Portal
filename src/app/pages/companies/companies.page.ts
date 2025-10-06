@@ -18,22 +18,22 @@ export class CompaniesPage implements OnInit {
   protected loading = false;
   data: any[] = [];
   configTable: TableConfig = {
-    cols: [
+    columns: [
       {
-        name: "ID",
-        path: "id"
+        headerName: "ID",
+        field: "id"
       },
       {
-        name: "Nome",
-        path: "name"
+        headerName: "Nome",
+        field: "name"
       },
       {
-        name: "E-mail",
-        path: "email"
+        headerName: "E-mail",
+        field: "email"
       },
       {
-        name: "CNPJ",
-        path: "cnpj",
+        headerName: "CNPJ",
+        field: "cnpj",
       }
     ],
     showAddButton: true,

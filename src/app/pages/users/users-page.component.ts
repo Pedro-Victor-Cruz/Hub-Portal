@@ -18,18 +18,20 @@ export class UsersPage implements OnInit {
 
   data: any[] = [];
   configTable: TableConfig = {
-    cols: [
+    showExportButton: true,
+    columns: [
       {
-        name: "ID",
-        path: "id"
+        headerName: "ID",
+        field: "id",
+        width: 80
       },
       {
-        name: "Nome",
-        path: "name"
+        headerName: "Nome",
+        field: "name"
       },
       {
-        name: "Email",
-        path: "email"
+        headerName: "Email",
+        field: "email"
       }
     ],
     showAddButton: true,

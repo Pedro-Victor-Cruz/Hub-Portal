@@ -18,8 +18,7 @@
     @if (showSearchResults) {
       <div class="search-results"
            [class.visible]="showSearchResults"
-           (click)="onSearchResultsClick($event)"
-           (mousedown)="$event.preventDefault()">
+           (mousedown)="$event.stopPropagation()">
         @if (searchQuery.trim() === '') {
           <!-- Pesquisas recentes e favoritos -->
           <div class="results-columns">
