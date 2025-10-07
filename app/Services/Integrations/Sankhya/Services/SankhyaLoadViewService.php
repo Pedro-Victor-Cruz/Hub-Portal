@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Services\Erp\Sankhya\Services;
+namespace App\Services\Integrations\Sankhya\Services;
 
 use App\Enums\IntegrationType;
 use App\Enums\ServiceType;
 use App\Exceptions\Services\ServiceValidationException;
 use App\Services\Core\ApiResponse;
 use App\Services\Core\Integration\IntegrationService;
-use App\Services\Erp\Sankhya\SankhyaHttpRequest;
+use App\Services\Integrations\Sankhya\SankhyaHttpRequest;
 use App\Services\Parameter\ServiceParameter;
 use App\Services\Utils\ResponseFormatters\SankhyaResponseFormatter;
 use Exception;

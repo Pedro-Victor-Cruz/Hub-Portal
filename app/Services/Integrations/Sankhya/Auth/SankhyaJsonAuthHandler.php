@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Erp\Sankhya\Auth;
+namespace App\Services\Integrations\Sankhya\Auth;
 
 use App\Exceptions\Erp\ErpAuthenticationException;
 use App\Services\Core\BaseAuthHandler;

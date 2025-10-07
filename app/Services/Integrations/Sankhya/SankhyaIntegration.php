@@ -5,8 +5,8 @@ namespace App\Services\Integrations\Sankhya;
 use App\Contracts\Auth\AuthHandlerInterface;
 use App\Services\Core\Integration\BaseIntegration;
 use App\Services\Core\Traits\HasAuthentication;
-use App\Services\Erp\Sankhya\Auth\SankhyaJsonAuthHandler;
-use App\Services\Erp\Sankhya\Auth\SankhyaMobileLoginHandler;
+use App\Services\Integrations\Sankhya\Auth\SankhyaJsonAuthHandler;
+use App\Services\Integrations\Sankhya\Auth\SankhyaMobileLoginHandler;
 use App\Services\Parameter\ServiceParameter;
 use Exception;
 

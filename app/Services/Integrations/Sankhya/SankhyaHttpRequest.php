@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Services\Erp\Sankhya;
+namespace App\Services\Integrations\Sankhya;
 
 use App\Contracts\Auth\AuthHandlerInterface;
 use App\Services\Core\ApiResponse;
 use App\Services\Core\HttpRequest;
 use App\Services\Core\Integration\BaseIntegration;
+use App\Services\Integrations\Sankhya\Auth\SankhyaJsonAuthHandler;
+use App\Services\Integrations\Sankhya\Auth\SankhyaMobileLoginHandler;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -56,8 +58,8 @@ class SankhyaHttpRequest extends HttpRequest
             $authType = $this->integration->getConfig('auth_type', 'json_auth');
 
             $this->authHandler = match ($authType) {
-                'mobile_login' => new Auth\SankhyaMobileLoginHandler($this->integration),
-                'json_auth' => new Auth\SankhyaJsonAuthHandler($this->integration),
+                'mobile_login' => new SankhyaMobileLoginHandler($this->integration),
+                'json_auth' => new SankhyaJsonAuthHandler($this->integration),
                 default => null,
             };
 

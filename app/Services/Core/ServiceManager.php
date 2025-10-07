@@ -6,9 +6,9 @@ use App\Contracts\Services\ServiceInterface;
 use App\Enums\IntegrationType;
 use App\Enums\ServiceType;
 use App\Models\Company;
-use App\Services\Erp\Sankhya\Services\SankhyaDbExplorerService;
-use App\Services\Erp\Sankhya\Services\SankhyaLoadViewService;
 use App\Services\Global\ApiConsultService;
+use App\Services\Integrations\Sankhya\Services\SankhyaDbExplorerService;
+use App\Services\Integrations\Sankhya\Services\SankhyaLoadViewService;
 use Exception;
 
 /**
