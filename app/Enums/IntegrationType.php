@@ -7,6 +7,7 @@ enum IntegrationType: string
     // ERP Systems
     case SANKHYA = 'sankhya';
     case TOTVS = 'totvs';
+    case VTEX = 'vtex';
     case BLING = 'bling';
     case SAP = 'sap';
     case ORACLE = 'oracle';

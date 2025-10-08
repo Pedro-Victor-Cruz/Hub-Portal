@@ -28,5 +28,6 @@ require __DIR__ . '/subroutes/dynamic_querys.php';
 require __DIR__ . '/subroutes/services.php';
 require __DIR__ . '/subroutes/integrations.php';
 require __DIR__ . '/subroutes/logs_system.php';
+require __DIR__ . '/subroutes/system_performance.php';
 
 

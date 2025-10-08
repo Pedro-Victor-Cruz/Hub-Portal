@@ -8,5 +8,5 @@ interface AuthHandlerInterface
     public function isAuthenticated(): bool;
     public function getAuthType(): string;
     public function logout(): bool;
-    public function getAuthToken(): ?string;
+    public function getAuthToken(): mixed;
 }

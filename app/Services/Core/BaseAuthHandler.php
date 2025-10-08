@@ -56,7 +56,7 @@ abstract class BaseAuthHandler implements AuthHandlerInterface
     /**
      * Obtém o token de autenticação do cache
      */
-    public function getAuthToken(): ?string
+    public function getAuthToken(): mixed
     {
         return Cache::get($this->getCacheKey());
     }
@@ -73,7 +73,7 @@ abstract class BaseAuthHandler implements AuthHandlerInterface
     /**
      * Salva token no cache
      */
-    protected function saveTokenToCache(string $token, int $ttl = null): void
+    protected function saveTokenToCache(mixed $token, int $ttl = null): void
     {
         $ttl = $ttl ?? $this->defaultTokenTtl;
         Cache::put($this->getCacheKey(), $token, $ttl);

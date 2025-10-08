@@ -4,15 +4,13 @@ namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
 use App\Models\SystemLog;
-use App\Traits\ApiResponder;
+use App\Services\Core\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LogViewerController extends Controller
 {
-
-    use ApiResponder;
 
     /**
      * Listagem de logs com filtros
@@ -73,10 +71,8 @@ class LogViewerController extends Controller
 
         $logs = $query->limit(200)->get();
 
-        return response()->json([
-            'message' => 'Logs encontrados com sucesso',
-            'data' => $logs
-        ]);
+
+        return ApiResponse::success($logs, 'Logs encontrados com sucesso')->toJson();
     }
 
     /**
@@ -85,11 +81,7 @@ class LogViewerController extends Controller
     public function show(int $id): JsonResponse
     {
         $log = SystemLog::with(['user', 'loggable'])->findOrFail($id);
-
-        return response()->json([
-            'message' => 'Log encontrado com sucesso',
-            'data' => $log
-        ]);
+        return ApiResponse::success($log, 'Detalhes do log')->toJson();
     }
 
     /**
@@ -170,28 +162,20 @@ class LogViewerController extends Controller
                 ->avg('response_time'),
         ];
 
-        return response()->json([
-            'message' => 'Estatísticas geradas com sucesso',
-            'data' => $stats
-        ]);
+        return ApiResponse::success($stats, 'Estatísticas de logs')->toJson();
     }
 
     /**
      * Timeline de atividades de um usuário
      */
-    public function userTimeline(int $userId, Request $request): JsonResponse
+    public function userTimeline(int $userId): JsonResponse
     {
-        $perPage = $request->get('per_page', 50);
-
         $logs = SystemLog::where('user_id', $userId)
             ->with('loggable')
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            ->get();
 
-        return response()->json([
-            'message' => 'Timeline do usuário encontrada',
-            'data' => $logs
-        ]);
+        return ApiResponse::success($logs, 'Timeline do usuário')->toJson();
     }
 
     /**
@@ -210,10 +194,7 @@ class LogViewerController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json([
-            'message' => 'Histórico do registro encontrado',
-            'data' => $logs
-        ]);
+        return ApiResponse::success($logs, 'Histórico do modelo')->toJson();
     }
 
     /**
@@ -226,10 +207,7 @@ class LogViewerController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        return response()->json([
-            'message' => 'Logs do batch encontrados',
-            'data' => $logs
-        ]);
+        return ApiResponse::success($logs, 'Logs do batch')->toJson();
     }
 
     /**
@@ -246,12 +224,9 @@ class LogViewerController extends Controller
 
         $count = SystemLog::where('created_at', '<', $date)->delete();
 
-        return response()->json([
-            'message' => "Removidos {$count} logs com mais de {$days} dias",
-            'data' => [
-                'deleted_count' => $count,
-                'cutoff_date' => $date->toDateTimeString()
-            ]
-        ]);
+        return ApiResponse::success([
+            'deleted_count' => $count,
+            'cutoff_date' => $date->toDateTimeString()
+        ], "Removidos {$count} logs com mais de {$days} dias")->toJson();
     }
 }

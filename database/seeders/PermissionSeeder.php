@@ -229,6 +229,20 @@ class PermissionSeeder extends Seeder
             'group'             => 'Logs',
             'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
         ],
+
+        // System Performance
+        [
+            'name'              => 'system_performance.view',
+            'description'       => 'Visualizar métricas de performance do sistema',
+            'group'             => 'Performance do Sistema',
+            'access_level' => PermissionStatus::ADMINISTRATOR
+        ],
+        [
+            'name'              => 'system_performance.delete',
+            'description'       => 'Excluir métricas de performance antigas',
+            'group'             => 'Performance do Sistema',
+            'access_level' => PermissionStatus::SUPER_ADMINISTRATOR
+        ],
     ];
 
     public function run()
