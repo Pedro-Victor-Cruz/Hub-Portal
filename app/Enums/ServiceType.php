@@ -13,6 +13,7 @@ enum ServiceType: string
     case INTEGRATION = 'integration'; // Serviços de integração entre sistemas
     case UTILITY = 'utility';     // Serviços utilitários/auxiliares
     case QUERY = 'query';       // Serviços de execução de consultas SQL
+    case GENERAL = 'general';   // Serviços gerais/indefinidos
 
     /**
      * Retorna a descrição do tipo de serviço

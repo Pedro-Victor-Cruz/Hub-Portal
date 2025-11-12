@@ -11,6 +11,7 @@ enum IntegrationType: string
     case BLING = 'bling';
     case SAP = 'sap';
     case ORACLE = 'oracle';
+    case NUVEMSHOP = 'nuvemshop';
 
     // Calendar Systems
     case GOOGLE_CALENDAR = 'google_calendar';

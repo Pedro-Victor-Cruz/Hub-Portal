@@ -203,6 +203,22 @@ class ServiceParameter
         );
     }
 
+    public static function email(
+        string $name,
+        bool $required = false,
+        ?string $defaultValue = null,
+        ?string $description = null
+    ): self {
+        return new self(
+            name: $name,
+            type: ParameterType::EMAIL,
+            required: $required,
+            defaultValue: $defaultValue,
+            description: $description,
+            validation: ['email' => true]
+        );
+    }
+
     public static function sql(
         string $name,
         bool $required = false,

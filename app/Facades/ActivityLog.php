@@ -28,6 +28,6 @@ class ActivityLog extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return 'activity-logger';
+        return ActivityLogger::class;
     }
 }
