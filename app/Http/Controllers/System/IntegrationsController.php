@@ -7,7 +7,6 @@ use App\Facades\ActivityLog;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\CreateIntegrationRequest;
 use App\Http\Requests\Integration\UpdateIntegrationRequest;
-use App\Models\Company;
 use App\Models\Integration;
 use App\Models\SystemLog;
 use App\Services\Core\ApiResponse;
@@ -91,14 +90,10 @@ class IntegrationsController extends Controller
         }
     }
 
-    /**
-     * Obtém a integração ativa de uma empresa por nome
-     */
-    public function getCompanyIntegration(Request $request, string $integrationName): JsonResponse
+
+    public function getIntegration(Request $request, string $integrationName): JsonResponse
     {
         try {
-            /** @var Company $company */
-            $company = $request->get('company');
 
             $integrationType = IntegrationType::tryFrom($integrationName);
 
@@ -108,47 +103,41 @@ class IntegrationsController extends Controller
                 ], 400);
             }
 
-            $integration = $company->getActiveIntegration($integrationType);
+            $integration = Integration::type($integrationType)->where('active', true)->first();
 
             if (!$integration) {
-                $response = ApiResponse::success(null, 'Nenhuma integração ativa encontrada para esta empresa');
+                $response = ApiResponse::success(null, 'Nenhuma integração ativa encontrada');
             } else {
                 $response = ApiResponse::success($integration->toArray(), 'Integração carregada com sucesso');
             }
 
             return $response->toJson();
         } catch (\Exception $e) {
-            // Log de erro ao buscar integração da empresa
+            // Log de erro ao buscar integração
             ActivityLog::logError(
-                description: "Erro ao carregar integração '{$integrationName}' da empresa: {$e->getMessage()}",
+                description: "Erro ao carregar integração '{$integrationName}': {$e->getMessage()}",
                 module: 'integration',
                 context: [
-                    'company_id' => $company->id ?? null,
                     'integration_name' => $integrationName,
                     'error' => $e->getMessage()
                 ]
             );
 
             return response()->json([
-                'message' => 'Erro ao carregar integração da empresa',
+                'message' => 'Erro ao carregar integração',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Cria uma nova integração para uma empresa
-     */
     public function create(CreateIntegrationRequest $request): JsonResponse
     {
         try {
             $data = $request->validated();
-            $company = Company::findOrFail($data['company_id']);
 
             DB::beginTransaction();
 
             $response = $this->integrationManager->createIntegration(
-                $company,
                 $data['integration_name'],
                 $data['configuration'],
                 $data['active'] ?? true
@@ -160,14 +149,12 @@ class IntegrationsController extends Controller
                 // Log de criação de integração
                 ActivityLog::log(
                     action: 'integration_created',
-                    description: "Nova integração criada: {$data['integration_name']} para empresa '{$company->name}'",
+                    description: "Nova integração criada: {$data['integration_name']}",
                     level: SystemLog::LEVEL_INFO,
                     module: 'integration',
                     model: $integration instanceof Integration ? $integration : null,
                     data: [
                         'metadata' => [
-                            'company_id' => $company->id,
-                            'company_name' => $company->name,
                             'integration_name' => $data['integration_name'],
                             'active' => $data['active'] ?? true,
                             'has_configuration' => !empty($data['configuration'])
@@ -189,7 +176,6 @@ class IntegrationsController extends Controller
                 description: "Erro ao criar integração '{$data['integration_name']}': {$e->getMessage()}",
                 module: 'integration',
                 context: [
-                    'company_id' => $data['company_id'] ?? null,
                     'integration_name' => $data['integration_name'] ?? null,
                     'error' => $e->getMessage()
                 ]
@@ -254,7 +240,6 @@ class IntegrationsController extends Controller
                             'active' => $integration->active,
                         ],
                         'metadata' => [
-                            'company_id' => $integration->company_id,
                             'integration_name' => $integration->integration_name,
                             'configuration_changed' => isset($changes['configuration']),
                             'status_changed' => isset($changes['status'])
@@ -298,8 +283,6 @@ class IntegrationsController extends Controller
 
             // Captura dados antes de deletar
             $integrationName = $integration->integration_name;
-            $companyId = $integration->company_id;
-            $companyName = $integration->company->name ?? "ID {$companyId}";
 
             DB::beginTransaction();
 
@@ -309,15 +292,13 @@ class IntegrationsController extends Controller
                 // Log de exclusão de integração
                 ActivityLog::log(
                     action: 'integration_deleted',
-                    description: "Integração {$integrationName} removida da empresa '{$companyName}'",
+                    description: "Integração {$integrationName} removida",
                     level: SystemLog::LEVEL_WARNING,
                     module: 'integration',
                     data: [
                         'metadata' => [
                             'integration_id' => $integrationId,
-                            'integration_name' => $integrationName,
-                            'company_id' => $companyId,
-                            'company_name' => $companyName
+                            'integration_name' => $integrationName
                         ]
                     ]
                 );
@@ -379,7 +360,6 @@ class IntegrationsController extends Controller
                 data: [
                     'metadata' => [
                         'integration_name' => $integration->integration_name,
-                        'company_id' => $integration->company_id,
                         'test_result' => $response->isSuccess() ? 'success' : 'failed',
                         'message' => $response->getMessage(),
                         'response_data' => $response->getData()
@@ -420,7 +400,7 @@ class IntegrationsController extends Controller
     {
         try {
             /** @var Integration $integration */
-            $integration = Integration::with('company')->findOrFail($integrationId);
+            $integration = Integration::findOrFail($integrationId);
             $driver = $this->integrationManager->getDriver($integration);
 
             $data = array_merge(

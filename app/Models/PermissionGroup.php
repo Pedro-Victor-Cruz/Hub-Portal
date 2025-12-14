@@ -8,7 +8,6 @@ use App\Utils\PermissionStatus;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -17,10 +16,8 @@ use Illuminate\Support\Facades\Auth;
  * @property int $id
  * @property string $name
  * @property string $description
- * @property int|null $company_id
  * @property PermissionStatus $access_level
  * @property bool $is_system
- * @property-read Company|null $company
  * @property-read Collection<int, Permission> $permissions
  * @property-read Collection<int, User> $users
  * @property-read Collection<int, PermissionGroup> $groups
@@ -31,18 +28,12 @@ class PermissionGroup extends Model
 
     protected $table = 'permission_groups';
 
-    protected $fillable = ['name', 'description', 'company_id', 'access_level', 'is_system'];
+    protected $fillable = ['name', 'description', 'access_level', 'is_system'];
 
     protected $casts = [
         'is_system' => 'boolean',
-        'access_level' => PermissionStatusCast::class,
-        'company_id' => 'integer',
+        'access_level' => PermissionStatusCast::class
     ];
-
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class);
-    }
 
     public function permissions(): BelongsToMany
     {
@@ -97,20 +88,6 @@ class PermissionGroup extends Model
         return $this;
     }
 
-    public function scopeGlobal($query)
-    {
-        return $query->whereNull('company_id');
-    }
-
-    public function scopeForCompany($query, $companyId)
-    {
-        return $query->where('company_id', $companyId);
-    }
-
-    public function isGlobal(): bool
-    {
-        return is_null($this->company_id);
-    }
 
     public function setAccessLevelAttribute($value): void
     {
@@ -146,14 +123,10 @@ class PermissionGroup extends Model
         // Verifica primeiro o nível de acesso
         if ($this->access_level->value > $user->accessLevel()->value) return false;
 
-        // Grupos globais (sem company_id) podem ser gerenciados se o nível de acesso permitir
-        if (is_null($this->company_id)) return true;
-
         // Administradores podem gerenciar grupos de qualquer empresa (desde que o nível permita)
         if ($user->isAdmin()) return true;
 
-        // Para não-administradores, verifica se o grupo pertence à mesma empresa
-        return $user->company_id && $user->company_id === $this->company_id;
+        return true;
     }
 
     /**
@@ -169,20 +142,7 @@ class PermissionGroup extends Model
         // Se não houver usuário autenticado, não retorna nada
         if (!$user) return $query->where('id', 0);
 
-        return $query->where('access_level', '<=', $user->accessLevel()->value)
-            ->where(function($q) use ($user) {
-                // Grupos globais OU
-                $q->whereNull('company_id')
-                    // Do admin OU
-                    ->orWhere(function($q) use ($user) {
-                        // Se o usuário tenha permissão para ver outros grupos de empresa
-                        if ($user->hasPermissionTo('company.view_other')) {
-                            $q->whereNotNull('company_id');
-                        } else {
-                            $q->where('company_id', $user->company_id);
-                        }
-                    });
-            });
+        return $query->where('access_level', '<=', $user->accessLevel()->value);
     }
 
 }

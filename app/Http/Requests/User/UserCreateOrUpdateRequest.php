@@ -31,7 +31,6 @@ class UserCreateOrUpdateRequest extends ApiRequest
                 'same:password',
             ],
             'name' => 'required|min:3|max:50',
-            'company_id' => 'nullable|exists:companies,id',
         ];
     }
 
@@ -50,7 +49,6 @@ class UserCreateOrUpdateRequest extends ApiRequest
             'name.required' => 'O nome é obrigatório.',
             'name.min' => 'O nome deve ter no mínimo 3 caracteres.',
             'name.max' => 'O nome deve ter no máximo 50 caracteres.',
-            'company_id.exists' => 'A empresa selecionada não existe.',
         ];
     }
 }

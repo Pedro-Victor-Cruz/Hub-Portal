@@ -58,17 +58,7 @@ class UserController extends Controller
     public function index(): JsonResponse
     {
         $users = User::query()
-            ->with(['company'])
             ->get();
-
-        // Log de listagem (opcional - pode gerar muito log)
-        // Descomente se quiser logar todas as listagens
-        // ActivityLog::log(
-        //     action: SystemLog::ACTION_VIEWED,
-        //     description: "Listagem de usuários acessada",
-        //     level: SystemLog::LEVEL_DEBUG,
-        //     module: 'user'
-        // );
 
         return response()->json([
             'message' => 'Usuários encontrados com sucesso',
@@ -96,12 +86,7 @@ class UserController extends Controller
     public function store(UserCreateOrUpdateRequest $request): JsonResponse
     {
         /** @var User $auth */
-        $auth = Auth::guard('auth')->user();
         $data = $request->validated();
-
-        if (!$auth->hasPermissionTo('company.create_other')) {
-            $data['company_id'] = $auth->company_id;
-        }
 
         try {
             DB::beginTransaction();
@@ -109,8 +94,7 @@ class UserController extends Controller
             $user = User::query()->create([
                 'email' => $data['email'],
                 'name' => $data['name'],
-                'password' => $data['password'],
-                'company_id' => $data['company_id'] ?? null,
+                'password' => $data['password']
             ]);
 
             // Log de criação de usuário
@@ -165,17 +149,12 @@ class UserController extends Controller
         $oldData = $user->getOriginal();
         $data = $request->validated();
 
-        if (!$auth->hasPermissionTo('company.edit_other')) {
-            $data['company_id'] = $user->company_id;
-        }
-
         try {
             DB::beginTransaction();
 
             $user->fill([
                 'email' => $data['email'],
                 'name' => $data['name'],
-                'company_id' => $data['company_id'] ?? null,
             ]);
 
             if (isset($data['password']) && !empty($data['password'])) {
@@ -239,18 +218,18 @@ class UserController extends Controller
         /** @var User $user */
         $user = User::query()->findOrFail($id);
 
-        if ($user->isSuperAdmin()) {
+        if ($user->isAdmin()) {
             // Log de tentativa de exclusão de super admin (segurança)
             ActivityLog::log(
-                action: 'delete_superadmin_blocked',
-                description: "Tentativa bloqueada de exclusão do super admin: {$user->name}",
+                action: 'delete_admin_blocked',
+                description: "Tentativa bloqueada de exclusão do admin: {$user->name}",
                 level: SystemLog::LEVEL_WARNING,
                 module: 'user',
                 model: $user
             );
 
             return response()->json([
-                'message' => 'Você não pode excluir um super administrador',
+                'message' => 'Você não pode excluir um administrador',
                 'data' => null
             ], 403);
         }

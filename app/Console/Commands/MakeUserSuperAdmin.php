@@ -37,12 +37,6 @@ class MakeUserSuperAdmin extends Command
             return 1;
         }
 
-        // Verifica se o usuário já é Super Admin
-        if ($user->isSuperAdmin()) {
-            $this->info("Usuário {$user->name} (ID: {$user->id}) já é um Super Admin.");
-            return 0;
-        }
-
         // Verifica se o grupo Super Admin existe
         $superAdminGroup = PermissionGroup::where('name', 'Super Admin')->first();
 

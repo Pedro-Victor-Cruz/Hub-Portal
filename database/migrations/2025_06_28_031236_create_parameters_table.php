@@ -21,6 +21,7 @@ return new class extends Migration
             $table->json('options')->nullable();
             $table->boolean('is_system')->default(false);
             $table->unsignedTinyInteger('access_level')->default(1);
+            $table->text('value')->nullable();
             $table->timestamps();
         });
     }

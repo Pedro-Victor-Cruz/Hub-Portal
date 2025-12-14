@@ -28,8 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property \Illuminate\Support\Carbon|null $created_at Data de criação do parâmetro
  * @property \Illuminate\Support\Carbon|null $updated_at Data da última atualização do parâmetro
  *
- * @property-read Collection<int, Company> $companies Empresas associadas a este parâmetro
- * @property-read mixed $value Valor do parâmetro para uma empresa específica ou o valor padrão
+ * @property mixed $value Valor do parâmetro para uma empresa específica ou o valor padrão
  * @property-read mixed $formatted_value Valor formatado do parâmetro para uma empresa específica ou o valor padrão
  */
 class Parameter extends Model
@@ -44,7 +43,8 @@ class Parameter extends Model
         'default_value',
         'options',
         'is_system',
-        'access_level'
+        'access_level',
+        'value'
     ];
 
     protected $casts = [
@@ -52,31 +52,14 @@ class Parameter extends Model
         'is_system' => 'boolean'
     ];
 
-    public function companies(): BelongsToMany
-    {
-        return $this->belongsToMany(Company::class, 'company_parameter_values')
-            ->withPivot('value')
-            ->withTimestamps();
-    }
-
-    public function getValueForCompany(?Company $company = null)
-    {
-        if ($company === null) return $this->default_value;
-
-        $companyValue = $this->companies()->where('company_id', $company->id)->first();
-
-        return $companyValue ? $companyValue->pivot->value : $this->default_value;
-    }
 
     /**
      * Retorna o valor formatado do parâmetro para a empresa especificada.
-     * Se a empresa não for especificada, retorna o valor global ou o valor padrão.
-     * @param Company|null $company
      * @return bool|Carbon|float|int|mixed
      */
-    public function getFormattedValue(?Company $company = null): mixed
+    public function getFormattedValue(): mixed
     {
-        $value = $this->getValueForCompany($company);
+        $value = $this->value;
 
         return match ($this->type) {
             'boolean' => (bool)$value,

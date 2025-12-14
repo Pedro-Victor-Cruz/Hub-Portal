@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Query;
 
-use App\Models\Company;
 use App\Models\DynamicQuery;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -11,113 +10,41 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class DynamicQueryRepository
 {
-    /**
-     * Busca uma consulta dinâmica por chave e empresa
-     * Prioriza consultas específicas da empresa sobre as globais
-     */
-    public function findByKey(string $key, ?Company $company = null): ?DynamicQuery
+
+    public function findByKey(string $key): ?DynamicQuery
     {
-        $query = DynamicQuery::active()->where('key', $key);
-
-        if ($company) {
-            // Busca primeiro por consulta específica da empresa
-            $companyQuery = clone $query;
-            $companySpecific = $companyQuery->forCompany($company)
-                ->orderBy('priority', 'desc')
-                ->first();
-
-            if ($companySpecific) {
-                return $companySpecific;
-            }
-        }
-
-        // Se não encontrou específica da empresa, busca global
-        return $query->global()
-            ->orderBy('priority', 'desc')
-            ->first();
+        return DynamicQuery::active()->where('key', $key)->first();
     }
 
-    /**
-     * Lista todas as consultas disponíveis para uma empresa
-     */
-    public function getAvailableQueries(?Company $company = null): Collection
+    public function getAvailableQueries(): Collection
     {
-        $globalQueries = DynamicQuery::active()
-            ->global()
-            ->get();
-
-        if ($company) {
-            $companyQueries = DynamicQuery::active()
-                ->forCompany($company)
-                ->get();
-
-            // Sobrescreve consultas globais com as específicas da empresa
-            $queries = $globalQueries
-                ->keyBy('key')
-                ->merge($companyQueries->keyBy('key'))
-                ->values(); // 🔹 reseta para array numérico
-        } else {
-            $queries = $globalQueries->values(); // 🔹 array numérico
-        }
-
-        return $queries->sortBy('name')->values();
+        return DynamicQuery::active()->orderBy('name', 'desc')->get()->values();
     }
 
-    /**
-     * Lista consultas por classe de serviço
-     */
-    public function getByServiceSlug(string $serviceSlug, ?Company $company = null): Collection
+    public function getByServiceSlug(string $serviceSlug): Collection
     {
-        $query = DynamicQuery::active()->where('service_slug', $serviceSlug);
-
-        if ($company) {
-            $query->where(function ($q) use ($company) {
-                $q->where('is_global', true)
-                    ->orWhere('company_id', $company->id);
-            });
-        } else {
-            $query->where('is_global', true);
-        }
-
-        return $query->orderBy('priority', 'desc')->get();
+        return DynamicQuery::active()->where('service_slug', $serviceSlug)->get();
     }
 
-    /**
-     * Cria ou atualiza uma consulta dinâmica
-     */
     public function createOrUpdate(array $data): DynamicQuery
     {
         return DynamicQuery::updateOrCreate(
             [
                 'key' => $data['key'],
-                'company_id' => $data['company_id'] ?? null,
             ],
             $data
         );
     }
 
-    /**
-     * Remove uma consulta dinâmica
-     */
-    public function delete(string $key, ?Company $company = null): bool
+    public function delete(string $key): bool
     {
         $query = DynamicQuery::where('key', $key);
-
-        if ($company) {
-            $query->where('company_id', $company->id);
-        } else {
-            $query->where('is_global', true);
-        }
-
         return $query->delete() > 0;
     }
 
-    /**
-     * Lista todas as chaves de consulta disponíveis
-     */
-    public function getAvailableKeys(?Company $company = null): array
+    public function getAvailableKeys(): array
     {
-        return $this->getAvailableQueries($company)
+        return $this->getAvailableQueries()
             ->pluck('key')
             ->unique()
             ->values()
@@ -127,25 +54,18 @@ class DynamicQueryRepository
     /**
      * Verifica se uma consulta existe
      */
-    public function exists(string $key, ?Company $company = null): bool
+    public function exists(string $key): bool
     {
-        return $this->findByKey($key, $company) !== null;
+        return $this->findByKey($key) !== null;
     }
 
-    /**
-     * Duplica uma consulta global para uma empresa específica
-     */
-    public function duplicateForCompany(string $key, Company $company, array $overrides = []): ?DynamicQuery
+    public function duplicateForCompany(string $key, array $overrides = []): ?DynamicQuery
     {
-        $globalQuery = $this->findByKey($key, null);
+        $query = $this->findByKey($key);
 
-        if (!$globalQuery || !$globalQuery->is_global) {
-            return null;
-        }
+        if (!$query) return null;
 
-        $data = array_merge($globalQuery->toArray(), $overrides, [
-            'company_id' => $company->id,
-            'is_global' => false,
+        $data = array_merge($query->toArray(), $overrides, [
             'created_at' => null,
             'updated_at' => null,
         ]);
@@ -159,8 +79,6 @@ class DynamicQueryRepository
     {
         return DynamicQuery::active()
             ->where('key', $key)
-            ->where('is_global', true)
-            ->orderBy('priority', 'desc')
             ->first();
     }
 }

@@ -5,7 +5,6 @@ namespace App\Services\Core;
 use App\Contracts\Services\ServiceInterface;
 use App\Enums\IntegrationType;
 use App\Enums\ServiceType;
-use App\Models\Company;
 use App\Services\Global\ApiConsultService;
 use App\Services\Integrations\Sankhya\Services\SankhyaDbExplorerService;
 use App\Services\Integrations\Sankhya\Services\SankhyaLoadViewService;
@@ -63,7 +62,7 @@ class ServiceManager
         }
     }
 
-    public function executeService(string $serviceSlug, array $params = [], ?Company $company = null): ApiResponse
+    public function executeService(string $serviceSlug, array $params = []): ApiResponse
     {
         $this->ensureInitialized();
 
@@ -73,7 +72,7 @@ class ServiceManager
         }
 
         try {
-            $service = app($serviceClass, ['company' => $company]);
+            $service = app($serviceClass);
             return $service->execute($params);
         } catch (Exception $e) {
             return ApiResponse::error("Erro ao executar serviço: " . $e->getMessage());
@@ -88,7 +87,7 @@ class ServiceManager
         }
     }
 
-    public function getServiceInstance(string $serviceSlug, ?Company $company = null)
+    public function getServiceInstance(string $serviceSlug)
     {
         $this->ensureInitialized();
 
@@ -97,10 +96,10 @@ class ServiceManager
             throw new Exception("Serviço '{$serviceSlug}' não encontrado");
         }
 
-        return app($serviceClass, ['company' => $company]);
+        return app($serviceClass);
     }
 
-    public function getServiceInfo(string $slug, ?Company $company = null): ?array
+    public function getServiceInfo(string $slug): ?array
     {
         $this->ensureInitialized();
 
@@ -111,7 +110,7 @@ class ServiceManager
 
         try {
             /** @var ServiceInterface $instance */
-            $instance = $this->getServiceInstance($serviceClass, $company);
+            $instance = $this->getServiceInstance($serviceClass);
 
             if (!$instance instanceof ServiceInterface) {
                 throw new \RuntimeException("O serviço {$serviceClass} deve implementar ServiceInterface");
@@ -143,7 +142,7 @@ class ServiceManager
      * Lista serviços filtrados por tipo e opcionalmente por ERP
      * Versão otimizada com cache
      */
-    public function getServicesByType(ServiceType $type, ?Company $company = null): array
+    public function getServicesByType(ServiceType $type): array
     {
         $this->ensureInitialized();
 
@@ -155,10 +154,10 @@ class ServiceManager
                 // Se o "serviceInfo" ainda tiver arrays dentro (ex: sankhya)
                 if (is_array($serviceInfo) && !isset($serviceInfo['class'])) {
                     foreach ($serviceInfo as $innerSlug => $innerServiceInfo) {
-                        $this->processService($innerServiceInfo, $innerSlug, $company, $type, $filteredServices);
+                        $this->processService($innerServiceInfo, $innerSlug, $type, $filteredServices);
                     }
                 } else {
-                    $this->processService($serviceInfo, $slug, $company, $type, $filteredServices);
+                    $this->processService($serviceInfo, $slug, $type, $filteredServices);
                 }
             }
         }
@@ -167,7 +166,7 @@ class ServiceManager
         return $filteredServices;
     }
 
-    private function processService(array $serviceInfo, string $slug, ?Company $company, ServiceType $type, array &$filteredServices): void
+    private function processService(array $serviceInfo, string $slug, ServiceType $type, array &$filteredServices): void
     {
         if (!isset($serviceInfo['class'])) {
             return;
@@ -177,7 +176,7 @@ class ServiceManager
 
         try {
             /** @var ServiceInterface $instance */
-            $instance = app($serviceClass, ['company' => $company]);
+            $instance = app($serviceClass);
 
             if ($instance->getServiceType() == $type) {
                 $filteredServices[] = [

@@ -5,7 +5,6 @@ namespace App\Services\Integrations\Sankhya\Services;
 use App\Enums\IntegrationType;
 use App\Enums\ServiceType;
 use App\Exceptions\Services\ServiceValidationException;
-use App\Models\Company;
 use App\Services\Core\ApiResponse;
 use App\Services\Core\Integration\IntegrationService;
 use App\Services\Integrations\Sankhya\SankhyaHttpRequest;
@@ -24,9 +23,9 @@ class SankhyaDbExplorerService extends IntegrationService
     protected SankhyaHttpRequest $sankhyaRequest;
     protected IntegrationType $requiredIntegrationType = IntegrationType::SANKHYA;
 
-    public function __construct(?Company $company = null)
+    public function __construct()
     {
-        parent::__construct($company);
+        parent::__construct();
 
         // Cria instância de requisição HTTP específica do Sankhya
         $this->sankhyaRequest = new SankhyaHttpRequest($this->integration);

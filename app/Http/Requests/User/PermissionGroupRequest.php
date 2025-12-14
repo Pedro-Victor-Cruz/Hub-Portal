@@ -18,7 +18,6 @@ class PermissionGroupRequest extends ApiRequest
         return [
             'description'   => 'required|string|max:255',
             'name'          => 'required|string|max:255',
-            'company_id'    => 'nullable|integer|exists:companies,id',
             'access_level'  => 'sometimes|in:' . implode(',', array_keys(PermissionStatus::getManageableLevelsArray($user->accessLevel()))),
             'permissions'   => 'required|array',
             'permissions.*' => 'string|exists:permissions,name',
@@ -34,8 +33,6 @@ class PermissionGroupRequest extends ApiRequest
             'name.required'        => 'O campo nome é obrigatório.',
             'name.string'          => 'O campo nome deve ser uma string.',
             'name.max'             => 'O campo nome não pode ter mais de 255 caracteres.',
-            'company_id.integer'   => 'O campo empresa deve ser um número inteiro.',
-            'company_id.exists'    => 'A empresa selecionada não existe.',
             'access_level.in'      => 'O nível de acesso selecionado é inválido.',
             'permissions.required' => 'O campo permissões é obrigatório.',
             'permissions.array'    => 'O campo permissões deve ser um array.',

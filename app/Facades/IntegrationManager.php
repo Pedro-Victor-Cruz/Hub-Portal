@@ -2,24 +2,22 @@
 
 namespace App\Facades;
 
-use App\Models\Company;
 use App\Models\Integration;
 use App\Services\Core\ApiResponse;
+use App\Services\Core\Integration\BaseIntegration;
 use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static array getAvailableIntegrations()
  * @method static array|null getIntegrationInfo(string $integrationName)
- * @method static ApiResponse createIntegration(Company $company, string $integrationName, array $configuration, bool $active = true)
+ * @method static ApiResponse createIntegration(string $integrationName, array $configuration, bool $active = true)
  * @method static ApiResponse updateIntegration(Integration $integration, array $configuration, bool|null $active = null)
- * @method static \App\Services\Core\Integration\BaseIntegration getDriver(Integration $integration)
- * @method static \App\Services\Core\Integration\BaseIntegration|null getDriverForCompany(Company $company, string $integrationName)
+ * @method static BaseIntegration getDriver(Integration $integration)
  * @method static ApiResponse testConnection(Integration $integration)
  * @method static ApiResponse syncData(Integration $integration, array $options = [])
- * @method static array getCompanyIntegrations(Company $company, bool $activeOnly = false)
  * @method static ApiResponse deleteIntegration(Integration $integration)
  * @method static ApiResponse toggleIntegration(Integration $integration, bool $active)
- * @method static array getIntegrationsStats(Company $company)
+ * @method static array getIntegrationsStats()
  *
  * @see \App\Services\Core\Integration\IntegrationManager
  */

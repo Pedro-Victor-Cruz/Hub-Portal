@@ -6,7 +6,6 @@ use App\Facades\DynamicQueryManager;
 use App\Facades\ServiceManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -20,19 +19,15 @@ use Illuminate\Support\Carbon;
  * @property string $key Chave única da consulta (ex: produtos, clientes)
  * @property string $name Nome amigável da consulta
  * @property string|null $description Descrição da consulta
- * @property int|null $company_id ID da empresa (null para consultas globais)
  * @property string $service_slug Slug do serviço a ser utilizado
  * @property array|null $service_params Parâmetros específicos do serviço
  * @property string|null $query_config Configuração da query (SQL, endpoint, etc.)
  * @property array|null $fields_metadata Configuração dos campos de retorno
  * @property array|null $response_format Configuração de formatação da resposta
  * @property bool $active Se a consulta está ativa
- * @property bool $is_global Se a consulta é global ou específica da empresa
- * @property int $priority Prioridade para resolver conflitos
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
- * @property Company|null $company Empresa associada (se não for global)
  * @property DynamicQueryFilter[] $filters Filtros associados à consulta
  * @property DynamicQueryFilter[] $activeFilters Filtros ativos associados à consulta
  */
@@ -46,15 +41,12 @@ class DynamicQuery extends Model
         'key',
         'name',
         'description',
-        'company_id',
         'service_slug',
         'service_params',
         'query_config',
         'fields_metadata',
         'response_format',
-        'active',
-        'is_global',
-        'priority',
+        'active'
     ];
 
     protected $casts = [
@@ -62,8 +54,6 @@ class DynamicQuery extends Model
         'fields_metadata' => 'array',
         'response_format' => 'array',
         'active'          => 'boolean',
-        'is_global'       => 'boolean',
-        'priority'        => 'integer',
     ];
 
     protected $hidden = [
@@ -75,13 +65,6 @@ class DynamicQuery extends Model
         'required_params'
     ];
 
-    /**
-     * Relacionamento: Consulta pode pertencer a uma empresa
-     */
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class);
-    }
 
     /**
      * Relacionamento: Consulta pode ter múltiplos filtros
@@ -115,28 +98,13 @@ class DynamicQuery extends Model
         return $query->where('active', true);
     }
 
-    /**
-     * Scope para consultas globais
-     */
-    public function scopeGlobal($query)
-    {
-        return $query->where('is_global', true);
-    }
-
-    /**
-     * Scope para consultas de uma empresa específica
-     */
-    public function scopeForCompany($query, Company $company)
-    {
-        return $query->where('company_id', $company->id);
-    }
 
     /**
      * Verifica se a classe do serviço existe
      */
     public function isValidServiceSlug(): bool
     {
-        return ServiceManager::getServiceInfo($this->service_slug, $this->company) !== null;
+        return ServiceManager::getServiceInfo($this->service_slug) !== null;
     }
 
     /**

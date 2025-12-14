@@ -23,18 +23,12 @@ class CreateIntegrationRequest extends FormRequest
         $availableIntegrations = array_keys(config('integration.drivers', []));
 
         return [
-            'company_id' => [
-                'required',
-                'integer',
-                'exists:companies,id'
-            ],
             'integration_name' => [
                 'required',
                 'string',
                 Rule::in($availableIntegrations),
                 // Valida que não existe outra integração do mesmo tipo para esta empresa
                 Rule::unique('integrations')
-                    ->where('company_id', $this->company_id)
                     ->where('integration_name', $this->integration_name)
             ],
             'configuration' => [
@@ -54,8 +48,6 @@ class CreateIntegrationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'company_id.required' => 'ID da empresa é obrigatório',
-            'company_id.exists' => 'Empresa não encontrada',
             'integration_name.required' => 'Nome da integração é obrigatório',
             'integration_name.in' => 'Tipo de integração inválido',
             'integration_name.unique' => 'Esta empresa já possui uma integração deste tipo',

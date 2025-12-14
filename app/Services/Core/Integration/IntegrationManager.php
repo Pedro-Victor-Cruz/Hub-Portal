@@ -3,7 +3,6 @@
 namespace App\Services\Core\Integration;
 
 use App\Enums\IntegrationType;
-use App\Models\Company;
 use App\Models\Integration;
 use App\Services\Core\ApiResponse;
 use Exception;
@@ -75,11 +74,8 @@ class IntegrationManager
         return collect($available)->firstWhere('integration_name', $integrationName);
     }
 
-    /**
-     * Cria uma nova integração para uma empresa
-     */
+
     public function createIntegration(
-        Company $company,
         string $integrationName,
         array $configuration,
         bool $active = true
@@ -94,17 +90,18 @@ class IntegrationManager
             }
 
             // Verifica se já existe uma integração deste tipo para a empresa
-            $existing = $company->getIntegration($integrationName);
+            $integrationType = IntegrationType::tryFrom($integrationName);
+            $existing = Integration::type($integrationType)->first();
+
             if ($existing) {
                 return ApiResponse::error(
                     'Integração já existe',
-                    ["A empresa já possui uma integração do tipo '{$integrationName}'"]
+                    ["Já existe uma integração do tipo '{$integrationName}'"]
                 );
             }
 
             // Cria o registro da integração
             $integration = new Integration([
-                'company_id' => $company->id,
                 'integration_name' => $integrationName,
                 'configuration' => $configuration,
                 'active' => $active,
@@ -211,15 +208,6 @@ class IntegrationManager
         return $this->drivers[$cacheKey];
     }
 
-    /**
-     * Obtém o driver para uma integração específica de uma empresa
-     * @throws Exception
-     */
-    public function getDriverForCompany(Company $company, IntegrationType $integration): ?BaseIntegration
-    {
-        $integration = $company->getActiveIntegration($integration);
-        return $integration ? $this->getDriver($integration) : null;
-    }
 
     /**
      * Testa conexão de uma integração
@@ -253,37 +241,6 @@ class IntegrationManager
                 [$e->getMessage()]
             );
         }
-    }
-
-    /**
-     * Lista todas as integrações de uma empresa
-     */
-    public function getCompanyIntegrations(Company $company, bool $activeOnly = false): array
-    {
-        $integrations = $activeOnly
-            ? $company->activeIntegrations
-            : $company->integrations;
-
-        $result = [];
-        foreach ($integrations as $integration) {
-            try {
-                $driver = $this->getDriver($integration);
-                $result[] = array_merge(
-                    $integration->toArray(),
-                    ['info' => $driver->getInfo()]
-                );
-            } catch (Exception $e) {
-                $result[] = array_merge(
-                    $integration->toArray(),
-                    [
-                        'info' => null,
-                        'error' => $e->getMessage()
-                    ]
-                );
-            }
-        }
-
-        return $result;
     }
 
     /**
@@ -334,9 +291,9 @@ class IntegrationManager
     /**
      * Obtém estatísticas das integrações
      */
-    public function getIntegrationsStats(Company $company): array
+    public function getIntegrationsStats(): array
     {
-        $integrations = $company->integrations;
+        $integrations = Integration::all();
         $active = $integrations->where('active', true);
         $recentSync = $integrations->filter(function ($integration) {
             return $integration->hasRecentSuccessfulSync(60); // últimos 60 minutos

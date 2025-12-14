@@ -4,7 +4,6 @@ namespace App\Services\Global;
 
 use App\Enums\ServiceType;
 use App\Services\Core\ApiResponse;
-use App\Services\Core\BaseGlobalService;
 use App\Services\Core\BaseService;
 use App\Services\Parameter\ServiceParameter;
 use Illuminate\Support\Facades\Http;

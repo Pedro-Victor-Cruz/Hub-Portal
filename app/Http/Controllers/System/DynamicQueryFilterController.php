@@ -31,10 +31,9 @@ class DynamicQueryFilterController extends Controller
      */
     public function index(Request $request, string $queryKey): JsonResponse
     {
-        $company = $request->get('company');
         $onlyActive = $request->boolean('only_active', true);
 
-        $response = $this->filterService->listFilters($queryKey, $company, $onlyActive);
+        $response = $this->filterService->listFilters($queryKey, $onlyActive);
         return $response->toJson();
     }
 
@@ -44,10 +43,9 @@ class DynamicQueryFilterController extends Controller
      */
     public function store(StoreDynamicQueryFilterRequest $request, string $queryKey): JsonResponse
     {
-        $company = $request->get('company');
         $filterData = $request->validated();
 
-        $response = $this->filterService->createFilter($queryKey, $filterData, $company);
+        $response = $this->filterService->createFilter($queryKey, $filterData);
         return $response->toJson();
     }
 
@@ -58,10 +56,9 @@ class DynamicQueryFilterController extends Controller
      */
     public function update(UpdateDynamicQueryFilterRequest $request, string $queryKey, string $varName): JsonResponse
     {
-        $company = $request->get('company');
         $filterData = $request->validated();
 
-        $response = $this->filterService->updateFilter($queryKey, $varName, $filterData, $company);
+        $response = $this->filterService->updateFilter($queryKey, $varName, $filterData);
         return $response->toJson();
     }
 
@@ -71,9 +68,7 @@ class DynamicQueryFilterController extends Controller
      */
     public function destroy(Request $request, string $queryKey, string $varName): JsonResponse
     {
-        $company = $request->get('company');
-
-        $response = $this->filterService->deleteFilter($queryKey, $varName, $company);
+        $response = $this->filterService->deleteFilter($queryKey, $varName);
         return $response->toJson();
     }
 
@@ -84,10 +79,9 @@ class DynamicQueryFilterController extends Controller
      */
     public function reorder(Request $request, string $queryKey): JsonResponse
     {
-        $company = $request->get('company');
         $order = $request->input('order', []);
 
-        $response = $this->filterService->reorderFilters($queryKey, $order, $company);
+        $response = $this->filterService->reorderFilters($queryKey, $order);
         return $response->toJson();
     }
 

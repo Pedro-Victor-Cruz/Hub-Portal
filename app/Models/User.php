@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -23,15 +22,12 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property string $name
  * @property string $password
- * @property int|null $company_id
  * @property int $status
  * @property Carbon|null $last_login
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  *
- * @property Company|null $company Empresa à qual o usuário pertence
- * @property Collection|Company[] $responsibleCompanies Empresas em que o usuário é responsável principal
  * @property Collection|UsersRefreshToken[] $refresh_tokens Tokens de atualização vinculados ao usuário
  * @property Collection|PermissionGroup[] $permissionGroups Grupos de permissão do usuário
  */
@@ -54,7 +50,6 @@ class User extends Model implements Authenticatable
         'email',
         'name',
         'password',
-        'company_id',
         'status',
         'last_login',
     ];
@@ -145,21 +140,6 @@ class User extends Model implements Authenticatable
         ];
     }
 
-    /**
-     * Empresa à qual este usuário pertence.
-     */
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class, 'company_id');
-    }
-
-    /**
-     * Empresas em que este usuário é o responsável principal.
-     */
-    public function responsibleCompanies(): HasMany
-    {
-        return $this->hasMany(Company::class, 'responsible_user_id');
-    }
 
     // Métodos do contrato Authenticatable
 
@@ -248,19 +228,6 @@ class User extends Model implements Authenticatable
         return false;
     }
 
-    /**
-     * Verifica se o usuário é um super administrador.
-     * Um super administrador é um usuário que pertence a um grupo de permissões global
-     * e que é marcado como sistema, com o nome "Super Admin".
-     *
-     * @return bool Retorna true se o usuário for um super administrador, caso contrário, false
-     */
-    public function isSuperAdmin(): bool
-    {
-        return $this->permissionGroups->contains(function (PermissionGroup $group) {
-            return $group->access_level === PermissionStatus::SUPER_ADMINISTRATOR;
-        });
-    }
 
     /**
      * Verifica se o usuário é um administrador.
@@ -272,8 +239,7 @@ class User extends Model implements Authenticatable
     public function isAdmin(): bool
     {
         return $this->permissionGroups->contains(function (PermissionGroup $group) {
-            return $group->access_level === PermissionStatus::ADMINISTRATOR ||
-                   $group->access_level === PermissionStatus::SUPER_ADMINISTRATOR;
+            return $group->access_level === PermissionStatus::ADMINISTRATOR;
         });
     }
 
@@ -431,7 +397,6 @@ class User extends Model implements Authenticatable
     {
         // Carrega os relacionamentos necessários de forma otimizada
         $this->load([
-            'company',
             'permissionGroups.permissions',
             'directPermissions'
         ]);
@@ -463,21 +428,13 @@ class User extends Model implements Authenticatable
             'id'                => $this->id,
             'email'             => $this->email,
             'name'              => $this->name,
-            'company_id'        => $this->company_id,
             'status'            => $this->status,
-            'is_super_admin'    => $this->isSuperAdmin(),
             'last_login'        => $this->last_login?->toDateTimeString(),
-            'company'           => $this->company ? [
-                'id'   => $this->company->id,
-                'name' => $this->company->name,
-                'cnpj' => $this->company->cnpj,
-            ] : null,
             'group' => $group ? [
                 'id'          => $group->id,
                 'name'        => $group->name,
                 'description' => $group->description,
                 'is_system'   => $group->is_system,
-                'company_id'  => $group->company_id,
             ] : null,
             'permissions'       => $permissions,
         ];

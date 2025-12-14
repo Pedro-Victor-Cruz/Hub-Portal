@@ -5,7 +5,6 @@ namespace App\Services\Core;
 use App\Contracts\Services\ServiceInterface;
 use App\Enums\ServiceType;
 use App\Exceptions\Services\ServiceValidationException;
-use App\Models\Company;
 use App\Services\Parameter\ServiceParameterManager;
 
 abstract class BaseService implements ServiceInterface
@@ -14,11 +13,9 @@ abstract class BaseService implements ServiceInterface
     protected ServiceType $serviceType;
     protected string $serviceName;
     protected string $description;
-    protected ?Company $company = null;
 
-    public function __construct(?Company $company = null)
+    public function __construct()
     {
-        $this->company = $company ?? request()->get('company') ?? null;
         $this->parameterManager = new ServiceParameterManager();
         $this->configureParameters();
     }

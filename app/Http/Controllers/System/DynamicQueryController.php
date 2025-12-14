@@ -24,8 +24,7 @@ class DynamicQueryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $company = $request->get('company');
-        $queries = DynamicQueryManager::getAvailableQueries($company);
+        $queries = DynamicQueryManager::getAvailableQueries();
 
         return ApiResponse::success($queries, "Lista de consultas")->toJson();
     }
@@ -36,13 +35,9 @@ class DynamicQueryController extends Controller
      */
     public function execute(Request $request, string $key): JsonResponse
     {
-        $company = $request->get('company');
         $params = $request->all();
 
-        // Remove parâmetros do sistema
-        unset($params['company']);
-
-        $response = DynamicQueryManager::executeQuery($key, $company, $params);
+        $response = DynamicQueryManager::executeQuery($key, $params);
 
         return $response->toJson();
     }
@@ -53,16 +48,7 @@ class DynamicQueryController extends Controller
      */
     public function store(StoreDynamicQueryRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $company = $request->get('company');
-
-        if ($company) {
-            $data['company_id'] = $company->id;
-        }
-
-        $response = DynamicQueryManager::createQuery($data);
-
-        return $response->toJson();
+        return DynamicQueryManager::createQuery($request->validated())->toJson();
     }
 
     /**
@@ -72,9 +58,8 @@ class DynamicQueryController extends Controller
     public function update(UpdateDynamicQueryRequest $request, string $key): JsonResponse
     {
         $data = $request->validated();
-        $company = $request->get('company');
 
-        $response = DynamicQueryManager::updateQuery($key, $data, $company);
+        $response = DynamicQueryManager::updateQuery($key, $data);
 
         return $response->toJson();
     }
@@ -108,34 +93,12 @@ class DynamicQueryController extends Controller
     }
 
     /**
-     * Duplica uma consulta global para a empresa
-     * POST /api/queries/{key}/duplicate
-     */
-    public function duplicate(DuplicateDynamicQueryRequest $request, string $key): JsonResponse
-    {
-        $company = $request->get('company');
-
-        if (!$company) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Empresa é obrigatória para duplicar consultas'
-            ], 400);
-        }
-
-        $overrides = $request->validated();
-        $response = DynamicQueryManager::duplicateQueryForCompany($key, $company, $overrides);
-
-        return $response->toJson();
-    }
-
-    /**
      * Valida se uma consulta pode ser executada
      * GET /api/queries/{key}/validate
      */
-    public function validateQuery(Request $request, string $rules): JsonResponse
+    public function validateQuery(string $rules): JsonResponse
     {
-        $company = $request->get('company');
-        $response = DynamicQueryManager::validateQueryExecution($rules, $company);
+        $response = DynamicQueryManager::validateQueryExecution($rules);
 
         return $response->toJson();
     }
@@ -144,12 +107,10 @@ class DynamicQueryController extends Controller
      * Obtém informações detalhadas de uma consulta
      * GET /api/queries/{key}
      */
-    public function show(Request $request, string $key): JsonResponse
+    public function show(string $key): JsonResponse
     {
-        $company = $request->get('company');
-
         // Reutiliza a validação que já busca a consulta
-        $response = DynamicQueryManager::validateQueryExecution($key, $company);
+        $response = DynamicQueryManager::validateQueryExecution($key);
 
         if (!$response->isSuccess()) {
             return response()->json($response->toArray(), 404);

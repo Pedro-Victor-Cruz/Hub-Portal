@@ -42,6 +42,7 @@ class ParameterRequest extends ApiRequest
                 'integer',
                 'in:' . implode(',', array_keys(PermissionStatus::getManageableLevelsArray($user->accessLevel()))),
             ],
+            'value' => 'nullable',
         ];
     }
 

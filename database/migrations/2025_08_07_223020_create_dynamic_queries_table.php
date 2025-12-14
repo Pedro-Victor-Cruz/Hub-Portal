@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('key'); // Ex: 'produtos', 'clientes', 'pedidos'
             $table->string('name'); // Nome amigável da consulta
             $table->text('description')->nullable();
-            $table->unsignedBigInteger('company_id')->nullable(); // Se for null, é global
 
             // Configuração do serviço
             $table->string('service_slug'); // Slug do serviço a ser utilizado
@@ -31,18 +30,12 @@ return new class extends Migration
 
             // Controle
             $table->boolean('active')->default(true);
-            $table->boolean('is_global')->default(false); // Se é global ou específica da empresa
-            $table->integer('priority')->default(0); // Para resolver conflitos entre global e empresa
-
             $table->timestamps();
 
-            // Relacionamentos
-            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
-
             // Índices
-            $table->unique(['key', 'company_id']);
-            $table->index(['key', 'company_id']);
-            $table->index(['active', 'is_global']);
+            $table->unique(['key']);
+            $table->index(['key']);
+            $table->index(['active']);
         });
     }
 

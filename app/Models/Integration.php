@@ -15,7 +15,6 @@ use Illuminate\Support\Carbon;
  * Cada empresa pode ter múltiplas integrações com diferentes sistemas.
  *
  * @property int $id
- * @property int $company_id ID da empresa associada
  * @property string $integration_name Nome da integração (ex: sankhya, totvs, calendar)
  * @property array $configuration Configurações específicas da integração
  * @property bool $active Indica se esta integração está ativa
@@ -24,7 +23,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
- * @property Company $company Empresa associada
  */
 class Integration extends Model
 {
@@ -33,7 +31,6 @@ class Integration extends Model
     protected $table = 'integrations';
 
     protected $fillable = [
-        'company_id',
         'integration_name',
         'configuration',
         'active',
@@ -47,14 +44,6 @@ class Integration extends Model
         'sync_status' => 'array',
         'last_sync_at' => 'datetime',
     ];
-
-    /**
-     * Relacionamento: Integração pertence a uma empresa
-     */
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class);
-    }
 
     /**
      * Verifica se a integração está ativa
@@ -126,9 +115,9 @@ class Integration extends Model
     /**
      * Scope para filtrar por tipo de integração
      */
-    public function scopeByType($query, string $integrationType)
+    public function scopeType($query, IntegrationType $integrationType)
     {
-        return $query->where('integration_name', $integrationType);
+        return $query->where('integration_name', $integrationType->value);
     }
 
     public function getIntegrationName(): string

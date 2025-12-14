@@ -5,7 +5,7 @@ use App\Http\Controllers\System\DynamicQueryController;
 use App\Http\Controllers\System\DynamicQueryFilterController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'identify.company:false'])->prefix('queries')->group(function () {
+Route::middleware(['auth'])->prefix('queries')->group(function () {
 
     // Listar todas as consultas disponíveis
     Route::get('/', [DynamicQueryController::class, 'index'])

@@ -3,7 +3,6 @@
 namespace App\Services\Query;
 
 use App\Facades\ServiceManager;
-use App\Models\Company;
 use App\Models\DynamicQuery;
 use App\Models\DynamicQueryFilter;
 use App\Repositories\Query\DynamicQueryRepository;
@@ -33,11 +32,11 @@ class DynamicQueryManager
     /**
      * Executa uma consulta dinâmica por chave
      */
-    public function executeQuery(string $key, ?Company $company = null, array $additionalParams = []): ApiResponse
+    public function executeQuery(string $key, array $additionalParams = []): ApiResponse
     {
         try {
             // Busca a configuração da consulta
-            $query = $this->repository->findByKey($key, $company);
+            $query = $this->repository->findByKey($key);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$key}' não encontrada");
@@ -88,8 +87,6 @@ class DynamicQueryManager
                 array_merge($response->getMetadata(), [
                     'query_key'  => $key,
                     'query_name' => $query->name,
-                    'is_global'  => $query->is_global,
-                    'company_id' => $query->company_id,
                     'filters_applied' => $query->activeFilters()->count(),
                     'variables_replaced' => $this->extractVariablesFromConfig($query)
                 ])
@@ -108,43 +105,6 @@ class DynamicQueryManager
         }
     }
 
-    /**
-     * Duplica uma consulta global para uma empresa específica, incluindo filtros
-     */
-    public function duplicateQueryForCompany(string $key, Company $company, array $overrides = [], bool $duplicateFilters = true): ApiResponse
-    {
-        try {
-            $duplicatedQuery = $this->repository->duplicateForCompany($key, $company, $overrides);
-
-            if (!$duplicatedQuery) {
-                return ApiResponse::error("Consulta global '{$key}' não encontrada");
-            }
-
-            // Duplicar filtros se solicitado
-            $filtersCopied = 0;
-            if ($duplicateFilters) {
-                $originalQuery = $this->repository->findGlobalByKey($key);
-                if ($originalQuery && $originalQuery->filters->isNotEmpty()) {
-                    $filtersCopied = $this->duplicateQueryFilters($originalQuery, $duplicatedQuery);
-                }
-            }
-
-            return ApiResponse::success(
-                $duplicatedQuery->toArray(),
-                'Consulta duplicada com sucesso para a empresa',
-                [
-                    'filters_copied' => $filtersCopied,
-                    'total_filters' => $duplicatedQuery->filters()->count()
-                ]
-            );
-
-        } catch (\Exception $e) {
-            return ApiResponse::error(
-                'Erro ao duplicar consulta para empresa',
-                [$e->getMessage()]
-            );
-        }
-    }
 
     /**
      * Cria uma nova consulta dinâmica, opcionalmente com filtros
@@ -154,13 +114,6 @@ class DynamicQueryManager
         try {
             // Valida dados obrigatórios
             $this->validateQueryData($data);
-
-            if (isset($data['company_id']) && $data['company_id']) {
-                $data['is_global'] = false;
-            } else {
-                $data['is_global'] = true;
-                $data['company_id'] = null;
-            }
 
             $query = $this->repository->createOrUpdate($data);
 
@@ -192,10 +145,10 @@ class DynamicQueryManager
     /**
      * Obtém informação completa de uma consulta incluindo filtros
      */
-    public function getQueryWithFilters(string $key, ?Company $company = null): ApiResponse
+    public function getQueryWithFilters(string $key): ApiResponse
     {
         try {
-            $query = $this->repository->findByKey($key, $company);
+            $query = $this->repository->findByKey($key);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$key}' não encontrada");
@@ -223,10 +176,10 @@ class DynamicQueryManager
     /**
      * Preview da consulta com substituição de variáveis (sem executar)
      */
-    public function previewQueryWithFilters(string $key, array $params = [], ?Company $company = null): ApiResponse
+    public function previewQueryWithFilters(string $key, array $params = []): ApiResponse
     {
         try {
-            $query = $this->repository->findByKey($key, $company);
+            $query = $this->repository->findByKey($key);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$key}' não encontrada");
@@ -306,13 +259,9 @@ class DynamicQueryManager
         return array_values(array_unique($variables));
     }
 
-
-    /**
-     * Valida se uma consulta pode ser executada para uma empresa, incluindo filtros
-     */
-    public function validateQueryExecution(string $key, ?Company $company = null, array $params = []): ApiResponse
+    public function validateQueryExecution(string $key, array $params = []): ApiResponse
     {
-        $query = $this->repository->findByKey($key, $company);
+        $query = $this->repository->findByKey($key);
 
         if (!$query) {
             return ApiResponse::error("Consulta '{$key}' não encontrada");
@@ -357,30 +306,19 @@ class DynamicQueryManager
             'required_filters' => $query->activeFilters()->where('required', true)->pluck('var_name')->toArray()
         ];
 
-        $message = $hasFilterErrors ?
-            'Consulta com erros de validação' :
-            'Consulta válida para execução';
+        $message = $hasFilterErrors ? 'Consulta com erros de validação' : 'Consulta válida para execução';
 
         return ApiResponse::success($response, $message);
     }
 
-    // Mantém os métodos existentes...
-
-    /**
-     * Duplica uma consulta global para uma empresa específica
-     */
-    public function duplicateQueryForCompanyLegacy(string $key, Company $company, array $overrides = []): ApiResponse
-    {
-        return $this->duplicateQueryForCompany($key, $company, $overrides, false);
-    }
 
     /**
      * Atualiza metadados de um campo específico
      */
-    public function updateFieldMetadata(string $queryKey, string $fieldName, array $metadata, ?Company $company = null): ApiResponse
+    public function updateFieldMetadata(string $queryKey, string $fieldName, array $metadata): ApiResponse
     {
         try {
-            $query = $this->repository->findByKey($queryKey, $company);
+            $query = $this->repository->findByKey($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -428,14 +366,10 @@ class DynamicQueryManager
     private function applyCustomFormatting(?array $data, DynamicQuery $query): array
     {
         // Se não há dados, retorna array vazio
-        if (empty($data)) {
-            return [];
-        }
+        if (empty($data)) return [];
 
         // Se não há metadata, retorna os dados como vieram
-        if (!$query->fields_metadata) {
-            return $data;
-        }
+        if (!$query->fields_metadata) return $data;
 
         $formattedData = [];
 
@@ -517,37 +451,24 @@ class DynamicQueryManager
             throw new \InvalidArgumentException("Slug do serviço não encontrada: {$data['service_slug']}");
         }
 
-        // Valida se o tipo de serviço é suportado pela empresa
-        if (isset($data['company_id']) && $data['company_id']) {
-            $company = Company::find($data['company_id']);
-
-            if (!$company) {
-                throw new \InvalidArgumentException("Empresa com ID {$data['company_id']} não encontrada");
-            }
-
-        }
-
         // Valida formato da chave (apenas letras, números e hifens)
         if (!preg_match('/^[a-z0-9-]+$/', $data['key'])) {
             throw new \InvalidArgumentException("Chave '{$data['key']}' inválida. Deve conter apenas letras minúsculas, números e hífenes (-).");
         }
     }
 
-    /**
-     * Lista todas as consultas disponíveis para uma empresa
-     */
-    public function getAvailableQueries(?Company $company = null): array
+    public function getAvailableQueries(): array
     {
-        return $this->repository->getAvailableQueries($company)->toArray();
+        return $this->repository->getAvailableQueries()->toArray();
     }
 
     /**
      * Atualiza uma consulta dinâmica existente
      */
-    public function updateQuery(string $key, array $data, ?Company $company = null): ApiResponse
+    public function updateQuery(string $key, array $data): ApiResponse
     {
         try {
-            $existingQuery = $this->repository->findByKey($key, $company);
+            $existingQuery = $this->repository->findByKey($key);
 
             if (!$existingQuery) {
                 return ApiResponse::error("Consulta '{$key}' não encontrada");
@@ -555,7 +476,6 @@ class DynamicQueryManager
 
             // Preserva alguns campos importantes
             $data['key'] = $key;
-            $data['company_id'] = $existingQuery->company_id;
 
             $query = $this->repository->createOrUpdate($data);
 
@@ -563,7 +483,6 @@ class DynamicQueryManager
                 $query->toArray(),
                 'Consulta dinâmica atualizada com sucesso'
             );
-
         } catch (\Exception $e) {
             return ApiResponse::error(
                 'Erro ao atualizar consulta dinâmica',
@@ -575,14 +494,12 @@ class DynamicQueryManager
     /**
      * Remove uma consulta dinâmica
      */
-    public function deleteQuery(string $key, ?Company $company = null): ApiResponse
+    public function deleteQuery(string $key): ApiResponse
     {
         try {
-            $deleted = $this->repository->delete($key, $company);
+            $deleted = $this->repository->delete($key);
 
-            if (!$deleted) {
-                return ApiResponse::error("Consulta '{$key}' não encontrada ou não pôde ser removida");
-            }
+            if (!$deleted) return ApiResponse::error("Consulta '{$key}' não encontrada ou não pôde ser removida");
 
             return ApiResponse::success(
                 null,

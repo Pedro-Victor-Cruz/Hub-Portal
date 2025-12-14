@@ -11,7 +11,7 @@ class CheckPermission
     {
         $user = $request->user('auth');
 
-        if ($user->isSuperAdmin()) {
+        if ($user->isAdmin()) {
             return $next($request);
         }
 

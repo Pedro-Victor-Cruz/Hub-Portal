@@ -2,7 +2,6 @@
 
 namespace App\Services\Query;
 
-use App\Models\Company;
 use App\Models\DynamicQuery;
 use App\Models\DynamicQueryFilter;
 use App\Services\Core\ApiResponse;
@@ -15,10 +14,10 @@ class DynamicQueryFilterService
     /**
      * Cria um novo filtro para uma consulta dinâmica
      */
-    public function createFilter(string $queryKey, array $filterData, ?Company $company = null): ApiResponse
+    public function createFilter(string $queryKey, array $filterData): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -47,10 +46,10 @@ class DynamicQueryFilterService
     /**
      * Lista filtros de uma consulta dinâmica
      */
-    public function listFilters(string $queryKey, ?Company $company = null, bool $onlyActive = true): ApiResponse
+    public function listFilters(string $queryKey, bool $onlyActive = true): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -75,10 +74,10 @@ class DynamicQueryFilterService
     /**
      * Atualiza um filtro existente
      */
-    public function updateFilter(string $queryKey, string $varName, array $filterData, ?Company $company = null): ApiResponse
+    public function updateFilter(string $queryKey, string $varName, array $filterData): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -115,10 +114,10 @@ class DynamicQueryFilterService
     /**
      * Remove um filtro
      */
-    public function deleteFilter(string $queryKey, string $varName, ?Company $company = null): ApiResponse
+    public function deleteFilter(string $queryKey, string $varName): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -148,10 +147,10 @@ class DynamicQueryFilterService
     /**
      * Obtém um filtro específico
      */
-    public function getFilter(string $queryKey, string $varName, ?Company $company = null): ApiResponse
+    public function getFilter(string $queryKey, string $varName): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -179,10 +178,10 @@ class DynamicQueryFilterService
     /**
      * Cria múltiplos filtros de uma vez
      */
-    public function createMultipleFilters(string $queryKey, array $filtersData, ?Company $company = null): ApiResponse
+    public function createMultipleFilters(string $queryKey, array $filtersData): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -229,10 +228,10 @@ class DynamicQueryFilterService
     /**
      * Reordena filtros
      */
-    public function reorderFilters(string $queryKey, array $varNamesOrder, ?Company $company = null): ApiResponse
+    public function reorderFilters(string $queryKey, array $varNamesOrder): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -262,10 +261,10 @@ class DynamicQueryFilterService
     /**
      * Valida valores de filtros sem executar a consulta
      */
-    public function validateFilterValues(string $queryKey, array $params, ?Company $company = null): ApiResponse
+    public function validateFilterValues(string $queryKey, array $params): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");
@@ -304,36 +303,18 @@ class DynamicQueryFilterService
         }
     }
 
-    /**
-     * Encontra uma consulta dinâmica por chave e empresa
-     */
-    private function findQuery(string $key, ?Company $company): ?DynamicQuery
+    private function findQuery(string $key): ?DynamicQuery
     {
-        $query = DynamicQuery::where('key', $key);
-
-        if ($company) {
-            // Primeiro tenta encontrar consulta específica da empresa
-            $companyQuery = (clone $query)->where('company_id', $company->id)->first();
-
-            if ($companyQuery) {
-                return $companyQuery;
-            }
-
-            // Se não encontrou, procura consulta global
-            return $query->where('is_global', true)->first();
-        }
-
-        // Se não tem empresa, só busca consultas globais
-        return $query->where('is_global', true)->first();
+        return DynamicQuery::where('key', $key)->first();
     }
 
     /**
      * Obtém configuração completa dos filtros para interface
      */
-    public function getFiltersConfigForUI(string $queryKey, ?Company $company = null): ApiResponse
+    public function getFiltersConfigForUI(string $queryKey): ApiResponse
     {
         try {
-            $query = $this->findQuery($queryKey, $company);
+            $query = $this->findQuery($queryKey);
 
             if (!$query) {
                 return ApiResponse::error("Consulta '{$queryKey}' não encontrada");

@@ -20,7 +20,7 @@ class MasterUserSeeder extends Seeder
             'password' => 'admin110205',
         ]);
 
-        $adminGroup = PermissionGroup::where('name', 'super-administrator')->first();
+        $adminGroup = PermissionGroup::where('name', 'administrator')->first();
         $masterUser->assignPermissionGroup($adminGroup);
 
         $this->command->info('Master user seeded successfully!');

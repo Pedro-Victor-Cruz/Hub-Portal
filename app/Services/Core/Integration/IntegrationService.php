@@ -4,7 +4,7 @@ namespace App\Services\Core\Integration;
 
 
 use App\Enums\IntegrationType;
-use App\Models\Company;
+use App\Models\Integration;
 use App\Services\Core\ApiResponse;
 use App\Services\Core\BaseService;
 use App\Services\Core\Traits\HasAuthentication;
@@ -15,31 +15,23 @@ abstract class IntegrationService extends BaseService
     protected BaseIntegration $integration;
     protected IntegrationType $requiredIntegrationType;
 
-    public function __construct(?Company $company = null, ?IntegrationType $integrationType = null)
+    public function __construct(?IntegrationType $integrationType = null)
     {
-        parent::__construct($company);
-
-        if (!$this->company) {
-            throw new Exception('Empresa não especificada ou inválida.');
-        }
+        parent::__construct();
 
         $integrationType = $integrationType ?? $this->requiredIntegrationType;
+
         if (!$integrationType) {
             throw new Exception('Tipo de integração não especificado.');
         }
 
-        $this->integration = $this->getCompanyIntegration($integrationType);
-    }
-
-    private function getCompanyIntegration(IntegrationType $integrationType): BaseIntegration
-    {
-        $integrationModel = $this->company->getActiveIntegration($integrationType);
+        $integrationModel = Integration::type($integrationType)->first();
 
         if (!$integrationModel) {
-            throw new Exception("Integração '{$integrationType->value}' não encontrada ou inativa.");
+            throw new Exception("Integração do tipo {$integrationType->value} não encontrada.");
         }
 
-        return app(IntegrationManager::class)->getDriver($integrationModel);
+        $this->integration = app(IntegrationManager::class)->getDriver($integrationModel);
     }
 
     public function execute(array $params = []): ApiResponse

@@ -22,7 +22,6 @@ class ServiceManagerController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $company = $request->get('company');
         $serviceType = $request->get('service_type');
 
         if ($serviceType) {
@@ -32,7 +31,7 @@ class ServiceManagerController extends Controller
                 return ApiResponse::error("Tipo de serviço inválido.")->toJson();
             }
 
-            $services = ServiceManager::getServicesByType($serviceType, $company);
+            $services = ServiceManager::getServicesByType($serviceType);
             return ApiResponse::success($services, "Lista de serviços")->toJson();
         }
 

@@ -18,8 +18,6 @@ class StoreDynamicQueryRequest extends ApiRequest
             'fields_metadata' => 'nullable|array',
             'response_format' => 'nullable|array',
             'active' => 'boolean',
-            'is_global' => 'boolean',
-            'priority' => 'integer|min:0|max:999'
         ];
     }
 

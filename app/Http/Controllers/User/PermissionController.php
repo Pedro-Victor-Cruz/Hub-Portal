@@ -55,14 +55,9 @@ class PermissionController extends Controller
         $isPaginate = request()->header('X-Paginate', false);
 
         $groupsQuery = PermissionGroup::query()
-            ->with('company')
             ->manageableByCurrentUser()
             ->orderBy('id', 'desc');
 
-        if (request()->has('idCompany')) {
-            $idCompany = request()->input('idCompany');
-            $groupsQuery->where('company_id', $idCompany)->orWhereNull('company_id');
-        }
 
         if ($isPaginate) {
             $groups = $groupsQuery->paginate($this->getPerPage());

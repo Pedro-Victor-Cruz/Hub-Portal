@@ -8,7 +8,6 @@ enum PermissionStatus: int
 {
     case USER = 1;
     case ADMINISTRATOR = 2;
-    case SUPER_ADMINISTRATOR = 3;
 
     /**
      * Obtém o nome legível do nível de acesso
@@ -17,8 +16,7 @@ enum PermissionStatus: int
     {
         return match($this) {
             self::USER => 'Usuário',
-            self::ADMINISTRATOR => 'Administrador',
-            self::SUPER_ADMINISTRATOR => 'Super Administrador',
+            self::ADMINISTRATOR => 'Administrador'
         };
     }
 
@@ -29,8 +27,7 @@ enum PermissionStatus: int
     {
         return match($this) {
             self::USER => 'Usuário comum do sistema',
-            self::ADMINISTRATOR => 'Administrador do sistema',
-            self::SUPER_ADMINISTRATOR => 'Acesso completo ao sistema',
+            self::ADMINISTRATOR => 'Administrador do sistema'
         };
     }
 
@@ -98,7 +95,6 @@ enum PermissionStatus: int
         return match($value) {
             self::USER->value => self::USER,
             self::ADMINISTRATOR->value => self::ADMINISTRATOR,
-            self::SUPER_ADMINISTRATOR->value => self::SUPER_ADMINISTRATOR,
             default => throw new InvalidArgumentException("Nível de acesso inválido: {$value}"),
         };
     }
@@ -113,7 +109,6 @@ enum PermissionStatus: int
         return match(strtoupper($name)) {
             'USER' => self::USER,
             'ADMINISTRATOR' => self::ADMINISTRATOR,
-            'SUPER_ADMINISTRATOR' => self::SUPER_ADMINISTRATOR,
             default => throw new InvalidArgumentException("Nome de nível de acesso inválido: {$name}"),
         };
     }

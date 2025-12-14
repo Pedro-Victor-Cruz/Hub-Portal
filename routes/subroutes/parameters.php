@@ -18,9 +18,6 @@ Route::prefix('parameter')->group(function () {
         Route::put('/{id}/update', [ParameterController::class, 'update'])
             ->middleware('permission:parameter.update');
 
-        Route::put('/{id}/company/update', [ParameterController::class, 'updateValueCompany'])
-            ->middleware('permission:parameter.company.update');
-
         Route::delete('/{id}/delete', [ParameterController::class, 'destroy'])
             ->middleware('permission:parameter.delete');
     });

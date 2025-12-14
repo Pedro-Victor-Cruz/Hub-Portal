@@ -13,8 +13,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{integration_name}/info', [IntegrationsController::class, 'integrationInfo'])
             ->middleware('permission:company.view');
 
-        Route::get('/{integration_name}', [IntegrationsController::class, 'getCompanyIntegration'])
-            ->middleware(['permission:company.view', 'identify.company']);
+        Route::get('/{integration_name}', [IntegrationsController::class, 'getIntegration'])
+            ->middleware(['permission:company.view']);
 
         Route::get('/{integration_id}/test-connection', [IntegrationsController::class, 'testConnection'])
             ->middleware('permission:integration.manage');
