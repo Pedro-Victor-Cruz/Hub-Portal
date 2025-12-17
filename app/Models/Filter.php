@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Class DynamicQueryFilter
+ * Class Filter
  *
  * Representa um filtro dinâmico para consultas configuráveis.
  * Permite definir variáveis que serão substituídas nas configurações dos serviços.
  *
  * @property int $id
  * @property int $dynamic_query_id ID da consulta dinâmica associada
+ * @property int $dashboard_id ID do dashboard associado
  * @property string $name Nome amigável do filtro
  * @property string|null $description Descrição do filtro
  * @property string $var_name Nome da variável (usado nos placeholders)
@@ -32,14 +33,15 @@ use Illuminate\Support\Carbon;
  *
  * @property DynamicQuery $dynamicQuery Consulta dinâmica associada
  */
-class DynamicQueryFilter extends Model
+class Filter extends Model
 {
     use HasFactory;
 
-    protected $table = 'dynamic_query_filters';
+    protected $table = 'filters';
 
     protected $fillable = [
         'dynamic_query_id',
+        'dashboard_id',
         'name',
         'description',
         'var_name',
@@ -75,6 +77,14 @@ class DynamicQueryFilter extends Model
     public function dynamicQuery(): BelongsTo
     {
         return $this->belongsTo(DynamicQuery::class);
+    }
+
+    /**
+     * Relacionamento: Filtro pertence a um dashboard
+     */
+    public function dashboard(): BelongsTo
+    {
+        return $this->belongsTo(Dashboard::class);
     }
 
     /**
@@ -342,10 +352,33 @@ class DynamicQueryFilter extends Model
     /**
      * Cria um filtro a partir de array de configuração
      */
-    public static function createFromConfig(int $dynamicQueryId, array $config): self
+    public static function createFromConfigByQuery(int $dynamicQueryId, array $config): self
     {
         return self::create([
             'dynamic_query_id' => $dynamicQueryId,
+            'dashboard_id' => null,
+            'name' => $config['name'] ?? $config['var_name'],
+            'description' => $config['description'] ?? null,
+            'var_name' => $config['var_name'],
+            'type' => FilterType::from($config['type'] ?? 'text'),
+            'default_value' => $config['default_value'] ?? null,
+            'required' => $config['required'] ?? false,
+            'order' => $config['order'] ?? 0,
+            'validation_rules' => $config['validation_rules'] ?? [],
+            'visible' => $config['visible'] ?? true,
+            'active' => $config['active'] ?? true,
+            'options' => $config['options'] ?? [],
+        ]);
+    }
+
+    /**
+     * Cria um filtro a partir de array de configuração
+     */
+    public static function createFromConfigByDashboard(int $dashboard_id, array $config): self
+    {
+        return self::create([
+            'dashboard_id' => $dashboard_id,
+            'dynamic_query_id' => null,
             'name' => $config['name'] ?? $config['var_name'],
             'description' => $config['description'] ?? null,
             'var_name' => $config['var_name'],

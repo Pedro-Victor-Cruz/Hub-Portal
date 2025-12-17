@@ -16,8 +16,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('/', [UserAuthController::class, 'auth']);
-    Route::post('/refresh', [UserAuthController::class, 'refresh']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
+    Route::middleware('auth')->group(function () {
+        Route::post('/refresh', [UserAuthController::class, 'refresh']);
+    });
 });
 
 require __DIR__ . '/subroutes/users.php';
@@ -28,5 +30,6 @@ require __DIR__ . '/subroutes/services.php';
 require __DIR__ . '/subroutes/integrations.php';
 require __DIR__ . '/subroutes/logs_system.php';
 require __DIR__ . '/subroutes/system_performance.php';
+require __DIR__ . '/subroutes/dashboards.php';
 
 

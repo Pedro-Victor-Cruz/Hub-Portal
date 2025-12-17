@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dynamic_query_filters', function (Blueprint $table) {
+        Schema::create('filters', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('dynamic_query_id');
+            $table->unsignedBigInteger('dynamic_query_id')->nullable();
+            $table->unsignedBigInteger('dashboard_id')->nullable();
 
             $table->string('name', 100);
             $table->text('description')->nullable();
@@ -45,12 +46,14 @@ return new class extends Migration
                 ->on('dynamic_queries')
                 ->onDelete('cascade');
 
-            // Índices
-            $table->index(['dynamic_query_id', 'active'], 'idx_query_filters');
-            $table->index('var_name', 'idx_var_name');
+            $table->foreign('dashboard_id')
+                ->references('id')
+                ->on('dashboards')
+                ->onDelete('cascade');
 
-            // Chave única: não pode haver duas variáveis com o mesmo nome na mesma consulta
-            $table->unique(['dynamic_query_id', 'var_name'], 'unique_var_per_query');
+            // Índices
+            $table->index(['dynamic_query_id', 'dashboard_id', 'active'], 'idx_filters');
+            $table->index('var_name', 'idx_var_name');
         });
     }
 
@@ -59,7 +62,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dynamic_query_filters');
+        Schema::dropIfExists('filters');
     }
 
 };

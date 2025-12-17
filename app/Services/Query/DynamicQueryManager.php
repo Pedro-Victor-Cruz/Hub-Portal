@@ -4,7 +4,7 @@ namespace App\Services\Query;
 
 use App\Facades\ServiceManager;
 use App\Models\DynamicQuery;
-use App\Models\DynamicQueryFilter;
+use App\Models\Filter;
 use App\Repositories\Query\DynamicQueryRepository;
 use App\Services\Core\ApiResponse;
 use App\Services\Utils\ResponseFormatters\SankhyaResponseFormatter;
@@ -18,11 +18,11 @@ use RecursiveIteratorIterator;
 class DynamicQueryManager
 {
     private DynamicQueryRepository $repository;
-    private DynamicQueryFilterService $filterService;
+    private FilterService $filterService;
 
     public function __construct(
         DynamicQueryRepository $repository,
-        DynamicQueryFilterService $filterService
+        FilterService $filterService
     )
     {
         $this->repository = $repository;
@@ -78,11 +78,11 @@ class DynamicQueryManager
                 return $response;
             }
 
-            // Aplica formatação personalizada se configurada
-            $formattedData = $this->applyCustomFormatting($response->getData(), $query);
+            // Processa os dados com formatação e agregação
+            $processedResult = $this->processQueryData($response->getData(), $query);
 
             return ApiResponse::success(
-                $formattedData,
+                $processedResult,
                 $response->getMessage(),
                 array_merge($response->getMetadata(), [
                     'query_key'  => $key,
@@ -105,6 +105,308 @@ class DynamicQueryManager
         }
     }
 
+    /**
+     * Processa os dados aplicando formatações e calculando agregações
+     */
+    private function processQueryData(?array $rawData, DynamicQuery $query): array
+    {
+        if (empty($rawData)) {
+            return [
+                'data' => [],
+                'fieldsMetadata' => $this->buildFieldsMetadata($query),
+                'aggregation' => []
+            ];
+        }
+
+        // Aplica formatações aos dados
+        $formattedData = $this->applyFormatting($rawData, $query);
+
+        // Calcula agregações
+        $aggregations = $this->calculateAggregations($rawData, $query);
+
+        // Monta fieldsMetadata (sem format e aggregation, pois já foram resolvidos)
+        $fieldsMetadata = $this->buildFieldsMetadata($query);
+
+        return [
+            'data' => $formattedData,
+            'fieldsMetadata' => $fieldsMetadata,
+            'aggregation' => $aggregations
+        ];
+    }
+
+    /**
+     * Aplica formatações aos dados conforme configurado
+     */
+    private function applyFormatting(array $data, DynamicQuery $query): array
+    {
+        $formattedData = [];
+
+        foreach ($data as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $formattedRow = [];
+
+            foreach ($row as $fieldName => $value) {
+                // Verifica se o campo é visível
+                if (!$query->isFieldVisible($fieldName)) {
+                    continue;
+                }
+
+                // Aplica formatação se configurada
+                $format = $query->getFieldFormat($fieldName);
+                if ($format) {
+                    try {
+                        $value = SankhyaResponseFormatter::applyCustomFormat($value, $format);
+                    } catch (\Throwable $e) {
+                        Log::warning("Erro ao formatar campo {$fieldName}: " . $e->getMessage());
+                    }
+                }
+
+                $formattedRow[$fieldName] = $value;
+            }
+
+            $formattedData[] = $formattedRow;
+        }
+
+        return $formattedData;
+    }
+
+    /**
+     * Calcula agregações para os campos configurados
+     */
+    private function calculateAggregations(array $data, DynamicQuery $query): array
+    {
+        $aggregations = [];
+        $fieldsMetadata = $query->fields_metadata ?? [];
+
+        foreach ($fieldsMetadata as $fieldName => $metadata) {
+            // Verifica se há configuração de agregação
+            if (!isset($metadata['aggregation']) || !$query->isFieldVisible($fieldName)) {
+                continue;
+            }
+
+            $aggregationType = $metadata['aggregation'];
+
+            // Extrai os valores do campo de todos os registros
+            $values = $this->extractFieldValues($data, $fieldName);
+
+            // Calcula a agregação
+            $result = $this->performAggregation($values, $aggregationType);
+
+            if ($result !== null) {
+                // Aplica formatação ao resultado da agregação, se configurada
+                $format = $metadata['format'] ?? null;
+                if ($format) {
+                    try {
+                        $result = SankhyaResponseFormatter::applyCustomFormat($result, $format);
+                    } catch (\Throwable $e) {
+                        Log::warning("Erro ao formatar agregação do campo {$fieldName}: " . $e->getMessage());
+                    }
+                }
+
+                $aggregations[$fieldName] = $result;
+            }
+        }
+
+        return $aggregations;
+    }
+
+    /**
+     * Extrai valores de um campo específico de todos os registros
+     */
+    private function extractFieldValues(array $data, string $fieldName): array
+    {
+        $values = [];
+
+        foreach ($data as $row) {
+            if (is_array($row) && isset($row[$fieldName])) {
+                $values[] = $row[$fieldName];
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Executa a agregação conforme o tipo especificado
+     */
+    private function performAggregation(array $values, string $type): mixed
+    {
+        if (empty($values)) {
+            return null;
+        }
+
+        return match ($type) {
+            'sum' => $this->aggregateSum($values),
+            'average' => $this->aggregateAverage($values),
+            'count' => $this->aggregateCount($values),
+            'min' => $this->aggregateMin($values),
+            'max' => $this->aggregateMax($values),
+            default => null
+        };
+    }
+
+    /**
+     * Calcula a soma dos valores numéricos
+     */
+    private function aggregateSum(array $values): ?float
+    {
+        $sum = 0;
+        $hasNumericValue = false;
+
+        foreach ($values as $value) {
+            if ($this->isNumericValue($value)) {
+                $sum += $this->parseNumericValue($value);
+                $hasNumericValue = true;
+            }
+        }
+
+        return $hasNumericValue ? $sum : null;
+    }
+
+    /**
+     * Calcula a média dos valores numéricos
+     */
+    private function aggregateAverage(array $values): ?float
+    {
+        $numericValues = [];
+
+        foreach ($values as $value) {
+            if ($this->isNumericValue($value)) {
+                $numericValues[] = $this->parseNumericValue($value);
+            }
+        }
+
+        if (empty($numericValues)) {
+            return null;
+        }
+
+        return array_sum($numericValues) / count($numericValues);
+    }
+
+    /**
+     * Conta o número de valores não nulos
+     */
+    private function aggregateCount(array $values): int
+    {
+        return count(array_filter($values, fn($v) => $v !== null && $v !== ''));
+    }
+
+    /**
+     * Encontra o valor mínimo
+     */
+    private function aggregateMin(array $values): mixed
+    {
+        $numericValues = [];
+
+        foreach ($values as $value) {
+            if ($this->isNumericValue($value)) {
+                $numericValues[] = $this->parseNumericValue($value);
+            }
+        }
+
+        return !empty($numericValues) ? min($numericValues) : null;
+    }
+
+    /**
+     * Encontra o valor máximo
+     */
+    private function aggregateMax(array $values): mixed
+    {
+        $numericValues = [];
+
+        foreach ($values as $value) {
+            if ($this->isNumericValue($value)) {
+                $numericValues[] = $this->parseNumericValue($value);
+            }
+        }
+
+        return !empty($numericValues) ? max($numericValues) : null;
+    }
+
+    /**
+     * Verifica se um valor pode ser considerado numérico
+     */
+    private function isNumericValue(mixed $value): bool
+    {
+        if (is_null($value) || $value === '') {
+            return false;
+        }
+
+        if (is_numeric($value)) {
+            return true;
+        }
+
+        // Tenta converter string para número (remove formatações comuns)
+        if (is_string($value)) {
+            $cleaned = str_replace(['.', ',', ' ', 'R$', '$', '€', '%'], '', $value);
+            return is_numeric($cleaned);
+        }
+
+        return false;
+    }
+
+    /**
+     * Converte valor para numérico
+     */
+    private function parseNumericValue(mixed $value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        if (is_string($value)) {
+            // Remove formatações comuns de moeda/número
+            $cleaned = str_replace(['.', ',', ' ', 'R$', '$', '€', '%'], '', $value);
+            return (float) $cleaned;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Constrói os metadados dos campos (sem format e aggregation)
+     */
+    private function buildFieldsMetadata(DynamicQuery $query): array
+    {
+        $fieldsMetadata = [];
+        $metadata = $query->fields_metadata ?? [];
+
+        foreach ($metadata as $fieldName => $config) {
+            // Ignora campos não visíveis
+            if (!$query->isFieldVisible($fieldName)) {
+                continue;
+            }
+
+            // Monta metadata sem format e aggregation (já resolvidos)
+            $fieldMeta = [];
+
+            if (isset($config['label'])) {
+                $fieldMeta['label'] = $config['label'];
+            }
+
+            if (isset($config['visible'])) {
+                $fieldMeta['visible'] = $config['visible'];
+            }
+
+            if (isset($config['order'])) {
+                $fieldMeta['order'] = $config['order'];
+            }
+
+            // Adiciona outras configurações personalizadas, exceto format e aggregation
+            foreach ($config as $key => $value) {
+                if (!in_array($key, ['format', 'aggregation', 'label', 'visible', 'order'])) {
+                    $fieldMeta[$key] = $value;
+                }
+            }
+
+            $fieldsMetadata[$fieldName] = $fieldMeta;
+        }
+
+        return $fieldsMetadata;
+    }
 
     /**
      * Cria uma nova consulta dinâmica, opcionalmente com filtros
@@ -121,7 +423,7 @@ class DynamicQueryManager
             $filtersCreated = 0;
             if (!empty($filtersData)) {
                 foreach ($filtersData as $filterData) {
-                    DynamicQueryFilter::createFromConfig($query->id, $filterData);
+                    Filter::createFromConfigByQuery($query->id, $filterData);
                     $filtersCreated++;
                 }
             }
@@ -223,7 +525,7 @@ class DynamicQueryManager
                 $filterData = $sourceFilter->toArray();
                 unset($filterData['id'], $filterData['dynamic_query_id'], $filterData['created_at'], $filterData['updated_at']);
 
-                DynamicQueryFilter::createFromConfig($targetQuery->id, $filterData);
+                Filter::createFromConfigByQuery($targetQuery->id, $filterData);
                 $copied++;
             } catch (\Exception $e) {
                 Log::warning("Erro ao duplicar filtro '{$sourceFilter->var_name}': " . $e->getMessage());
@@ -311,7 +613,6 @@ class DynamicQueryManager
         return ApiResponse::success($response, $message);
     }
 
-
     /**
      * Atualiza metadados de um campo específico
      */
@@ -358,56 +659,6 @@ class DynamicQueryManager
         }
 
         return $config;
-    }
-
-    /**
-     * Aplica formatação personalizada aos dados
-     */
-    private function applyCustomFormatting(?array $data, DynamicQuery $query): array
-    {
-        // Se não há dados, retorna array vazio
-        if (empty($data)) return [];
-
-        // Se não há metadata, retorna os dados como vieram
-        if (!$query->fields_metadata) return $data;
-
-        $formattedData = [];
-
-        foreach ($data as $row) {
-            // Garante que $row seja array
-            if (!is_array($row)) {
-                continue;
-            }
-
-            $formattedRow = [];
-
-            foreach ($row as $fieldName => $value) {
-                $fieldMeta = $query->getFieldMetadata($fieldName);
-
-                // Ignora se o campo não for visível
-                if (!$query->isFieldVisible($fieldName)) {
-                    continue;
-                }
-
-                // Aplica formatação se houver configuração
-                if ($fieldMeta && isset($fieldMeta['format'])) {
-                    try {
-                        $value = SankhyaResponseFormatter::applyCustomFormat($value, $fieldMeta['format']);
-                    } catch (\Throwable $e) {
-                        // Loga erro mas não quebra a execução
-                        Log::warning("Erro ao formatar campo {$fieldName}: " . $e->getMessage());
-                    }
-                }
-
-                // Usa label customizado se existir
-                $displayName = $query->getFieldLabel($fieldName) ?? $fieldName;
-                $formattedRow[$displayName] = $value;
-            }
-
-            $formattedData[] = $formattedRow;
-        }
-
-        return $formattedData;
     }
 
     /**

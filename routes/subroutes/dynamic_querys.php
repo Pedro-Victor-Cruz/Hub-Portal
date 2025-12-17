@@ -89,10 +89,6 @@ Route::middleware(['auth'])->prefix('queries')->group(function () {
         Route::get('/types', [DynamicQueryFilterController::class, 'filterTypes'])
             ->middleware('permission:dynamic_query.view');
 
-        // Obter template para criação de filtro baseado no tipo (sem chave de consulta)
-        Route::get('/template/{type}', [DynamicQueryFilterController::class, 'filterTemplate'])
-            ->middleware('permission:dynamic_query.create');
-
     });
 
 });

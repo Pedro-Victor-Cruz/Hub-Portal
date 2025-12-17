@@ -4,10 +4,10 @@ namespace App\Http\Controllers\System;
 
 use App\Enums\FilterType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DynamicQuery\StoreDynamicQueryFilterRequest;
-use App\Http\Requests\DynamicQuery\UpdateDynamicQueryFilterRequest;
+use App\Http\Requests\DynamicQuery\StoreFilterRequest;
+use App\Http\Requests\DynamicQuery\UpdateFilterRequest;
 use App\Services\Core\ApiResponse;
-use App\Services\Query\DynamicQueryFilterService;
+use App\Services\Query\FilterService;
 use App\Services\Query\DynamicQueryManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,9 +18,9 @@ use ValueError;
  */
 class DynamicQueryFilterController extends Controller
 {
-    private DynamicQueryFilterService $filterService;
+    private FilterService $filterService;
 
-    public function __construct(DynamicQueryFilterService $filterService)
+    public function __construct(FilterService $filterService)
     {
         $this->filterService = $filterService;
     }
@@ -33,7 +33,7 @@ class DynamicQueryFilterController extends Controller
     {
         $onlyActive = $request->boolean('only_active', true);
 
-        $response = $this->filterService->listFilters($queryKey, $onlyActive);
+        $response = $this->filterService->listFiltersByQuery($queryKey, $onlyActive);
         return $response->toJson();
     }
 
@@ -41,11 +41,11 @@ class DynamicQueryFilterController extends Controller
      * Cria um novo filtro
      * POST /api/queries/{queryKey}/filters/create
      */
-    public function store(StoreDynamicQueryFilterRequest $request, string $queryKey): JsonResponse
+    public function store(StoreFilterRequest $request, string $queryKey): JsonResponse
     {
         $filterData = $request->validated();
 
-        $response = $this->filterService->createFilter($queryKey, $filterData);
+        $response = $this->filterService->createFilterByQuery($queryKey, $filterData);
         return $response->toJson();
     }
 
@@ -54,11 +54,11 @@ class DynamicQueryFilterController extends Controller
      * Atualiza um filtro existente
      * PUT /api/queries/{queryKey}/filters/{varName}/update
      */
-    public function update(UpdateDynamicQueryFilterRequest $request, string $queryKey, string $varName): JsonResponse
+    public function update(UpdateFilterRequest $request, string $queryKey, string $varName): JsonResponse
     {
         $filterData = $request->validated();
 
-        $response = $this->filterService->updateFilter($queryKey, $varName, $filterData);
+        $response = $this->filterService->updateFilterByQuery($queryKey, $varName, $filterData);
         return $response->toJson();
     }
 
@@ -68,7 +68,7 @@ class DynamicQueryFilterController extends Controller
      */
     public function destroy(Request $request, string $queryKey, string $varName): JsonResponse
     {
-        $response = $this->filterService->deleteFilter($queryKey, $varName);
+        $response = $this->filterService->deleteFilterByQuery($queryKey, $varName);
         return $response->toJson();
     }
 
@@ -81,7 +81,7 @@ class DynamicQueryFilterController extends Controller
     {
         $order = $request->input('order', []);
 
-        $response = $this->filterService->reorderFilters($queryKey, $order);
+        $response = $this->filterService->reorderFiltersByQuery($queryKey, $order);
         return $response->toJson();
     }
 
@@ -91,9 +91,7 @@ class DynamicQueryFilterController extends Controller
      */
     public function config(Request $request, string $queryKey): JsonResponse
     {
-        $company = $request->get('company');
-
-        $response = $this->filterService->getFiltersConfigForUI($queryKey, $company);
+        $response = $this->filterService->getFiltersConfigForUIByQuery($queryKey);
         return $response->toJson();
     }
 
@@ -108,49 +106,16 @@ class DynamicQueryFilterController extends Controller
         return ApiResponse::success($types, 'Tipos de filtros disponíveis')->toJson();
     }
 
-    /**
-     * Obtém template para criação de filtro baseado no tipo
-     * GET /api/queries/filters/template/{type}
-     */
-    public function filterTemplate(string $type): JsonResponse
-    {
-        try {
-            $filterType = FilterType::from($type);
-
-            $template = [
-                'name' => '',
-                'description' => null,
-                'var_name' => '',
-                'type' => $filterType->value,
-                'default_value' => $filterType->getDefaultValue(),
-                'required' => false,
-                'order' => 0,
-                'validation_rules' => [],
-                'visible' => true,
-                'active' => true,
-                'options' => $filterType->requiresOptions() ? [] : null,
-                'html_input_type' => $filterType->getHtmlInputType(),
-                'is_multiple' => $filterType->isMultiple(),
-                'requires_options' => $filterType->requiresOptions()
-            ];
-
-            return ApiResponse::success($template, "Template para filtro do tipo '{$filterType->getDescription()}'")->toJson();
-
-        } catch (ValueError $e) {
-            return ApiResponse::error("Tipo de filtro '{$type}' inválido")->toJson();
-        }
-    }
 
     /**
      * Obtém sugestões de variáveis baseadas na configuração da consulta
      * GET /api/queries/{queryKey}/filters/variable-suggestions
      */
-    public function variableSuggestions(Request $request, string $queryKey): JsonResponse
+    public function variableSuggestions(string $queryKey): JsonResponse
     {
-        $company = $request->get('company');
 
         // Busca a consulta
-        $queryResponse = app(DynamicQueryManager::class)->getQueryWithFilters($queryKey, $company);
+        $queryResponse = app(DynamicQueryManager::class)->getQueryWithFilters($queryKey);
 
         if (!$queryResponse->isSuccess()) {
             return $queryResponse->toJson();

@@ -253,6 +253,61 @@ class ServiceParameter
         );
     }
 
+    /**
+     * Parâmetro para cor (hex, rgb, rgba)
+     */
+    public static function color(
+        string $name,
+        bool $required = false,
+        ?string $defaultValue = null,
+        ?string $description = null
+    ): ServiceParameter {
+        return new ServiceParameter(
+            name: $name,
+            type: ParameterType::COLOR,
+            required: $required,
+            defaultValue: $defaultValue,
+            description: $description,
+            validation: ['pattern' => '/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/']
+        );
+    }
+
+    /**
+     * Parâmetro para mapeamento de colunas
+     */
+    public static function columnMapping(
+        string $name,
+        bool $required = false,
+        ?array $defaultValue = null,
+        ?string $description = null
+    ): ServiceParameter {
+        return new ServiceParameter(
+            name: $name,
+            type: ParameterType::COLUMN_MAPPING,
+            required: $required,
+            defaultValue: $defaultValue,
+            description: $description
+        );
+    }
+
+    /**
+     * Parâmetro para configuração de séries
+     */
+    public static function seriesConfig(
+        string $name,
+        bool $required = false,
+        ?array $defaultValue = null,
+        ?string $description = null
+    ): ServiceParameter {
+        return new ServiceParameter(
+            name: $name,
+            type: ParameterType::SERIES_CONFIG,
+            required: $required,
+            defaultValue: $defaultValue,
+            description: $description
+        );
+    }
+
     public function withLabel(string $string): ServiceParameter
     {
         return new self(

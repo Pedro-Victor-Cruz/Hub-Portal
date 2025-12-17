@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 /**
  * Request para criação de filtros dinâmicos
  */
-class StoreDynamicQueryFilterRequest extends FormRequest
+class StoreFilterRequest extends FormRequest
 {
     public function authorize(): bool
     {

@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 /**
  * Request para atualização de filtros dinâmicos
  */
-class UpdateDynamicQueryFilterRequest extends FormRequest
+class UpdateFilterRequest extends FormRequest
 {
     public function authorize(): bool
     {

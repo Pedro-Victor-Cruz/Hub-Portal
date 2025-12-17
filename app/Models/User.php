@@ -248,7 +248,7 @@ class User extends Model implements Authenticatable
         $highestLevel = PermissionStatus::USER;
 
         foreach ($this->permissionGroups as $group) {
-            if ($group->access_level->value > $highestLevel->value) {
+            if ($group->access_level->value >= $highestLevel->value) {
                 $highestLevel = $group->access_level;
             }
         }

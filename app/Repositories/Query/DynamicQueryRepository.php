@@ -59,22 +59,6 @@ class DynamicQueryRepository
         return $this->findByKey($key) !== null;
     }
 
-    public function duplicateForCompany(string $key, array $overrides = []): ?DynamicQuery
-    {
-        $query = $this->findByKey($key);
-
-        if (!$query) return null;
-
-        $data = array_merge($query->toArray(), $overrides, [
-            'created_at' => null,
-            'updated_at' => null,
-        ]);
-
-        unset($data['id']);
-
-        return DynamicQuery::create($data);
-    }
-
     public function findGlobalByKey(string $key)
     {
         return DynamicQuery::active()

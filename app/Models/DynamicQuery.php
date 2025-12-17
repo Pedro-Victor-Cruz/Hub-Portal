@@ -28,8 +28,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
- * @property DynamicQueryFilter[] $filters Filtros associados à consulta
- * @property DynamicQueryFilter[] $activeFilters Filtros ativos associados à consulta
+ * @property Filter[] $filters Filtros associados à consulta
+ * @property Filter[] $activeFilters Filtros ativos associados à consulta
  */
 class DynamicQuery extends Model
 {
@@ -71,7 +71,7 @@ class DynamicQuery extends Model
      */
     public function filters(): HasMany
     {
-        return $this->hasMany(DynamicQueryFilter::class)->ordered();
+        return $this->hasMany(Filter::class, 'dynamic_query_id')->ordered();
     }
 
     /**
@@ -79,7 +79,7 @@ class DynamicQuery extends Model
      */
     public function activeFilters(): HasMany
     {
-        return $this->hasMany(DynamicQueryFilter::class)->active()->ordered();
+        return $this->hasMany(Filter::class)->active()->ordered();
     }
 
     /**
@@ -87,7 +87,7 @@ class DynamicQuery extends Model
      */
     public function visibleFilters(): HasMany
     {
-        return $this->hasMany(DynamicQueryFilter::class)->active()->visible()->ordered();
+        return $this->hasMany(Filter::class)->active()->visible()->ordered();
     }
 
     /**
@@ -132,6 +132,36 @@ class DynamicQuery extends Model
         $this->fields_metadata = $currentMetadata;
 
         return $this;
+    }
+
+
+    /**
+     * Valida ao aslvar os metadados dos campos se está no formato correto
+     * Formatado esperado (JSON):
+     * {
+     *   "field_name": {
+     *   "label": "Nome Amigável",
+     *   "visible": true,
+     *   "format": "date"
+     *   "aggregation": "sum",
+     *   "order": 1
+     *  },
+     * }
+     *
+     * @param mixed $value
+     * @return void
+     */
+    public function setFieldsMetadataAttribute(mixed $value): void
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->attributes['fields_metadata'] = json_encode($decoded);
+                return;
+            }
+        }
+
+        $this->attributes['fields_metadata'] = json_encode($value);
     }
 
     /**
@@ -330,16 +360,6 @@ class DynamicQuery extends Model
         return $this->visibleFilters->map(function ($filter) {
             return $filter->toParameterConfig();
         })->toArray();
-    }
-
-    /**
-     * Cria filtros a partir de uma configuração
-     */
-    public function createFiltersFromConfig(array $filtersConfig): void
-    {
-        foreach ($filtersConfig as $config) {
-            DynamicQueryFilter::createFromConfig($this->id, $config);
-        }
     }
 
 }
