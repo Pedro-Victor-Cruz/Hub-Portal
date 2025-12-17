@@ -217,4 +217,5 @@ export class WidgetBuilderComponent implements OnInit {
       dynamic_query_id: value
     });
   }
+
 }

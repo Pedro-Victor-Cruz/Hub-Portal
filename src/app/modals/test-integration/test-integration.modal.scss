@@ -254,7 +254,7 @@ $transition: all 0.3s ease;
       align-items: center;
       gap: $spacing-sm;
       padding: $spacing-md $spacing-xl;
-      background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+      background: linear-gradient(135deg, $primary-color 0%, $primary-color 100%);
       color: white;
       border: none;
       border-radius: $border-radius;
@@ -377,7 +377,7 @@ $transition: all 0.3s ease;
 
     span {
       font-size: 14px;
-      color: darken($success-color, 20%);
+      color: $success-color;
       line-height: 1.6;
     }
   }
@@ -408,7 +408,7 @@ $transition: all 0.3s ease;
     }
 
     &.primary {
-      background: linear-gradient(135deg, $success-color 0%, darken($success-color, 10%) 100%);
+      background: linear-gradient(135deg, $success-color 0%, $success-color 100%);
       color: white;
       box-shadow: 0 4px 12px rgba($success-color, 0.3);
 
@@ -419,7 +419,7 @@ $transition: all 0.3s ease;
     }
 
     &.secondary {
-      background: linear-gradient(135deg, $text-secondary 0%, darken($text-secondary, 10%) 100%);
+      background: linear-gradient(135deg, $text-secondary 0%, $text-secondary 100%);
       color: white;
       box-shadow: 0 4px 12px rgba($text-secondary, 0.3);
 

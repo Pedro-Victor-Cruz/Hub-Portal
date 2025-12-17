@@ -1,14 +1,194 @@
 <ub-content [title]="dashboard?.name || 'Dashboard'" [loading]="loading">
 
-  <ub-panel-area>
+  <div class="dashboard-layout">
 
-    @for (section of structure.sections; let i = $index; track i) {
-      <ub-panel [title]="section.section.title">
-        @for (widget of section.widgets; let i = $index; track i) {
-          <app-dashboard-widget-renderer [widget]="widget"></app-dashboard-widget-renderer>
-        }
-      </ub-panel>
-    }
+    <!-- Sidebar de Filtros -->
+    <aside class="dashboard-sidebar" [class.collapsed]="sidebarCollapsed">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <i class="bx bx-filter-alt"></i>
+          @if (!sidebarCollapsed) {
+            <span>Filtros</span>
+          }
+        </div>
+        <button class="sidebar-toggle" (click)="toggleSidebar()">
+          <i class="bx" [class.bx-chevron-left]="!sidebarCollapsed" [class.bx-chevron-right]="sidebarCollapsed"></i>
+        </button>
+      </div>
 
-  </ub-panel-area>
+      @if (!sidebarCollapsed && structure?.filters?.length > 0) {
+        <div class="sidebar-content">
+          <div class="filters-form">
+            @for (filter of structure.filters; track filter.var_name) {
+              <div class="filter-group">
+                @switch (filter.type) {
+                  @case ('text') {
+                    <ub-input
+                      [label]="filter.name"
+                      [helpText]="filter.description"
+                      [placeholder]="'Digite ' + filter.name"
+                      [required]="filter.required"
+                      [(ngModel)]="filterValues[filter.var_name]"
+                    ></ub-input>
+                  }
+                  @case ('number') {
+                    <ub-input
+                      type="number"
+                      [label]="filter.name"
+                      [helpText]="filter.description"
+                      [placeholder]="'Digite ' + filter.name"
+                      [required]="filter.required"
+                      [(ngModel)]="filterValues[filter.var_name]"
+                    ></ub-input>
+                  }
+                  @case ('date') {
+                    <ub-input
+                      type="date"
+                      [label]="filter.name"
+                      [helpText]="filter.description"
+                      [placeholder]="'Selecione ' + filter.name"
+                      [required]="filter.required"
+                      [(ngModel)]="filterValues[filter.var_name]"
+                    ></ub-input>
+                  }
+                  @case ('boolean') {
+                    <ub-toggle-switch
+                      [label]="filter.name"
+                      [helpText]="filter.description"
+                      [required]="filter.required"
+                      [(ngModel)]="filterValues[filter.var_name]"
+                    ></ub-toggle-switch>
+                  }
+                  @case ('select') {
+                    <ub-dropdown
+                      [label]="filter.name"
+                      [helpText]="filter.description"
+                      [placeholder]="'Selecione ' + filter.name"
+                      [required]="filter.required"
+                      [(ngModel)]="filterValues[filter.var_name]"
+                      [options]="getFilterOptions(filter.options)"
+                      optionLabel="label"
+                      optionValue="value"
+                    ></ub-dropdown>
+                  }
+                  @case ('multiselect') {
+                    <ub-multiselect
+                      [label]="filter.name"
+                      [helpText]="filter.description"
+                      [placeholder]="'Selecione ' + filter.name"
+                      [required]="filter.required"
+                      [(ngModel)]="filterValues[filter.var_name]"
+                      [options]="getFilterOptions(filter.options)"
+                      optionLabel="label"
+                      optionValue="value"
+                    ></ub-multiselect>
+                  }
+                }
+              </div>
+            }
+          </div>
+
+          <div class="sidebar-actions">
+            <ub-button
+              [loading]="loading"
+              (click)="applyFilters()"
+              class="w-full">
+              <i class="bx bx-check"></i>
+              Aplicar
+            </ub-button>
+            <button class="btn-clear" (click)="clearFilters()">
+              <i class="bx bx-x"></i>
+              Limpar
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (!sidebarCollapsed && (!structure?.filters || structure?.filters?.length === 0)) {
+        <div class="sidebar-empty">
+          <i class="bx bx-info-circle"></i>
+          <p>Nenhum filtro disponível</p>
+        </div>
+      }
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="dashboard-main" [class.sidebar-collapsed]="sidebarCollapsed">
+
+      <!-- Ações do Dashboard -->
+      <div class="dashboard-actions">
+        <button class="action-btn" (click)="goBack()" title="Voltar">
+          <i class="bx bx-arrow-back"></i>
+        </button>
+        <button class="action-btn" (click)="refreshDashboard()" title="Atualizar">
+          <i class="bx bx-refresh"></i>
+        </button>
+      </div>
+
+      <!-- Seções do Dashboard -->
+      @for (section of structure?.sections; track section.section.id) {
+        <div class="dashboard-section">
+
+          <!-- Título da Seção -->
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="bx bx-bar-chart-alt-2"></i>
+              {{ section.section.title }}
+            </h2>
+            @if (section.section.description) {
+              <p class="section-description">{{ section.section.description }}</p>
+            }
+          </div>
+
+          <!-- Metric Cards -->
+          @if (getMetricWidgets(section.widgets).length > 0) {
+            <div class="metrics-grid">
+              @for (widget of getMetricWidgets(section.widgets); track widget.id) {
+                <app-dashboard-metric-card
+                  [widget]="widget"
+                  [filters]="filterValues"
+                ></app-dashboard-metric-card>
+              }
+            </div>
+          }
+
+          <!-- Charts -->
+          @if (getChartWidgets(section.widgets).length > 0) {
+            <div class="charts-grid">
+              @for (widget of getChartWidgets(section.widgets); track widget.id) {
+                <app-dashboard-chart
+                  [widget]="widget"
+                  [filters]="filterValues"
+                ></app-dashboard-chart>
+              }
+            </div>
+          }
+
+          <!-- Tables -->
+          @if (getTableWidgets(section.widgets).length > 0) {
+            <div class="tables-grid">
+              @for (widget of getTableWidgets(section.widgets); track widget.id) {
+                <app-dashboard-table
+                  [widget]="widget"
+                  [filters]="filterValues"
+                ></app-dashboard-table>
+              }
+            </div>
+          }
+
+        </div>
+      }
+
+      @if (!structure?.sections || structure?.sections?.length === 0) {
+        <div class="dashboard-empty">
+          <i class="bx bx-data"></i>
+          <h3>Nenhum dado disponível</h3>
+          <p>Este dashboard não possui seções configuradas.</p>
+        </div>
+      }
+
+    </main>
+
+  </div>
+
 </ub-content>

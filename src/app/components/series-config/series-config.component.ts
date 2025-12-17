@@ -16,14 +16,31 @@ interface SeriesItem {
   imports: [CommonModule, FormsModule, InputComponent],
   template: `
     <div class="series-config-field">
-      <label *ngIf="label" class="field-label">
-        {{ label }}
-        <span *ngIf="required" class="required-indicator">*</span>
-      </label>
+      <div class="series-config-header">
+        @if (label) {
+          <label class="field-label">
+            {{ label }}
+            @if (required) {
+              <span class="required-indicator">*</span>
+            }
+          </label>
+        }
 
-      <small *ngIf="helpText" class="help-text mb-2">
-        <i class="pi pi-info-circle"></i> {{ helpText }}
-      </small>
+        <button
+          type="button"
+          class="btn-add"
+          (click)="addSeries()"
+          [disabled]="disabled"
+          title="Adicionar série">
+          <i class="bx bx-plus"></i>
+        </button>
+      </div>
+
+      @if (helpText) {
+        <small class="help-text mb-2">
+          <i class="pi pi-info-circle"></i> {{ helpText }}
+        </small>
+      }
 
       <div class="series-list">
 
@@ -90,21 +107,31 @@ interface SeriesItem {
           </div>
         }
 
-        <div *ngIf="seriesList.length === 0" class="empty-state">
-          <i class="pi pi-chart-bar text-3xl text-gray-400 mb-2"></i>
-          <p class="text-gray-500">Nenhuma série configurada</p>
-          <p class="text-gray-400 text-sm">Clique no + para começar</p>
-        </div>
+        @if (seriesList.length === 0) {
+          <div class="empty-state">
+            <i class="pi pi-chart-bar text-3xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500">Nenhuma série configurada</p>
+            <p class="text-gray-400 text-sm">Clique no + para começar</p>
+          </div>
+        }
       </div>
 
-      <small *ngIf="error" class="error-text">
-        <i class="pi pi-exclamation-circle"></i> {{ error }}
-      </small>
+      @if (error) {
+        <small class="error-text">
+          <i class="pi pi-exclamation-circle"></i> {{ error }}
+        </small>
+      }
     </div>
   `,
   styles: [`
+
     .series-config-field {
       margin-bottom: 1rem;
+    }
+
+    .series-config-header {
+      display: flex;
+      justify-content: space-between;
     }
 
     .field-label {
@@ -168,54 +195,54 @@ interface SeriesItem {
     .series-actions {
       display: flex;
       gap: 8px;
+    }
 
-      .btn-remove {
-        background: transparent;
-        border: 1px solid #dc3545;
-        color: #dc3545;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.875rem;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
+    .btn-remove {
+      background: transparent;
+      border: 1px solid #dc3545;
+      color: #dc3545;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
 
-      .btn-remove:hover:not(:disabled) {
-        background: #dc3545;
-        color: white;
-      }
+    .btn-remove:hover:not(:disabled) {
+      background: #dc3545;
+      color: white;
+    }
 
-      .btn-remove:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+    .btn-remove:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
-      .btn-add {
-        background: transparent;
-        border: 1px solid #28a745;
-        color: #28a745;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.875rem;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
+    .btn-add {
+      background: transparent;
+      border: 1px solid #28a745;
+      color: #28a745;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
 
-      .btn-add:hover:not(:disabled) {
-        background: #28a745;
-        color: white;
-      }
+    .btn-add:hover:not(:disabled) {
+      background: #28a745;
+      color: white;
+    }
 
-      .btn-add:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+    .btn-add:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .series-fields {
@@ -294,6 +321,10 @@ interface SeriesItem {
       text-align: center;
       padding: 2rem;
       color: #6c757d;
+
+      ub-button {
+        margin-top: 10px;
+      }
     }
 
     .error-text {
@@ -325,8 +356,10 @@ export class SeriesConfigComponent implements ControlValueAccessor {
     '#546E7A', '#26a69a', '#D10CE8'
   ];
 
-  onChange: any = () => {};
-  onTouched: any = () => {};
+  onChange: any = () => {
+  };
+  onTouched: any = () => {
+  };
 
   addSeries(): void {
     if (this.disabled) return;

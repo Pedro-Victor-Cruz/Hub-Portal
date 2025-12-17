@@ -77,13 +77,16 @@
       </div>
     </ub-tab>
 
-    <ub-tab label="Configurações">
-      <ub-dynamic-parameters
-        [dynamicParams]="parameters"
-        [loading]="loadingParams"
-        (formChange)="updateConfig($event)">
-      </ub-dynamic-parameters>
-    </ub-tab>
+    @if (widget) {
+      <ub-tab label="Configurações">
+        <ub-dynamic-parameters
+          [dynamicParams]="parameters"
+          [paramsValue]="widget.config"
+          [loading]="loadingParams"
+          (formChange)="updateConfig($event)">
+        </ub-dynamic-parameters>
+      </ub-tab>
+    }
   </ub-tabs>
 
   <div class="flex justify-content-end gap-2 mt-3">

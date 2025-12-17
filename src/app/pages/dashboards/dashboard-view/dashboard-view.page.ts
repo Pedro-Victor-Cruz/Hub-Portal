@@ -1,24 +1,36 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import {ButtonComponent} from '../../../components/form/button/button.component';
-import {ContentComponent} from '../../../components/content/content.component';
-import {DashboardWidgetRendererComponent} from './dashboard-widget-renderer/dashboard-widget-renderer.component';
-import {DashboardService} from '../../../services/dashboard.service';
-import {ToastService} from '../../../components/toast/toast.service';
-import {Utils} from '../../../services/utils.service';
-import {PanelAreaComponent} from '../../../components/content/panels/panel-area.component';
-import {PanelComponent} from '../../../components/content/panels/panel/panel.component';
+import { ContentComponent } from '../../../components/content/content.component';
+import { DashboardService } from '../../../services/dashboard.service';
+import { ToastService } from '../../../components/toast/toast.service';
+import { Utils } from '../../../services/utils.service';
+import { InputComponent } from '../../../components/form/input/input.component';
+import { DropdownComponent } from '../../../components/form/dropdown/dropdown.component';
+import { MultiselectComponent } from '../../../components/form/multiselect/multiselect.component';
+import { ToggleSwitchComponent } from '../../../components/form/toggle-switch/toggle-switch.component';
+import { ButtonComponent } from '../../../components/form/button/button.component';
+import {DashboardMetricCardComponent} from './dashboard-metric-card.component';
+import {DashboardChartComponent} from './dashboard-chart.component';
+import {DashboardTableComponent} from './dashboard-table.component';
+
 
 @Component({
   selector: 'app-dashboard-view',
   imports: [
     CommonModule,
+    FormsModule,
     ContentComponent,
-    DashboardWidgetRendererComponent,
-    PanelAreaComponent,
-    PanelComponent
+    InputComponent,
+    DropdownComponent,
+    MultiselectComponent,
+    ToggleSwitchComponent,
+    ButtonComponent,
+    DashboardMetricCardComponent,
+    DashboardChartComponent,
+    DashboardTableComponent
   ],
   templateUrl: './dashboard-view.page.html',
   standalone: true,
@@ -31,11 +43,8 @@ export class DashboardViewPage implements OnInit, OnDestroy {
   dashboard: any = null;
   structure: any = null;
   loading: boolean = false;
-  activeFilters: any = {};
-
-  // Para navegação breadcrumb
-  breadcrumb: any[] = [];
-  currentSection: any = null;
+  filterValues: { [key: string]: any } = {};
+  sidebarCollapsed: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -49,6 +58,7 @@ export class DashboardViewPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.dashboardKey = params['key'];
+        this.initializeFilters();
         this.loadDashboard();
       });
   }
@@ -58,9 +68,6 @@ export class DashboardViewPage implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Carrega estrutura completa do dashboard
-   */
   async loadDashboard() {
     this.loading = true;
     try {
@@ -74,10 +81,7 @@ export class DashboardViewPage implements OnInit, OnDestroy {
         return;
       }
 
-      // Inicializa na primeira seção raiz
-      if (this.structure.sections && this.structure.sections.length > 0) {
-        this.navigateToSection(this.structure.sections[0]);
-      }
+      this.initializeFilters();
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar dashboard'));
       this.router.navigate(['/dashboards']);
@@ -86,72 +90,67 @@ export class DashboardViewPage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Navega para uma seção específica
-   */
-  navigateToSection(sectionData: any) {
-    this.currentSection = sectionData;
-    this.breadcrumb = sectionData.breadcrumb || [];
-  }
-
-  /**
-   * Executa drill down para subseção
-   */
-  async executeDrillDown(targetSection: any, sourceData?: any) {
-    if (!this.currentSection?.section?.id || !targetSection?.section?.id) return;
-
-    try {
-      const response = await this.dashboardService.executeDrillDown(
-        this.currentSection.section.id,
-        targetSection.section.id,
-        sourceData,
-        this.activeFilters
-      );
-
-      if (response.success) {
-        this.navigateToSection(response.data);
-      }
-    } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao executar drill down'));
+  initializeFilters() {
+    if (this.structure?.filters) {
+      this.structure.filters.forEach((filter: any) => {
+        if (!this.filterValues.hasOwnProperty(filter.var_name)) {
+          switch (filter.type) {
+            case 'text':
+              this.filterValues[filter.var_name] = filter.default_value || '';
+              break;
+            case 'number':
+              this.filterValues[filter.var_name] = filter.default_value || null;
+              break;
+            case 'boolean':
+              this.filterValues[filter.var_name] = filter.default_value || false;
+              break;
+            case 'date':
+              this.filterValues[filter.var_name] = filter.default_value || null;
+              break;
+            default:
+              this.filterValues[filter.var_name] = filter.default_value || null;
+          }
+        }
+      });
     }
   }
 
-  /**
-   * Volta para seção anterior no breadcrumb
-   */
-  navigateBack(index: number) {
-    // Implementar navegação por breadcrumb
-    // Por ora, apenas recarrega o dashboard
+  getFilterOptions(options: any) {
+    if (!options) return [];
+    return Object.keys(options).map(key => ({ value: key, label: options[key] }));
+  }
+
+  applyFilters() {
     this.loadDashboard();
   }
 
-  /**
-   * Aplica filtros globais
-   */
-  applyFilters(filters: any) {
-    this.activeFilters = filters;
-    // Recarrega dados dos widgets com novos filtros
+  clearFilters() {
+    this.filterValues = {};
+    this.initializeFilters();
     this.loadDashboard();
   }
 
-  /**
-   * Atualiza dashboard (refresh manual)
-   */
   refreshDashboard() {
     this.loadDashboard();
   }
 
-  /**
-   * Volta para lista de dashboards
-   */
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
   goBack() {
     this.router.navigate(['/dashboards']);
   }
 
-  /**
-   * Abre dashboard em modo de edição
-   */
-  editDashboard() {
-    this.dashboardService.openDashboardModal(this.dashboard);
+  getMetricWidgets(widgets: any[]) {
+    return widgets?.filter(w => w.widget_type === 'metric_card') || [];
+  }
+
+  getChartWidgets(widgets: any[]) {
+    return widgets?.filter(w => w.widget_type?.startsWith('chart_')) || [];
+  }
+
+  getTableWidgets(widgets: any[]) {
+    return widgets?.filter(w => w.widget_type === 'table') || [];
   }
 }
