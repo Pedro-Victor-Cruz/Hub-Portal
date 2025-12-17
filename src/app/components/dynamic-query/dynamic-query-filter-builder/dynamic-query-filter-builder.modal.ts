@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {ModalRef} from '../../modal/modal.service';
-import {DynamicQuery} from '../dynamic-query.modal';
-import {ButtonComponent} from '../../../components/form/button/button.component';
-import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
-import {InputComponent} from '../../../components/form/input/input.component';
+import {ModalRef} from '../../../modals/modal/modal.service';
+import {ButtonComponent} from '../../form/button/button.component';
+import {DropdownComponent} from '../../form/dropdown/dropdown.component';
+import {InputComponent} from '../../form/input/input.component';
 import {FormsModule} from '@angular/forms';
-import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
-import {MultiselectComponent} from '../../../components/form/multiselect/multiselect.component';
+import {ToggleSwitchComponent} from '../../form/toggle-switch/toggle-switch.component';
+import {MultiselectComponent} from '../../form/multiselect/multiselect.component';
+import {DynamicQuery} from '../dynamic-query.component';
 
 @Component({
   imports: [

@@ -1,15 +1,14 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-import { InputComponent } from '../../../components/form/input/input.component';
-import { PasswordComponent } from '../../../components/form/password/password.component';
-import { ButtonComponent } from '../../../components/form/button/button.component';
-import { FormErrorHandlerService } from "../../../components/form/form-error-handler.service";
-import { ToastService } from '../../../components/toast/toast.service';
-import { AuthService } from '../../../security/auth.service';
-import { Utils } from '../../../services/utils.service';
-import {NgOptimizedImage} from '@angular/common';
+import {Component, OnInit, OnDestroy} from '@angular/core';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Router, ActivatedRoute} from '@angular/router';
+import {Subject, takeUntil} from 'rxjs';
+import {InputComponent} from '../../../components/form/input/input.component';
+import {PasswordComponent} from '../../../components/form/password/password.component';
+import {ButtonComponent} from '../../../components/form/button/button.component';
+import {FormErrorHandlerService} from "../../../components/form/form-error-handler.service";
+import {ToastService} from '../../../components/toast/toast.service';
+import {AuthService} from '../../../security/auth.service';
+import {Utils} from '../../../services/utils.service';
 
 @Component({
   selector: 'app-login',
@@ -28,6 +27,8 @@ export class LoginPage implements OnInit, OnDestroy {
   loginForm!: FormGroup;
   loading = false;
   errors: { [key: string]: string } = {};
+  currentYear: number = new Date().getFullYear();
+
   private destroy$ = new Subject<void>();
   private returnUrl: string = '/home';
 
@@ -84,7 +85,7 @@ export class LoginPage implements OnInit, OnDestroy {
 
         const formErrors = FormErrorHandlerService.getErrorMessages(this.loginForm);
         if (Object.keys(formErrors).length > 0) {
-          this.errors = { ...this.errors, ...formErrors };
+          this.errors = {...this.errors, ...formErrors};
         }
       });
   }

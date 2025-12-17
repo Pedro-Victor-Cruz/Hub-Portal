@@ -1,11 +1,11 @@
 import {Component, Input} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
-import {ButtonComponent} from '../../../components/form/button/button.component';
+import {ButtonComponent} from '../../form/button/button.component';
 import {DynamicQueryService} from '../../../services/dynamic-query.service';
-import {ToastService} from '../../../components/toast/toast.service';
+import {ToastService} from '../../toast/toast.service';
 import {Utils} from '../../../services/utils.service';
-import {DynamicQuery} from '../dynamic-query.modal';
+import {DynamicQuery} from '../dynamic-query.component';
 
 interface TestResult {
   success: boolean;

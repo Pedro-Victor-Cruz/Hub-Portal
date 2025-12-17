@@ -1,0 +1,137 @@
+<div class="widget-container" [class.loading]="loading">
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="widget-loading">
+      <i class="bx bx-loader-alt bx-spin"></i>
+      <span>Carregando...</span>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (!loading && error) {
+    <div class="widget-error">
+      <i class="bx bx-error-circle"></i>
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="refresh()">Tentar novamente</button>
+    </div>
+  }
+
+  <!-- Chart Widgets -->
+  @if (isChartType() && chartOptions) {
+    <div class="widget-chart">
+      <apx-chart
+        #chart
+        [series]="chartOptions.series!"
+        [chart]="chartOptions.chart!"
+        [xaxis]="chartOptions.xaxis!"
+        [yaxis]="chartOptions.yaxis!"
+        [stroke]="chartOptions.stroke!"
+        [dataLabels]="chartOptions.dataLabels!"
+        [legend]="chartOptions.legend!"
+        [colors]="chartOptions.colors!"
+        [title]="chartOptions.title!">
+      </apx-chart>
+    </div>
+  }
+
+  <!-- Metric Card Widget -->
+  @if (widget.widget_type === 'metric_card') {
+    <div class="widget-metric-card">
+      @if (renderMetricCard(); as metric) {
+        <div class="metric-icon">
+          <i class="bx {{ metric.icon }}"></i>
+        </div>
+        <div class="metric-content">
+          <div class="metric-value">{{ metric.value }}</div>
+          <div class="metric-label">{{ metric.label }}</div>
+          @if (metric.trend) {
+            <div class="metric-trend" [class.trend-up]="metric.trend.direction === 'up'"
+                 [class.trend-down]="metric.trend.direction === 'down'">
+              <i class="bx" [class.bx-trending-up]="metric.trend.direction === 'up'"
+                 [class.bx-trending-down]="metric.trend.direction === 'down'"></i>
+              {{ metric.trend.value }}%
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Table Widget -->
+  @if (widget.widget_type === 'table') {
+    <div class="widget-table">
+      @if (renderTable(); as table) {
+        <div class="table-wrapper">
+          <table>
+            <thead>
+            <tr>
+              @for (col of table.columns; track col) {
+                <th>{{ col }}</th>
+              }
+            </tr>
+            </thead>
+            <tbody>
+              @for (row of table.rows; track $index) {
+                <tr>
+                  @for (col of table.columns; track col) {
+                    <td>{{ row[col] }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Progress Widget -->
+  @if (widget.widget_type === 'progress') {
+    <div class="widget-progress">
+      @if (renderProgress(); as progress) {
+        <div class="progress-label">{{ progress.label }}</div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" [style.width.%]="(progress.value / progress.max) * 100">
+            <span class="progress-value">{{ progress.value }} / {{ progress.max }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Gauge Widget -->
+  @if (widget.widget_type === 'gauge') {
+    <div class="widget-gauge">
+      @if (renderGauge(); as gauge) {
+        <div class="gauge-container">
+          <div class="gauge-label">{{ gauge.label }}</div>
+          <div class="gauge-value">{{ gauge.value }}</div>
+          <div class="gauge-range">{{ gauge.min }} - {{ gauge.max }}</div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- List Widget -->
+  @if (widget.widget_type === 'list') {
+    <div class="widget-list">
+      @if (renderList(); as items) {
+        <ul>
+          @for (item of items; track $index) {
+            <li>
+              @if (item.icon) {
+                <i class="bx {{ item.icon }}"></i>
+              }
+              <span>{{ item.label || item.name || item }}</span>
+              @if (item.value) {
+                <strong>{{ item.value }}</strong>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+</div>

@@ -159,6 +159,42 @@
                     </ub-textarea>
                   }
 
+                  <!-- Column Mapping (Mapeamento de Colunas) -->
+                  @if (param.type === 'column_mapping') {
+                    <ub-column-mapping
+                      [label]="param.label || getDefaultLabel(param.name)"
+                      [formControlName]="param.name"
+                      [required]="param.required"
+                      [disabled]="disabled"
+                      [helpText]="param.description || 'Configure o mapeamento entre colunas de origem e destino'"
+                      [error]="getFieldError(param.name)">
+                    </ub-column-mapping>
+                  }
+
+                  <!-- Series Config (Configuração de Séries) -->
+                  @if (param.type === 'series_config') {
+                    <ub-series-config
+                      [label]="param.label || getDefaultLabel(param.name)"
+                      [formControlName]="param.name"
+                      [required]="param.required"
+                      [disabled]="disabled"
+                      [helpText]="param.description || 'Configure as séries que serão exibidas no gráfico'"
+                      [error]="getFieldError(param.name)">
+                    </ub-series-config>
+                  }
+
+                  <!-- Color Picker -->
+                  @if (param.type === 'color') {
+                    <ub-color-picker
+                      [label]="param.label || getDefaultLabel(param.name)"
+                      [formControlName]="param.name"
+                      [required]="param.required"
+                      [disabled]="disabled"
+                      [helpText]="param.description || ''"
+                      [error]="getFieldError(param.name)">
+                    </ub-color-picker>
+                  }
+
                   <!-- Code Editor para SQL -->
                   @if (param.type === 'sql') {
                     <ub-code-editor

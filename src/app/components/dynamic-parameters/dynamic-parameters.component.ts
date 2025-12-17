@@ -10,6 +10,9 @@ import {MultiselectComponent} from '../form/multiselect/multiselect.component';
 import {ObjectEditorComponent} from '../form/object-editor/object-editor.component';
 import {TextareaComponent} from '../form/textarea/textarea.component';
 import {ToggleSwitchComponent} from '../form/toggle-switch/toggle-switch.component';
+import {ColumnMappingComponent} from '../column-mapping/column-mapping.component';
+import {SeriesConfigComponent} from '../series-config/series-config.component';
+import {ColorPickerComponent} from '../color-picker/color-picker.component';
 
 export interface DynamicParameter {
   name: string;
@@ -24,7 +27,7 @@ export interface DynamicParameter {
   group?: string;
   order: number;
   sensitive: boolean;
-  dependsOn: string[];
+  dependsOn?: string[] | { [key: string]: any }; // Corrigido: pode ser array ou objeto
   arrayItemType?: any;
 }
 
@@ -44,6 +47,9 @@ export interface DynamicParams {
     ObjectEditorComponent,
     TextareaComponent,
     ToggleSwitchComponent,
+    ColorPickerComponent,
+    SeriesConfigComponent,
+    ColumnMappingComponent,
     ReactiveFormsModule
   ],
   templateUrl: './dynamic-parameters.component.html',
@@ -161,6 +167,8 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
         return param.defaultValue ?? false;
       case 'array':
       case 'multiselect':
+      case 'column_mapping':
+      case 'series_config':
         return param.defaultValue ?? [];
       case 'object':
         return param.defaultValue ? param.defaultValue : {};
@@ -183,10 +191,27 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       });
     }
 
-    // Adicionar validações específicas baseadas em param.validation
+    // Validações específicas
     if (param.validation) {
-      // Implementar validações customizadas aqui
-      // Exemplo: validators.push(customValidator(param.validation));
+      if (param.validation.min !== undefined) {
+        validators.push((control: any) => {
+          const value = control.value;
+          if (value !== null && value !== undefined && value < param.validation.min) {
+            return {min: {min: param.validation.min, actual: value}};
+          }
+          return null;
+        });
+      }
+
+      if (param.validation.max !== undefined) {
+        validators.push((control: any) => {
+          const value = control.value;
+          if (value !== null && value !== undefined && value > param.validation.max) {
+            return {max: {max: param.validation.max, actual: value}};
+          }
+          return null;
+        });
+      }
     }
 
     return validators;
@@ -204,19 +229,35 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   }
 
   shouldShowParameter(param: DynamicParameter): boolean {
-    if (!param.dependsOn || param.dependsOn.length === 0) {
+    if (!param.dependsOn) {
       return true;
     }
 
-    return param.dependsOn.every(dependency => {
-      const dependencyValue = this.form.get(dependency)?.value;
-      return dependencyValue !== null && dependencyValue !== undefined && dependencyValue !== '';
-    });
+    // Se dependsOn é um array
+    if (Array.isArray(param.dependsOn)) {
+      return param.dependsOn.every(dependency => {
+        const dependencyValue = this.form.get(dependency)?.value;
+        return dependencyValue !== null && dependencyValue !== undefined && dependencyValue !== '';
+      });
+    }
+
+    // Se dependsOn é um objeto com condições específicas
+    if (typeof param.dependsOn === 'object') {
+      return Object.entries(param.dependsOn).every(([key, expectedValue]) => {
+        const actualValue = this.form.get(key)?.value;
+        return actualValue === expectedValue;
+      });
+    }
+
+    return true;
   }
 
   getColumnClass(param: DynamicParameter): string {
-    if (param.type === 'object' || param.type === 'array' || param.type === 'sql' || param.type === 'javascript') {
+    if (['object', 'array', 'sql', 'javascript', 'column_mapping', 'series_config'].includes(param.type)) {
       return 'col-12';
+    }
+    if (param.type === 'color') {
+      return 'col-12 md:col-4';
     }
     return 'col-12 md:col-6';
   }
@@ -267,7 +308,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       );
     }
 
-    // Veficia se é um objeto, se for o value é a key a label é o value
+    // Se é um objeto, a key é o value e o value é o label
     if (param.options && typeof param.options === 'object') {
       return Object.keys(param.options).map(key => ({
         label: param.options[key],
@@ -282,12 +323,24 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     if (param.type === 'object') {
       return '{\n  "chave": "valor",\n  "outra_chave": "outro_valor"\n}';
     }
+    if (param.type === 'column_mapping') {
+      return '[\n  {"source": "coluna1", "target": "destino1"},\n  {"source": "coluna2", "target": "destino2"}\n]';
+    }
+    if (param.type === 'series_config') {
+      return '[\n  {"name": "Série 1", "column": "valor1", "color": "#008FFB"},\n  {"name": "Série 2", "column": "valor2", "color": "#00E396"}\n]';
+    }
     return '["item1", "item2", "item3"]';
   }
 
   getComplexFieldHelp(param: DynamicParameter): string {
     if (param.type === 'object') {
       return 'Digite um objeto JSON válido';
+    }
+    if (param.type === 'column_mapping') {
+      return 'Configure o mapeamento de colunas (formato JSON)';
+    }
+    if (param.type === 'series_config') {
+      return 'Configure as séries do gráfico (formato JSON)';
     }
     return 'Digite um array JSON válido';
   }
@@ -304,12 +357,17 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       if (control.errors?.['required']) {
         return 'Este campo é obrigatório';
       }
-      // Adicionar mais tipos de erro conforme necessário
       if (control.errors?.['email']) {
         return 'Email inválido';
       }
       if (control.errors?.['url']) {
         return 'URL inválida';
+      }
+      if (control.errors?.['min']) {
+        return `O valor mínimo é ${control.errors['min'].min}`;
+      }
+      if (control.errors?.['max']) {
+        return `O valor máximo é ${control.errors['max'].max}`;
       }
     }
     return '';

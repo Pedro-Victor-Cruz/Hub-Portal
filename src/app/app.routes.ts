@@ -16,6 +16,8 @@ import {DynamicQueriesPage} from './pages/dynamic-queries/dynamic-queries.page';
 import {IntegrationsPage} from './pages/integrations/integrations.page';
 import {LogsSystemPage} from './pages/logs-system/logs-system.page';
 import {SystemPerformancePage} from './pages/system-performance/system-performance.page';
+import {DashboardsPage} from './pages/dashboards/dashboards.page';
+import {DashboardViewPage} from './pages/dashboards/dashboard-view/dashboard-view.page';
 
 export const routes: Routes = [
   {
@@ -152,6 +154,24 @@ export const routes: Routes = [
           {
             path: '',
             component: DynamicQueriesPage
+          }
+        ]
+      },
+      {
+        path: 'dashboards',
+        // canActivate: [PermissionGuard],
+        // data: {
+        //   permission: 'dynamic_query.view',
+        // },
+        children: [
+          {
+            path: '',
+            component: DashboardsPage
+          },
+          {
+            path: 'view/:key',
+            component: DashboardViewPage,
+            title: 'Visualizar Dashboard'
           }
         ]
       },

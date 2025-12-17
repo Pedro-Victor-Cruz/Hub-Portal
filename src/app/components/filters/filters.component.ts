@@ -1,17 +1,18 @@
-import {Component, Input, OnInit} from '@angular/core';
+// filters.component.ts
+import {Component, Input, OnInit, OnChanges, SimpleChanges} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {DragDropModule, CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 
-import {ButtonComponent} from '../../../components/form/button/button.component';
-import {InputComponent} from '../../../components/form/input/input.component';
-import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
-import {TextareaComponent} from '../../../components/form/textarea/textarea.component';
-import {ToastService} from '../../../components/toast/toast.service';
-import {DynamicQueryFiltersService} from '../../../services/dynamic-query-filters.service';
-import {Utils} from '../../../services/utils.service';
-import {FormErrorHandlerService} from '../../../components/form/form-error-handler.service';
-import {ObjectEditorComponent} from '../../../components/form/object-editor/object-editor.component';
+import {ButtonComponent} from '../form/button/button.component';
+import {InputComponent} from '../form/input/input.component';
+import {DropdownComponent} from '../form/dropdown/dropdown.component';
+import {TextareaComponent} from '../form/textarea/textarea.component';
+import {ToastService} from '../toast/toast.service';
+import {Utils} from '../../services/utils.service';
+import {FormErrorHandlerService} from '../form/form-error-handler.service';
+import {ObjectEditorComponent} from '../form/object-editor/object-editor.component';
+import {EntityType, FilterService} from '../../services/filters.service';
 
 interface FilterType {
   value: string;
@@ -37,7 +38,7 @@ export interface DynamicQueryFilter {
 }
 
 @Component({
-  selector: 'app-dynamic-query-filters',
+  selector: 'app-filters',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -48,13 +49,14 @@ export interface DynamicQueryFilter {
     TextareaComponent,
     ObjectEditorComponent
   ],
-  templateUrl: './dynamic-query-filters.component.html',
-  styleUrl: './dynamic-query-filters.component.scss',
+  templateUrl: './filters.component.html',
+  styleUrl: './filters.component.scss',
   standalone: true
 })
-export class DynamicQueryFiltersComponent implements OnInit {
+export class FiltersComponent implements OnInit, OnChanges {
 
-  @Input() queryKey!: string;
+  @Input() queryKey: string | null = null;
+  @Input() dashboardKey: string | null = null;
 
   filters: DynamicQueryFilter[] = [];
   filterTypes: FilterType[] = [];
@@ -66,9 +68,12 @@ export class DynamicQueryFiltersComponent implements OnInit {
   errors: { [key: string]: string } = {};
   variableSuggestions: string[] = [];
 
+  private entityType: EntityType | null = null;
+  private entityKey: string | null = null;
+
   constructor(
     private fb: FormBuilder,
-    private filtersService: DynamicQueryFiltersService,
+    private filterService: FilterService,
     private toast: ToastService,
     private utils: Utils
   ) {
@@ -90,7 +95,49 @@ export class DynamicQueryFiltersComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadData();
+    this.validateInputs();
+    if (this.entityType && this.entityKey) {
+      this.loadData();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['queryKey'] || changes['dashboardKey']) {
+      this.validateInputs();
+      if (this.entityType && this.entityKey) {
+        this.loadData();
+      }
+    }
+  }
+
+  private validateInputs(): void {
+    const hasQuery = !!this.queryKey;
+    const hasDashboard = !!this.dashboardKey;
+
+    if (hasQuery && hasDashboard) {
+      console.error('Apenas um dos inputs (queryKey ou dashboardKey) deve ser fornecido');
+      throw new Error('Apenas um dos inputs (queryKey ou dashboardKey) deve ser fornecido');
+    }
+
+    if (!hasQuery && !hasDashboard) {
+      console.error('É obrigatório fornecer um dos inputs: queryKey ou dashboardKey');
+      throw new Error('É obrigatório fornecer um dos inputs: queryKey ou dashboardKey');
+    }
+
+    if (hasQuery) {
+      this.entityType = EntityType.QUERY;
+      this.entityKey = this.queryKey!;
+    } else {
+      this.entityType = EntityType.DASHBOARD;
+      this.entityKey = this.dashboardKey!;
+    }
+  }
+
+  private getEntityInfo(): { type: EntityType; key: string } {
+    if (!this.entityType || !this.entityKey) {
+      throw new Error('Entidade não definida');
+    }
+    return { type: this.entityType, key: this.entityKey };
   }
 
   async loadData() {
@@ -104,7 +151,11 @@ export class DynamicQueryFiltersComponent implements OnInit {
   async loadFilters() {
     try {
       this.loading = true;
-      const response = await this.filtersService.getFilters(this.queryKey);
+      const entity = this.getEntityInfo();
+      const response = await this.filterService.getFilters(
+        entity.type,
+        entity.key
+      );
       this.filters = response.data || [];
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar filtros'));
@@ -115,7 +166,8 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
   async loadFilterTypes() {
     try {
-      const response = await this.filtersService.getFilterTypes();
+      const entity = this.getEntityInfo();
+      const response = await this.filterService.getFilterTypes(entity.type);
       this.filterTypes = response.data || [];
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar tipos de filtro'));
@@ -124,7 +176,11 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
   async loadVariableSuggestions() {
     try {
-      const response = await this.filtersService.getVariableSuggestions(this.queryKey);
+      const entity = this.getEntityInfo();
+      const response = await this.filterService.getVariableSuggestions(
+        entity.type,
+        entity.key
+      );
       this.variableSuggestions = response.data?.suggestions || [];
     } catch (error) {
       console.warn('Erro ao carregar sugestões de variáveis:', error);
@@ -168,17 +224,20 @@ export class DynamicQueryFiltersComponent implements OnInit {
     try {
       this.loading = true;
       const formData = this.filterForm.value;
+      const entity = this.getEntityInfo();
 
       if (this.editingFilter) {
-        await this.filtersService.updateFilter(
-          this.queryKey,
+        await this.filterService.updateFilter(
+          entity.type,
+          entity.key,
           this.editingFilter.var_name,
           formData
         );
         this.toast.success('Filtro atualizado com sucesso!');
       } else {
-        await this.filtersService.createFilter(
-          this.queryKey,
+        await this.filterService.createFilter(
+          entity.type,
+          entity.key,
           formData
         );
         this.toast.success('Filtro criado com sucesso!');
@@ -201,7 +260,12 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
     try {
       this.loading = true;
-      await this.filtersService.deleteFilter(this.queryKey, filter.var_name);
+      const entity = this.getEntityInfo();
+      await this.filterService.deleteFilter(
+        entity.type,
+        entity.key,
+        filter.var_name
+      );
       this.toast.success('Filtro excluído com sucesso!');
       await this.loadFilters();
       await this.loadVariableSuggestions();
@@ -216,8 +280,13 @@ export class DynamicQueryFiltersComponent implements OnInit {
     moveItemInArray(this.filters, event.previousIndex, event.currentIndex);
 
     try {
+      const entity = this.getEntityInfo();
       const orderedVarNames = this.filters.map(f => f.var_name);
-      await this.filtersService.reorderFilters(this.queryKey, orderedVarNames);
+      await this.filterService.reorderFilters(
+        entity.type,
+        entity.key,
+        orderedVarNames
+      );
       this.toast.success('Ordem dos filtros atualizada!');
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao reordenar filtros'));
@@ -289,6 +358,14 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
   get hasSuggestions(): boolean {
     return this.variableSuggestions && this.variableSuggestions.length > 0;
+  }
+
+  get entityLabel(): string {
+    return this.entityType === EntityType.QUERY ? 'Consulta' : 'Dashboard';
+  }
+
+  get entityIdentifier(): string {
+    return this.entityKey || '';
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;

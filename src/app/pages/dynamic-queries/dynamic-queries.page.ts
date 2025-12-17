@@ -4,7 +4,7 @@ import {TableComponent, TableConfig} from '../../components/table/table.componen
 import {DynamicQueryService} from '../../services/dynamic-query.service';
 import {ToastService} from '../../components/toast/toast.service';
 import {Utils} from '../../services/utils.service';
-import {DynamicQuery} from '../../modals/dynamic-query/dynamic-query.modal';
+import {DynamicQuery} from '../../components/dynamic-query/dynamic-query.component';
 
 @Component({
   selector: 'app-dynamic-queries',

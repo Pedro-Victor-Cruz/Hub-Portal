@@ -1,0 +1,14 @@
+<ub-content [title]="dashboard?.name || 'Dashboard'" [loading]="loading">
+
+  <ub-panel-area>
+
+    @for (section of structure.sections; let i = $index; track i) {
+      <ub-panel [title]="section.section.title">
+        @for (widget of section.widgets; let i = $index; track i) {
+          <app-dashboard-widget-renderer [widget]="widget"></app-dashboard-widget-renderer>
+        }
+      </ub-panel>
+    }
+
+  </ub-panel-area>
+</ub-content>

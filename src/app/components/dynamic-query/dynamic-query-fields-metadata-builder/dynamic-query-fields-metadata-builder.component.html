@@ -1,0 +1,145 @@
+<div class="sections-header">
+  <div>
+    <h3>Configuração dos Campos de Saída</h3>
+    <p class="text-muted">
+      Configure como os campos serão exibidos nos resultados da consulta.
+      Arraste e solte para reordenar, ajuste os nomes amigáveis e defina agregações.
+    </p>
+  </div>
+  <ub-button
+    type="button"
+    icon="bx bx-plus"
+    (click)="showAddFieldForm = true">
+    Campo
+  </ub-button>
+</div>
+
+<div class="fields-metadata-builder">
+  <!-- Lista de campos configurados com drag and drop -->
+  <div class="fields-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
+    @for (field of fields; let i = $index; track i) {
+      <div class="field-item" cdkDrag>
+        <!-- Handle de arrastar -->
+        <div class="drag-handle" cdkDragHandle>
+          <i class="bx bx-move text-400"></i>
+        </div>
+
+        <!-- Ícone de visibilidade -->
+        <div class="visibility-toggle">
+          <ub-toggle-switch
+            [(value)]="field.visible"
+          ></ub-toggle-switch>
+        </div>
+
+        <!-- Nome do campo -->
+        <div class="field-info">
+          <div class="field-name">{{ field.fieldName }}</div>
+          <ub-input
+            label="Nome Amigável"
+            [(value)]="field.label"
+            placeholder="Digite um nome amigável"
+          ></ub-input>
+        </div>
+
+        <!-- Agregação -->
+        <div class="field-aggregation">
+          <ub-dropdown
+            label="Formato"
+            [options]="formatOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(value)]="field.format"
+            placeholder="Selecione formato"
+          ></ub-dropdown>
+        </div>
+
+        <!-- Agregação -->
+        <div class="field-aggregation">
+          <ub-dropdown
+            label="Agregação"
+            [options]="aggregationOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(value)]="field.aggregation"
+            placeholder="Selecione agregação"
+          ></ub-dropdown>
+        </div>
+
+        <!-- Ações -->
+        <div class="field-actions">
+          <ub-button
+            type="button"
+            severity="danger"
+            (click)="removeField(field.fieldName)"
+          >
+            Remover
+          </ub-button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state text-center p-5">
+        <i class="bx bx-grid text-6xl text-400 mb-3"></i>
+        <h4 class="text-600">Nenhuma coluna configurada</h4>
+        <p class="text-500">
+          Adicione colunas para definir os campos de saída da sua consulta.
+        </p>
+        <ub-button
+          type="button"
+          icon="bx bx-plus"
+          (click)="showAddFieldForm = true">
+          Adicionar Primeira Coluna
+        </ub-button>
+      </div>
+    }
+  </div>
+
+  <!-- Adicionar novo campo -->
+  <div class="add-field-section">
+    @if (showAddFieldForm) {
+      <div class="add-field-form">
+        <div class="form-row">
+          <ub-input
+            label="Nome do Campo"
+            [(value)]="newFieldName"
+            placeholder="Digite o nome do campo (ex: total_vendas)"
+            class="field-input"
+          ></ub-input>
+
+          <div class="form-actions">
+            <ub-button
+              type="button"
+              severity="danger"
+              (click)="showAddFieldForm = false; newFieldName = ''">
+              Cancelar
+            </ub-button>
+            <ub-button
+              type="button"
+              severity="primary"
+              (click)="addNewField()"
+              [disabled]="!newFieldName.trim()"
+            >
+              Adicionar
+            </ub-button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Botões de ação -->
+  <div class="flex justify-content-end gap-2 mt-4">
+    @if (hasPendingChanges) {
+      <ub-button type="button" severity="danger" (click)="cancelChanges()">
+        Cancelar
+      </ub-button>
+    }
+    <ub-button
+      type="button"
+      severity="primary"
+      (click)="saveChanges()"
+      [disabled]="!hasPendingChanges"
+    >
+      Salvar
+    </ub-button>
+  </div>
+</div>

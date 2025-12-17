@@ -1,10 +1,10 @@
 import {Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ServicesService} from '../../../services/services.service';
-import {ToastService} from '../../../components/toast/toast.service';
+import {ToastService} from '../../toast/toast.service';
 import {Utils} from '../../../services/utils.service';
 import {DynamicQueryService} from '../../../services/dynamic-query.service';
-import {DynamicParametersComponent, DynamicParams} from '../../../components/dynamic-parameters/dynamic-parameters.component';
+import {DynamicParametersComponent, DynamicParams} from '../../dynamic-parameters/dynamic-parameters.component';
 
 @Component({
   selector: 'app-service-parameters',

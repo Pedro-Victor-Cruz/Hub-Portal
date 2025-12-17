@@ -1,17 +1,18 @@
 <div class="filters-container">
 
   <!-- Cabeçalho -->
-  <div class="flex justify-content-between align-items-center mb-4">
-    <h3 class="m-0">Filtros da Consulta</h3>
-    <div class="flex gap-2">
-      <ub-button
-        type="button"
-        icon="bx bx-plus"
-        (click)="showAddFilterForm()"
-        [disabled]="loading">
-        Adicionar Filtro
-      </ub-button>
+  <div class="sections-header">
+    <div>
+      <h3>Filtros da Consulta</h3>
+      <p class="text-muted">Gerencie os filtros que podem ser aplicados de forma prática.</p>
     </div>
+    <ub-button
+      type="button"
+      icon="bx bx-plus"
+      (click)="showAddFilterForm()"
+      [disabled]="loading">
+      Adicionar Filtro
+    </ub-button>
   </div>
 
   <!-- Sugestões de Variáveis -->

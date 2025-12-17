@@ -1,0 +1,100 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <ub-tabs>
+    <!-- Aba: Configuração Básica -->
+    <ub-tab label="Básico">
+      <h3>Configuração Básica</h3>
+      <div class="p-fluid p-formgrid grid">
+
+        <!-- Título -->
+        <div class="col-12 md:col-6">
+          <ub-input
+            label="Título do Widget"
+            placeholder="Ex: Vendas do Mês"
+            formControlName="title"
+            (blur)="generateKey()">
+          </ub-input>
+        </div>
+
+        <!-- Chave -->
+        <div class="col-12 md:col-6">
+          <ub-input
+            label="Chave Única"
+            placeholder="Ex: vendas-mes"
+            formControlName="key"
+            [disabled]="!!widget">
+            <small class="text-muted">Apenas letras minúsculas, números, hífens e underscores</small>
+          </ub-input>
+        </div>
+
+        <!-- Descrição -->
+        <div class="col-12">
+          <ub-textarea
+            label="Descrição"
+            placeholder="Descreva o propósito deste widget"
+            formControlName="description"
+            [rows]="2">
+          </ub-textarea>
+        </div>
+
+        <!-- Tipo de Widget -->
+        <div class="col-12 md:col-6">
+          <ub-dropdown
+            label="Tipo de Widget"
+            placeholder="Selecione o tipo"
+            formControlName="widget_type"
+            [options]="widgetTypes"
+            optionLabel="label"
+            (valueChange)="loadParameters()"
+            optionValue="value">
+          </ub-dropdown>
+        </div>
+
+        <!-- Ordem -->
+        <div class="col-12 md:col-4">
+          <ub-input
+            label="Ordem de Exibição"
+            type="number"
+            formControlName="order">
+          </ub-input>
+        </div>
+
+        <!-- Ativo -->
+        <div class="col-12 md:col-4 flex align-items-center">
+          <ub-toggle-switch
+            label="Widget Ativo"
+            formControlName="active">
+          </ub-toggle-switch>
+        </div>
+      </div>
+
+      <h3>Fonte de Dados</h3>
+      <div class="dynamic-query">
+        <app-dynamic-query
+          [listQueries]="true"
+          [dynamicQueryKey]="widget && widget.dynamic_query ? widget!.dynamic_query!.key : null"
+          [selectedQueryId]="queryId" (selectedQueryIdChange)="queryId = $event">
+        </app-dynamic-query>
+      </div>
+    </ub-tab>
+
+    <ub-tab label="Configurações">
+      <ub-dynamic-parameters
+        [dynamicParams]="parameters"
+        [loading]="loadingParams"
+        (formChange)="updateConfig($event)">
+      </ub-dynamic-parameters>
+    </ub-tab>
+  </ub-tabs>
+
+  <div class="flex justify-content-end gap-2 mt-3">
+    <ub-button
+      type="button"
+      (click)="modalRef.close()">Cancelar
+    </ub-button>
+    <ub-button
+      type="submit"
+      [disabled]="form.invalid"
+      [loading]="loading">Salvar Widget
+    </ub-button>
+  </div>
+</form>

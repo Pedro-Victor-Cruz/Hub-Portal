@@ -1,0 +1,70 @@
+<div class="widget-manager-container">
+  <div class="manager-header">
+    <div>
+      <h3>Widgets da Seção</h3>
+      <p class="text-muted">{{ section.title || section.key }}</p>
+    </div>
+    <ub-button
+      icon="bx bx-plus"
+      (click)="addWidget()">Adicionar Widget
+    </ub-button>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state">
+      <i class="bx bx-loader-alt bx-spin"></i>
+      <span>Carregando widgets...</span>
+    </div>
+  } @else if (widgets.length === 0) {
+    <div class="empty-state">
+      <i class="bx bx-widget"></i>
+      <h4>Nenhum widget criado</h4>
+      <p>Adicione widgets para exibir dados nesta seção</p>
+      <ub-button
+        icon="bx bx-plus"
+        (click)="addWidget()">Criar Primeiro Widget
+      </ub-button>
+    </div>
+  } @else {
+    <div class="widgets-grid">
+      @for (widget of widgets; track widget.id) {
+        <div class="widget-card" [class.inactive]="!widget.active">
+          <div class="widget-header">
+            <div class="widget-icon">
+              <i class="bx {{ getWidgetIcon(widget.widget_type) }}"></i>
+            </div>
+            <div class="widget-title">
+              <h4>{{ widget.title || widget.key }}</h4>
+              <span class="widget-type">{{ getWidgetTypeLabel(widget.widget_type) }}</span>
+            </div>
+          </div>
+
+          @if (widget.description) {
+            <p class="widget-description">{{ widget.description }}</p>
+          }
+
+          <div class="widget-actions">
+            <button
+              class="action-btn"
+              title="Editar"
+              (click)="editWidget(widget)">
+              <i class="bx bx-edit"></i>
+            </button>
+            <button
+              class="action-btn"
+              title="Duplicar"
+              (click)="duplicateWidget(widget)">
+              <i class="bx bx-copy"></i>
+            </button>
+            <button
+              class="action-btn danger"
+              title="Excluir"
+              (click)="deleteWidget(widget)">
+              <i class="bx bx-trash"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

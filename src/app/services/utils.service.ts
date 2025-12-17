@@ -105,4 +105,17 @@ export class Utils {
       return defaultMessage;
     }
   }
+
+
+  public static keysToUpperCase(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.keysToUpperCase(item));
+    } else if (obj !== null && typeof obj === 'object') {
+      return Object.keys(obj).reduce((acc, key) => {
+        acc[key.toUpperCase()] = this.keysToUpperCase(obj[key]);
+        return acc;
+      }, {} as any);
+    }
+    return obj;
+  }
 }

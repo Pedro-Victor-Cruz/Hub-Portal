@@ -1,48 +1,98 @@
-<div class="auth-container">
-  <div class="auth-background">
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
-    <div class="bg-shape shape-3"></div>
-  </div>
+<div class="login-container">
+  <div class="background-wrapper">
 
-  <div class="auth-card">
-    <div class="auth-header">
-      <h1 class="company-name">Praise <span class="highlight">Tecnologia</span></h1>
-      <h2>Bem-vindo de volta</h2>
-      <p class="auth-subtitle">Faça login para continuar</p>
+    <!-- Ícones flutuantes fixos -->
+    <div class="floating-icons">
+      <div class="icon-box icon-1 primary">
+        <i class='bx bx-bar-chart-alt-2'></i>
+      </div>
+      <div class="icon-box icon-2 secondary">
+        <i class='bx bx-pie-chart-alt-2'></i>
+      </div>
+      <div class="icon-box icon-3 primary">
+        <i class='bx bx-line-chart'></i>
+      </div>
+      <div class="icon-box icon-4 secondary">
+        <i class='bx bx-data'></i>
+      </div>
+      <div class="icon-box icon-5 muted">
+        <i class='bx bx-grid-alt'></i>
+      </div>
+      <div class="icon-box icon-6 primary">
+        <i class='bx bx-trending-up'></i>
+      </div>
+      <div class="icon-box icon-7 secondary">
+        <i class='bx bx-server'></i>
+      </div>
+      <div class="icon-box icon-8 muted">
+        <i class='bx bx-chip'></i>
+      </div>
+      <div class="icon-box icon-9 primary">
+        <i class='bx bx-shield-alt-2'></i>
+      </div>
+      <div class="icon-box icon-10 secondary">
+        <i class='bx bx-cloud-upload'></i>
+      </div>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="auth-form">
-      <div class="form-fields">
-        <ub-input
-          label="Email"
-          type="email"
-          placeholder="seu@email.com"
-          formControlName="email"
-          [error]="FormErrorHandlerService.getError('email', errors)"
-        ></ub-input>
+    <!-- Card de login -->
+    <div class="login-card-wrapper">
+      <div class="login-card">
+        <!-- Header -->
+        <div class="login-header">
+          <div class="logo-container">
+            <img src="assets/uaibits.png" alt="UaiBits Logo" class="company-logo">
+          </div>
+          <div class="welcome-text">
+            <h2 class="welcome-title">Bem-vindo de volta</h2>
+            <p class="welcome-subtitle">Faça login para continuar</p>
+          </div>
+        </div>
 
-        <ub-password
-          label="Senha"
-          placeholder="Digite sua senha"
-          formControlName="password"
-          [error]="FormErrorHandlerService.getError('password', errors)"
-        ></ub-password>
+        <!-- Formulário -->
+        <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="login-form">
+          <div class="form-fields">
+            <ub-input
+              label="Email"
+              type="email"
+              placeholder="seu@email.com"
+              formControlName="email"
+              [error]="FormErrorHandlerService.getError('email', errors)"
+            ></ub-input>
+
+            <ub-password
+              label="Senha"
+              placeholder="Digite sua senha"
+              formControlName="password"
+              [error]="FormErrorHandlerService.getError('password', errors)"
+            ></ub-password>
+          </div>
+
+          <div class="form-actions">
+            <ub-button
+              type="submit"
+              [disabled]="loginForm.invalid"
+              [loading]="loading">
+              <i class="bx bx-log-in"></i>
+              Entrar
+            </ub-button>
+          </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+          <p class="help-text">
+            <i class="bx bx-help-circle"></i>
+            Problemas para acessar?
+            <a href="mailto:suporte@uaibits.com.br" class="support-link">Entre em contato</a>
+          </p>
+        </div>
       </div>
+    </div>
 
-      <div class="form-actions">
-        <ub-button
-          type="submit"
-          [disabled]="loginForm.invalid"
-          [loading]="loading"
-        >
-          Entrar
-        </ub-button>
-      </div>
-    </form>
-
-    <div class="auth-footer">
-      <p class="help-text">Problemas para acessar? Entre em contato com o suporte</p>
+    <!-- Copyright -->
+    <div class="copyright">
+      <p>© {{ currentYear }} UaiBits. Todos os direitos reservados.</p>
     </div>
   </div>
 </div>

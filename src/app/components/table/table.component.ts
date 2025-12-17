@@ -12,6 +12,7 @@ import {AllCommunityModule, ModuleRegistry, themeQuartz} from 'ag-grid-community
 import {CommonModule} from '@angular/common';
 import {ConfirmationService} from '../confirmation-modal/confirmation-modal.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Dashboard} from '../../services/dashboard.service';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -30,6 +31,11 @@ export interface TableConfig {
   pagination?: boolean;
   paginationPageSize?: number;
   paginationPageSizeSelector?: number[];
+  customActions?: {
+    icon: string,
+    tooltip: string,
+    action: (row: any) => void
+  }[]
 }
 
 export interface ColumnConfig {
@@ -194,20 +200,18 @@ export class TableComponent implements OnInit, OnChanges {
 
     // Coluna de ações
     if (this.config.showEditButton || this.config.showDeleteButton) {
+      const cols = 2 + (this.config.customActions ? this.config.customActions.length : 0);
+      const maxWidth = 48 * cols;
       newColumnDefs.push({
         headerName: 'Ações',
         field: 'actions',
         cellRenderer: (params: ICellRendererParams) => this.actionsCellRenderer(params),
-        width: 120,
-        minWidth: 120,
-        maxWidth: 150,
-        pinned: 'right',
         sortable: false,
         filter: false,
         resizable: false,
+        maxWidth: maxWidth,
         cellClass: 'actions-cell',
         suppressHeaderMenuButton: true,
-        flex: 0
       });
     }
 
@@ -286,6 +290,20 @@ export class TableComponent implements OnInit, OnChanges {
         this.delete(params.data);
       };
       container.appendChild(deleteBtn);
+    }
+
+    if (this.config.customActions) {
+      this.config.customActions.forEach(action => {
+        const actionBtn = document.createElement('button');
+        actionBtn.className = 'action-btn custom-action-btn';
+        actionBtn.innerHTML = `<i class="${action.icon}"></i>`;
+        actionBtn.title = action.tooltip;
+        actionBtn.onclick = (e) => {
+          e.stopPropagation();
+          action.action(params.data);
+        };
+        container.appendChild(actionBtn);
+      });
     }
 
     return container;

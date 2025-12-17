@@ -1,0 +1,171 @@
+<div class="dynamic-query-wrapper" [class.with-queries]="listQueriesActive">
+
+  <!-- Conteúdo Principal -->
+  <div class="main-content">
+    @if (loadingQuery) {
+      <div class="loading-overlay">
+        <div class="loading-spinner">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Carregando consulta...</span>
+        </div>
+      </div>
+    }
+
+    <ub-tabs>
+      <ub-tab label="Configuração">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="p-fluid p-formgrid grid">
+
+            <div class="col-12 md:col-6">
+              <ub-input
+                label="Nome"
+                placeholder="Digite o nome da consulta"
+                formControlName="name"
+                [error]="FormErrorHandlerService.getError('name', errors)"
+                (blur)="generateKey($event)"
+              ></ub-input>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <ub-input
+                label="Chave"
+                placeholder="Digite a chave única da consulta"
+                formControlName="key"
+                [error]="FormErrorHandlerService.getError('key', errors)"
+              ></ub-input>
+            </div>
+
+            <div class="col-12">
+              <ub-textarea
+                label="Descrição"
+                placeholder="Descrição da consulta"
+                formControlName="description"
+                [error]="FormErrorHandlerService.getError('description', errors)"
+              ></ub-textarea>
+            </div>
+
+            <div class="col-12">
+              <ub-dropdown
+                label="Serviço"
+                placeholder="Escolha o serviço de consulta"
+                formControlName="service_slug"
+                [error]="FormErrorHandlerService.getError('service_slug', errors)"
+                [options]="services"
+                optionLabel="name" optionValue="slug" optionDescription="description"
+              ></ub-dropdown>
+            </div>
+
+          </div>
+
+          <div class="flex justify-content-end gap-2" *ngIf="!listQueriesActive">
+            <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
+          </div>
+        </form>
+      </ub-tab>
+
+      @if (dynamicQuery) {
+        <ub-tab label="Parâmetros">
+          <app-service-parameters
+            [dynamicQuery]="dynamicQuery"
+            [serviceSlug]="form.get('service_slug')?.value">
+          </app-service-parameters>
+        </ub-tab>
+
+        <ub-tab label="Campos">
+          <app-dynamic-query-fields-metadata-builder
+            [metadataConfig]="dynamicQuery.fields_metadata || {}"
+            (metadataConfigChange)="onFieldsMetadataChange($event)">
+          </app-dynamic-query-fields-metadata-builder>
+        </ub-tab>
+
+        <ub-tab label="Filtros">
+          <app-filters
+            [queryKey]="dynamicQueryKey!">
+          </app-filters>
+        </ub-tab>
+
+        <ub-tab label="Homologar">
+          <app-dynamic-query-test
+            [dynamicQuery]="dynamicQuery">
+          </app-dynamic-query-test>
+        </ub-tab>
+      }
+    </ub-tabs>
+  </div>
+
+  <!-- Lista de Queries -->
+  @if (listQueriesActive) {
+    <div class="queries-panel">
+      <div class="queries-body">
+        <!-- Header compacto com busca e botão inline -->
+        <div class="queries-header">
+          <div class="queries-search">
+            <i class="search-icon bx bx-search"></i>
+            <input
+              type="text"
+              placeholder="Buscar consulta..."
+              [(ngModel)]="searchQuery"
+              [ngModelOptions]="{standalone: true}"
+            >
+          </div>
+
+          <button
+            class="btn-new-query"
+            (click)="createNew()"
+            type="button"
+            title="Nova Consulta"
+            aria-label="Criar nova consulta"
+          ><i class="bx bx-plus"></i></button>
+
+          <button
+            class="btn-save-query"
+            (click)="onSubmit()"
+            type="button"
+            title="Salvar Consulta"
+            aria-label="Salvar consulta"
+          ><i class="bx bx-save"></i></button>
+        </div>
+
+        <!-- Lista de consultas -->
+        <div class="queries-list">
+          @for (query of filteredQueries; track query.id) {
+            <div
+              class="query-card"
+              [class.active]="selectedQueryId === query.id"
+              [class.loading]="loadingQuery && selectedQueryId === query.id"
+              (click)="selectQuery(query)"
+              [title]="query.name"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="selectQuery(query)"
+              (keydown.space)="selectQuery(query); $event.preventDefault()"
+            >
+              <div class="query-content">
+                <div class="query-name">{{ query.name }}</div>
+                <div class="query-key">{{ query.key }}</div>
+              </div>
+              @if (selectedQueryId === query.id && !loadingQuery) {
+                <i class="pi pi-check query-check"></i>
+              }
+            </div>
+          }
+
+          @if (filteredQueries.length === 0 && !loading) {
+            <div class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>{{ searchQuery ? 'Nenhuma consulta encontrada' : 'Nenhuma consulta disponível' }}</p>
+            </div>
+          }
+
+          @if (loading) {
+            <div class="loading-state">
+              <i class="pi pi-spin pi-spinner"></i>
+              <p>Carregando...</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

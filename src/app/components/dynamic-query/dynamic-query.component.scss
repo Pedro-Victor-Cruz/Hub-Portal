@@ -1,0 +1,416 @@
+// Usando variáveis CSS globais
+$queries-width: 320px;
+
+.dynamic-query-wrapper {
+  display: flex;
+  gap: var(--spacing-large);
+  position: relative;
+  min-height: 600px; // Altura mínima para evitar colapso
+
+  // Conteúdo Principal
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+
+      .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-large);
+        padding: var(--spacing-large);
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--input-border-color);
+        box-shadow: var(--box-shadow);
+
+        i {
+          font-size: 32px;
+          color: var(--secondary-color);
+        }
+
+        span {
+          color: var(--text-muted);
+          font-weight: var(--font-weight-bold);
+        }
+      }
+    }
+  }
+
+  // Painel de Queries - COMPACTADO E MELHORADO
+  .queries-panel {
+    width: $queries-width;
+    background: var(--bg-white);
+    border: 1px solid var(--input-border-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: width var(--transition-speed) ease;
+    max-height: calc(100vh - 120px); // Limita altura máxima
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    .queries-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0; // Importante para scroll interno
+      padding: var(--spacing-medium);
+      overflow: hidden;
+
+      // Header compacto com busca e botão inline
+      .queries-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-medium);
+        margin-bottom: var(--spacing-medium);
+        padding-bottom: var(--spacing-medium);
+        border-bottom: 1px solid var(--input-border-color);
+        flex-shrink: 0; // Evita que encolha
+
+        .queries-search {
+          flex: 1;
+          position: relative;
+          display: flex;
+          align-items: center;
+
+          .search-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 14px;
+            z-index: 1;
+          }
+
+          input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background: var(--bg-white);
+            border: 1px solid var(--input-border-color);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-small);
+            color: var(--text-color);
+            transition: all var(--transition-speed) ease;
+
+            &:focus {
+              outline: none;
+              border-color: var(--secondary-color);
+              box-shadow: 0 0 0 2px rgba(var(--secondary-color-rgb), 0.2);
+              background: var(--bg-white);
+            }
+
+            &::placeholder {
+              color: var(--text-muted);
+              font-size: var(--font-size-small);
+            }
+          }
+        }
+
+        .btn-new-query {
+          width: 36px;
+          height: 36px;
+          padding: 0;
+          background: var(--secondary-color);
+          color: var(--primary-color);
+          border: none;
+          border-radius: var(--border-radius);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all var(--transition-speed) ease;
+          flex-shrink: 0;
+
+          &:hover {
+            background: var(--secondary-color-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          i {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+
+        .btn-save-query {
+          width: 36px;
+          height: 36px;
+          padding: 0;
+          background: var(--success-color);
+          color: var(--bg-white);
+          border: none;
+          border-radius: var(--border-radius);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all var(--transition-speed) ease;
+          flex-shrink: 0;
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          i {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+      }
+
+      // Lista de consultas com scroll
+      .queries-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-small);
+        overflow-y: auto;
+        padding-right: var(--spacing-small);
+        min-height: 0; // Crucial para scroll interno
+
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: var(--input-border-color);
+          border-radius: 3px;
+          transition: background var(--transition-speed) ease;
+
+          &:hover {
+            background: var(--text-muted);
+          }
+        }
+
+        // Consultas compactas
+        .query-card {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-medium);
+          padding: 12px;
+          background: var(--bg-white);
+          border: 1px solid var(--input-border-color);
+          border-radius: calc(var(--border-radius) - 2px);
+          cursor: pointer;
+          transition: all var(--transition-speed) ease;
+          min-height: 56px; // Altura mínima consistente
+
+          &:hover:not(.loading) {
+            border-color: var(--secondary-color);
+            background: var(--bg-secondary-color);
+            transform: translateX(2px);
+          }
+
+          &.active {
+            border-color: var(--secondary-color);
+            background: linear-gradient(
+                to right,
+                rgba(var(--secondary-color-rgb), 0.1),
+                rgba(var(--secondary-color-rgb), 0.05)
+            );
+            box-shadow: 0 2px 4px rgba(var(--secondary-color-rgb), 0.1);
+
+            .query-name {
+              color: var(--secondary-color-dark);
+              font-weight: var(--font-weight-bold);
+            }
+          }
+
+          &.loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+
+            &::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: linear-gradient(
+                  90deg,
+                  transparent,
+                  rgba(255, 255, 255, 0.4),
+                  transparent
+              );
+              animation: shimmer 1.5s infinite;
+            }
+          }
+
+          .query-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .query-name {
+              font-weight: var(--font-weight-medium);
+              color: var(--text-color);
+              font-size: var(--font-size-small);
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              line-height: 1.2;
+            }
+
+            .query-key {
+              font-size: 11px;
+              color: var(--text-muted);
+              font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              line-height: 1.2;
+              opacity: 0.8;
+            }
+          }
+
+          .query-check {
+            color: var(--secondary-color);
+            font-size: 14px;
+            flex-shrink: 0;
+            opacity: 0;
+            transform: scale(0);
+            transition: all var(--transition-speed) ease;
+          }
+
+          &.active .query-check {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        // Estados vazios e loading
+        .empty-state,
+        .loading-state {
+          padding: var(--spacing-large);
+          text-align: center;
+          color: var(--text-muted);
+          margin: auto;
+
+          i {
+            font-size: 36px;
+            margin-bottom: var(--spacing-medium);
+            opacity: 0.4;
+          }
+
+          p {
+            margin: 0;
+            font-size: var(--font-size-small);
+            max-width: 200px;
+            line-height: 1.4;
+          }
+        }
+
+        .loading-state {
+          i {
+            color: var(--secondary-color);
+            opacity: 0.8;
+            animation: spin 1s linear infinite;
+          }
+        }
+      }
+    }
+  }
+
+  // Responsivo
+  @media (max-width: 992px) {
+    .queries-panel {
+      width: 280px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    min-height: auto;
+
+    .queries-panel {
+      width: 100%;
+      max-height: 400px;
+      order: -1;
+      margin-bottom: var(--spacing-large);
+    }
+  }
+
+  @media (max-width: 576px) {
+    .queries-panel {
+      .queries-body {
+        padding: var(--spacing-small);
+
+        .queries-header {
+          gap: var(--spacing-small);
+          padding-bottom: var(--spacing-small);
+
+          .queries-search input {
+            padding: 8px 8px 8px 32px;
+          }
+
+          .btn-new-query {
+            width: 32px;
+            height: 32px;
+          }
+        }
+
+        .queries-list .query-card {
+          padding: 10px;
+          min-height: 52px;
+        }
+      }
+    }
+  }
+}
+
+// Animações
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

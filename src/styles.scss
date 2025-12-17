@@ -1,3 +1,5 @@
+// SCSS GLOBAL styles.scss
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @import "primeflex/primeflex.min.css";
 @import url("boxicons/css/boxicons.min.css");
@@ -40,7 +42,7 @@ body {
   --danger-color-dark: #df1115; /* Vermelho escuro */
   --error-color: #ff7675; /* Vermelho suave */
 
-  --success-color: #00b82b; /* Verde suave */
+  --success-color: #09b62f; /* Verde suave */
   --success-color-rgb: 0, 184, 43; /* Verde suave em RGB */
   --success-color-dark: #009e1a; /* Verde escuro */
 
@@ -55,6 +57,7 @@ body {
   --text-muted: #6c757d; /* Cinza médio (texto secundário) */
 
   --background-color: #f8f9fa; /* Cinza claro (fundo) */
+  --bg-white: #ffffff; /* Branco */
   --bg-primary-color: #f8f9fa; /* Branco (fundo primário) */
   --bg-secondary-color: #e8e8e8; /* Branco (fundo secundário) */
 

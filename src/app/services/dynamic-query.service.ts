@@ -3,12 +3,13 @@ import {environment} from "../../environments/environment";
 import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
-import {ModalRef, ModalService} from '../modals/modal/modal.service';
-import {DynamicQuery, DynamicQueryModal} from '../modals/dynamic-query/dynamic-query.modal';
+import {ModalService} from '../modals/modal/modal.service';
+import {DynamicQueryModal} from '../modals/dynamic-query/dynamic-query.modal';
 import {Utils} from './utils.service';
 import {
   DynamicQueryFilterBuilderModal
-} from '../modals/dynamic-query/dynamic-query-filter-builder/dynamic-query-filter-builder.modal';
+} from '../components/dynamic-query/dynamic-query-filter-builder/dynamic-query-filter-builder.modal';
+import {DynamicQuery} from '../components/dynamic-query/dynamic-query.component';
 
 
 @Injectable(

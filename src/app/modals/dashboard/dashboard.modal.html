@@ -1,0 +1,108 @@
+<!--dashboard.modal.html:-->
+<ub-tabs>
+  <!-- Aba: Configuração Básica -->
+  <ub-tab label="Configuração">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="p-fluid p-formgrid grid">
+
+        <!-- Nome -->
+        <div class="col-12 md:col-6">
+          <ub-input
+            label="Nome do Dashboard"
+            placeholder="Ex: Painel de Vendas"
+            formControlName="name"
+            [error]="FormErrorHandlerService.getError('name', errors)"
+            (blur)="generateKey($event)">
+          </ub-input>
+        </div>
+
+        <!-- Chave -->
+        <div class="col-12 md:col-6">
+          <ub-input
+            label="Chave Única"
+            placeholder="Ex: painel-vendas"
+            formControlName="key"
+            [error]="FormErrorHandlerService.getError('key', errors)"
+            [disabled]="!!dashboardKey">
+            <small class="text-muted">Apenas letras minúsculas, números e hífens</small>
+          </ub-input>
+        </div>
+
+        <!-- Descrição -->
+        <div class="col-12">
+          <ub-textarea
+            label="Descrição"
+            placeholder="Descreva o propósito deste dashboard"
+            formControlName="description"
+            [rows]="3"
+            [error]="FormErrorHandlerService.getError('description', errors)">
+          </ub-textarea>
+        </div>
+
+        <!-- Ícone -->
+        <div class="col-12 md:col-4">
+          <ub-input
+            label="Ícone"
+            placeholder="Ex: pi pi-chart-line"
+            formControlName="icon"
+            [error]="FormErrorHandlerService.getError('icon', errors)">
+            <small class="text-muted">Use classes do PrimeIcons</small>
+          </ub-input>
+        </div>
+
+        <!-- Ativo -->
+        <div class="col-12 md:col-4 flex align-items-center">
+          <ub-toggle-switch
+            label="Dashboard Ativo"
+            formControlName="active">
+          </ub-toggle-switch>
+        </div>
+
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="flex justify-content-end gap-2 mt-3">
+        <ub-button
+          type="button"
+          (click)="modalRef.close()">Cancelar
+        </ub-button>
+        <ub-button
+          type="submit"
+          [disabled]="form.invalid"
+          [loading]="loading">Salvar Configuração
+        </ub-button>
+      </div>
+    </form>
+
+    <!-- Informações sobre próximos passos -->
+    @if (!dashboard) {
+      <div class="alert alert-info mt-4">
+        <i class="pi pi-info-circle mr-2"></i>
+        <strong>Próximos passos:</strong> Após salvar as configurações básicas, você poderá:
+        <ul class="mt-2 mb-0">
+          <li>Adicionar seções e widgets nas abas "Seções & Widgets"</li>
+          <li>Configurar filtros globais na aba "Filtros"</li>
+          <li>Visualizar um preview na aba "Preview"</li>
+        </ul>
+      </div>
+    }
+  </ub-tab>
+
+  <!-- Aba: Seções e Widgets (só aparece após salvar) -->
+  @if (dashboard) {
+    <ub-tab label="Seções & Widgets">
+      <app-dashboard-sections
+        [dashboardKey]="dashboardKey!"
+        [dashboard]="dashboard">
+      </app-dashboard-sections>
+    </ub-tab>
+
+    <!-- Aba: Filtros -->
+    <ub-tab label="Filtros">
+      <app-filters
+        [dashboardKey]="dashboardKey!">
+      </app-filters>
+    </ub-tab>
+
+  }
+</ub-tabs>

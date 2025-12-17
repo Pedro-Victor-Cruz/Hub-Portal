@@ -1,152 +1,243 @@
-// Container principal centralizado
-.auth-container {
+// ============================================
+// CONTAINER PRINCIPAL
+// ============================================
+.login-container {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%);
+}
+
+// ============================================
+// BACKGROUND COM PADRÃO GEOMÉTRICO
+// ============================================
+.background-wrapper {
+  min-height: 100vh;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f9f9f9  100%);
-  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  padding: 2rem;
   overflow: hidden;
+
+  // Padrão de grid sutil
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(rgba(38, 38, 38, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(38, 38, 38, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+  }
+
+  // Gradiente decorativo
+  &::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -15%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(
+        circle,
+        rgba(247, 194, 18, 0.08) 0%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    z-index: 0;
+  }
 }
 
 // ============================================
-// BACKGROUND ANIMADO
+// ÍCONES FLUTUANTES - POSIÇÕES FIXAS
 // ============================================
-.auth-background {
+.floating-icons {
   position: absolute;
-  width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
-  overflow: hidden;
-  z-index: 0;
-
-  .bg-shape {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.5;
-    animation: float 20s ease-in-out infinite;
-  }
-
-  .shape-1 {
-    width: 400px;
-    height: 400px;
-    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-    top: -10%;
-    left: -5%;
-    animation-delay: 0s;
-  }
-
-  .shape-2 {
-    width: 500px;
-    height: 500px;
-    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
-    bottom: -15%;
-    right: -10%;
-    animation-delay: 7s;
-  }
-
-  .shape-3 {
-    width: 350px;
-    height: 350px;
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    top: 40%;
-    right: 10%;
-    animation-delay: 14s;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -30px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-}
-
-// ============================================
-// CARD DO FORMULÁRIO
-// ============================================
-.auth-card {
-  position: relative;
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.1),
-    0 0 1px rgba(0, 0, 0, 0.05);
-  padding: 3rem 2.5rem;
   width: 100%;
-  max-width: 460px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+
+  .icon-box {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(38, 38, 38, 0.08);
+    box-shadow:
+      0 10px 40px rgba(38, 38, 38, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+   animation: gentleFloat 20s infinite ease-in-out;
+
+    i {
+      font-size: 32px;
+      transition: all 0.4s ease;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+    }
+
+    &:hover {
+      transform: scale(1.15) rotate(-5deg) !important;
+      background: linear-gradient(135deg, #ffffff 0%, rgba(247, 194, 18, 0.15) 100%);
+      border-color: rgba(247, 194, 18, 0.3);
+      box-shadow:
+        0 15px 50px rgba(247, 194, 18, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+
+      i {
+        transform: scale(1.1) rotate(5deg);
+      }
+    }
+
+    // Posições específicas
+    &.icon-1 { left: 8%; top: 12%; animation-delay: 0s; }
+    &.icon-2 { left: 88%; top: 15%; animation-delay: 0.15s; }
+    &.icon-3 { left: 12%; top: 82%; animation-delay: 0.3s; }
+    &.icon-4 { left: 85%; top: 78%; animation-delay: 0.45s; }
+    &.icon-5 { left: 90%; top: 45%; animation-delay: 0.6s; }
+    &.icon-6 { left: 10%; top: 40%; animation-delay: 0.75s; }
+    &.icon-7 { left: 92%; top: 65%; animation-delay: 0.9s; }
+    &.icon-8 { left: 6%; top: 55%; animation-delay: 1.05s; }
+    &.icon-9 { left: 15%; top: 25%; animation-delay: 1.2s; }
+    &.icon-10 { left: 82%; top: 30%; animation-delay: 1.35s; }
+
+    // Cores dos ícones
+    &.primary i { color: #262626; }
+    &.secondary i { color: #f7c212; }
+    &.muted i { color: #6c757d; }
+  }
+}
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(15px, -15px) rotate(5deg);
+  }
+  50% {
+    transform: translate(-10px, 10px) rotate(-3deg);
+  }
+  75% {
+    transform: translate(8px, 5px) rotate(2deg);
+  }
+}
+
+// ============================================
+// CARD DE LOGIN - COMPACTO
+// ============================================
+.login-card-wrapper {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow:
+    0 20px 60px rgba(38, 38, 38, 0.12),
+    0 0 0 1px rgba(38, 38, 38, 0.06);
+  padding: 2.5rem 2.5rem 2rem;
+  width: 100%;
+  border: 1px solid rgba(38, 38, 38, 0.08);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px);
     box-shadow:
-      0 30px 80px rgba(0, 0, 0, 0.15),
-      0 0 1px rgba(0, 0, 0, 0.05);
+      0 30px 80px rgba(38, 38, 38, 0.15),
+      0 0 0 1px rgba(247, 194, 18, 0.1);
+  }
+
+  @media (max-width: 480px) {
+    padding: 2rem 2rem 1.75rem;
+    border-radius: 20px;
   }
 }
 
 // ============================================
-// CABEÇALHO
+// HEADER DO CARD - COMPACTO
 // ============================================
-.auth-header {
+.login-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 
-  .company-name {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #1f2937;
-    margin-bottom: 2rem;
-    letter-spacing: -0.5px;
+  .logo-container {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--primary-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(38, 38, 38, 0.06);
+    transition: all 0.3s ease;
 
-    .highlight {
-      color: #2563eb;
-      font-weight: 800;
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(38, 38, 38, 0.1);
+    }
+
+    .company-logo {
+      height: 60px;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(38, 38, 38, 0.08));
+      transition: all 0.3s ease;
+
+      @media (max-width: 480px) {
+        height: 50px;
+      }
     }
   }
 
-  h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.5px;
-  }
+  .welcome-text {
+    .welcome-title {
+      color: var(--primary-color);
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
 
-  .auth-subtitle {
-    font-size: 0.975rem;
-    color: #6b7280;
-    font-weight: 400;
-    margin: 0;
+      @media (max-width: 480px) {
+        font-size: 1.5rem;
+      }
+    }
+
+    .welcome-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 400;
+      margin: 0;
+    }
   }
 }
 
 // ============================================
-// FORMULÁRIO
+// FORMULÁRIO COMPACTO
 // ============================================
-.auth-form {
+.login-form {
   .form-fields {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-
-    ub-input,
-    ub-password {
-      width: 100%;
-    }
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
   }
 
   .form-actions {
@@ -157,32 +248,64 @@
 
       &::ng-deep button {
         width: 100%;
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-        color: #ffffff;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
         border: none;
-        border-radius: 10px;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 6px 20px rgba(38, 38, 38, 0.2);
+        position: relative;
+        overflow: hidden;
         cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(31, 41, 55, 0.3);
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(247, 194, 18, 0.3), transparent);
+          transition: left 0.6s ease;
+        }
 
         &:hover:not(:disabled) {
-          background: linear-gradient(135deg, #374151 0%, #475569 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(31, 41, 55, 0.4);
+          transform: translateY(-3px);
+          box-shadow: 0 12px 32px rgba(38, 38, 38, 0.3);
+
+          &::before {
+            left: 100%;
+          }
         }
 
         &:active:not(:disabled) {
-          transform: translateY(0);
+          transform: translateY(-1px) scale(0.98);
         }
 
         &:disabled {
-          background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+          background: var(--disabled-bg-color);
+          color: var(--disabled-text-color);
           cursor: not-allowed;
-          opacity: 0.6;
           box-shadow: none;
+        }
+
+        i {
+          margin-right: 0.75rem;
+          font-size: 1.2em;
+          vertical-align: middle;
+          transition: all 0.3s ease;
+        }
+
+        &:hover:not(:disabled) i {
+          transform: translateX(3px);
+        }
+
+        .spinner {
+          margin-right: 0.75rem;
+          animation: spin 1s linear infinite;
         }
       }
     }
@@ -190,172 +313,137 @@
 }
 
 // ============================================
-// RODAPÉ
+// FOOTER DO CARD - COMPACTO
 // ============================================
-.auth-footer {
+.login-footer {
   text-align: center;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(38, 38, 38, 0.08);
 
   .help-text {
+    color: var(--text-muted);
     font-size: 0.875rem;
-    color: #9ca3af;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    line-height: 1.5;
+
+    i {
+      font-size: 1.1em;
+      color: var(--secondary-color);
+    }
+
+    .support-link {
+      color: var(--primary-color);
+      font-weight: 600;
+      transition: all 0.3s ease;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(247, 194, 18, 0.1);
+
+      &:hover {
+        color: var(--secondary-color);
+        background: rgba(247, 194, 18, 0.15);
+      }
+    }
+  }
+}
+
+// ============================================
+// COPYRIGHT
+// ============================================
+.copyright {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 2;
+
+  p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
     margin: 0;
     font-weight: 400;
   }
 }
 
 // ============================================
+// ANIMAÇÕES
+// ============================================
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-card {
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ============================================
 // RESPONSIVIDADE
 // ============================================
 @media (max-width: 768px) {
-  .auth-container {
-    padding: 1rem;
+  .background-wrapper {
+    padding: 1.5rem;
   }
 
-  .auth-card {
-    padding: 2.5rem 2rem;
-    border-radius: 16px;
+  .floating-icons .icon-box {
+    width: 60px;
+    height: 60px;
 
-    &:hover {
-      transform: translateY(-2px);
-    }
-  }
-
-  .auth-header {
-    margin-bottom: 2rem;
-
-    .company-name {
-      font-size: 1.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-    }
-
-    .auth-subtitle {
-      font-size: 0.9rem;
-    }
-  }
-
-  .auth-form {
-    .form-fields {
-      gap: 1.25rem;
-    }
-
-    .form-actions ub-button::ng-deep button {
-      padding: 0.875rem 1.25rem;
-      font-size: 0.95rem;
-    }
-  }
-
-  .auth-background {
-    .shape-1 {
-      width: 300px;
-      height: 300px;
-    }
-
-    .shape-2 {
-      width: 350px;
-      height: 350px;
-    }
-
-    .shape-3 {
-      width: 250px;
-      height: 250px;
+    i {
+      font-size: 28px;
     }
   }
 }
 
 @media (max-width: 480px) {
-  .auth-container {
-    padding: 0.75rem;
+  .background-wrapper {
+    padding: 1rem;
   }
 
-  .auth-card {
-    padding: 2rem 1.5rem;
+  .login-card {
+    padding: 2rem 2rem 1.75rem;
+  }
+
+  .floating-icons .icon-box {
+    width: 50px;
+    height: 50px;
     border-radius: 14px;
-  }
 
-  .auth-header {
-    margin-bottom: 1.75rem;
-
-    .company-name {
-      font-size: 1.5rem;
-      margin-bottom: 1.25rem;
+    i {
+      font-size: 24px;
     }
 
-    h2 {
-      font-size: 1.375rem;
-    }
-
-    .auth-subtitle {
-      font-size: 0.875rem;
+    &.icon-9, &.icon-10 {
+      display: none; // Esconde alguns em mobile
     }
   }
 
-  .auth-form {
-    .form-fields {
-      gap: 1rem;
-    }
-
-    .form-actions {
-      margin-bottom: 1.25rem;
-
-      ub-button::ng-deep button {
-        padding: 0.875rem 1rem;
-        font-size: 0.9rem;
-        border-radius: 8px;
-      }
-    }
+  .login-form .form-fields {
+    gap: 1rem;
   }
 
-  .auth-footer {
-    padding-top: 1.25rem;
+  .copyright {
+    bottom: 1rem;
 
-    .help-text {
-      font-size: 0.813rem;
+    p {
+      font-size: 0.75rem;
     }
-  }
-
-  .auth-background {
-    .shape-1 {
-      width: 250px;
-      height: 250px;
-      filter: blur(60px);
-    }
-
-    .shape-2 {
-      width: 280px;
-      height: 280px;
-      filter: blur(60px);
-    }
-
-    .shape-3 {
-      width: 200px;
-      height: 200px;
-      filter: blur(60px);
-    }
-  }
-}
-
-@media (max-width: 360px) {
-  .auth-card {
-    padding: 1.75rem 1.25rem;
-  }
-
-  .auth-header {
-    .company-name {
-      font-size: 1.375rem;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-    }
-  }
-
-  .auth-form .form-fields {
-    gap: 0.875rem;
   }
 }

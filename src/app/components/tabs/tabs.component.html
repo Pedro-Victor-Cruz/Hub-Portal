@@ -1,15 +1,16 @@
 <div class="tabs-container">
   <!-- Cabeçalho das abas -->
   <div class="tab-header-container">
-
     <!-- Lista de abas -->
     <div class="tab-header-scroll">
-      @for (tab of tabs; track tab.label; let i = $index) {
-        <button type="button" class="tab-header"
-                [class.active]="tab.active"
-                (click)="selectTab(tab)"
-                [attr.aria-selected]="tab.active"
-                [attr.tabindex]="tab.active ? '0' : '-1'">
+      @for (tab of tabs.toArray(); track i; let i = $index) {
+        <button
+          type="button"
+          class="tab-header"
+          [class.active]="i === activeTabIndex"
+          (click)="selectTab(i)"
+          [attr.aria-selected]="i === activeTabIndex"
+          [attr.tabindex]="i === activeTabIndex ? '0' : '-1'">
           {{ tab.label }}
         </button>
       }

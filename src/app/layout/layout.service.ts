@@ -62,6 +62,12 @@ export class LayoutService {
       permission: 'dynamic_query.view'
     },
     {
+      title: 'Criador de Dashboards',
+      path: '/dashboards',
+      icon: 'bx bx-bar-chart-alt-2',
+      description: 'Construa e visualize dashboards personalizados',
+    },
+    {
       title: 'Logs do Sistema',
       path: '/logs',
       icon: 'bx bx-file',
