@@ -5,7 +5,7 @@ namespace App\Services\Utils\ResponseFormatters;
 /**
  * Classe para formatar respostas específicas do Sankhya
  */
-class SankhyaResponseFormatter
+class ResponseFormatter
 {
     /**
      * Formata a resposta do DbExplorerSP.executeQuery

@@ -210,12 +210,9 @@ class DynamicQuery extends Model
             'query_config'   => $this->query_config
         ];
 
-        // Valida e obtém valores dos filtros
-        $filterValues = $this->processFilterValues($params);
-
         // Substitui variáveis recursivamente
-        $config['service_params'] = $this->replaceVariablesInData($config['service_params'], $filterValues);
-        $config['query_config'] = $this->replaceVariablesInData($config['query_config'], $filterValues);
+        $config['service_params'] = $this->replaceVariablesInData($config['service_params'], $params);
+        $config['query_config'] = $this->replaceVariablesInData($config['query_config'], $params);
 
         return $config;
     }

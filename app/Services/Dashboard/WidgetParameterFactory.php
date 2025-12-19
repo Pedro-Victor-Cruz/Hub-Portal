@@ -15,9 +15,7 @@ class WidgetParameterFactory
         $manager = new ServiceParameterManager();
 
         return match ($widgetType) {
-            'chart_line' => self::getChartLineParameters($manager),
-            'chart_bar' => self::getChartBarParameters($manager),
-            'chart_pie' => self::getChartPieParameters($manager),
+            'chart_line', 'chart_pie', 'chart_bar' => self::getChartParameters($manager),
             'table' => self::getTableParameters($manager),
             'metric_card' => self::getMetricCardParameters($manager),
             default => $manager,
@@ -25,338 +23,50 @@ class WidgetParameterFactory
     }
 
     /**
-     * Parâmetros para gráfico de linha
+     * Parâmetros para gráficos
+     *
+     * @param ServiceParameterManager $manager
+     * @return ServiceParameterManager
      */
-    private static function getChartLineParameters(ServiceParameterManager $manager): ServiceParameterManager
+    private static function getChartParameters(ServiceParameterManager $manager): ServiceParameterManager
     {
         return $manager->addMany([
-            // Grupo: Fonte de Dados
-            ServiceParameter::select(
-                name: 'data_source_type',
-                options: ['column' => 'Coluna Específica', 'custom' => 'Configuração Manual'],
-                required: true,
-                defaultValue: 'column',
-                description: 'Define como os dados serão obtidos'
-            )
-                ->withLabel('Tipo de Fonte de Dados')
-                ->withGroup('Dados'),
-
-            ServiceParameter::text(
-                name: 'data_column_x',
-                required: false,
-                description: 'Nome da coluna para eixo X'
-            )
-                ->withLabel('Coluna Eixo X')
-                ->withGroup('Dados')
-                ->withPlaceholder('ex: date, category')
-                ->withDependencies(['data_source_type' => 'column']),
-
-            ServiceParameter::seriesConfig(
-                name: 'series',
-                required: true,
-                defaultValue: [],
-                description: 'Configuração das séries do gráfico'
-            )
-                ->withLabel('Séries')
-                ->withGroup('Dados'),
-
-            // Grupo: Aparência
-            ServiceParameter::text(
-                name: 'chart_title',
-                required: false,
-                description: 'Título do gráfico'
-            )
-                ->withLabel('Título do Gráfico')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::boolean(
-                name: 'show_legend',
-                defaultValue: true,
-                description: 'Exibir legenda do gráfico'
-            )
-                ->withLabel('Mostrar Legenda')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::select(
-                name: 'legend_position',
-                options: [
-                    'top' => 'Topo',
-                    'bottom' => 'Rodapé',
-                    'left' => 'Esquerda',
-                    'right' => 'Direita'
-                ],
-                defaultValue: 'bottom'
-            )
-                ->withLabel('Posição da Legenda')
-                ->withGroup('Aparência')
-                ->withDependencies(['show_legend' => true]),
-
-            ServiceParameter::boolean(
-                name: 'show_grid',
-                defaultValue: true,
-                description: 'Exibir grade no gráfico'
-            )
-                ->withLabel('Mostrar Grade')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::boolean(
-                name: 'show_data_labels',
-                defaultValue: false,
-                description: 'Exibir valores nos pontos'
-            )
-                ->withLabel('Mostrar Valores')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::select(
-                name: 'curve_type',
-                options: [
-                    'smooth' => 'Suave',
-                    'straight' => 'Reta',
-                    'stepline' => 'Degrau'
-                ],
-                defaultValue: 'smooth'
-            )
-                ->withLabel('Tipo de Curva')
-                ->withGroup('Aparência'),
-
-            // Grupo: Eixos
-            ServiceParameter::text(
-                name: 'x_label',
-                required: false
-            )
-                ->withLabel('Rótulo Eixo X')
-                ->withGroup('Eixos'),
-
-            ServiceParameter::text(
-                name: 'y_label',
-                required: false
-            )
-                ->withLabel('Rótulo Eixo Y')
-                ->withGroup('Eixos'),
-
-            ServiceParameter::boolean(
-                name: 'x_categories',
-                defaultValue: false,
-                description: 'Usar valores do eixo X como categorias'
-            )
-                ->withLabel('Eixo X Categórico')
-                ->withGroup('Eixos'),
-
-        ]);
-    }
-
-    /**
-     * Parâmetros para gráfico de barras
-     */
-    private static function getChartBarParameters(ServiceParameterManager $manager): ServiceParameterManager
-    {
-        return $manager->addMany([
-            // Grupo: Fonte de Dados
-            ServiceParameter::select(
-                name: 'data_source_type',
-                options: ['column' => 'Coluna Específica', 'custom' => 'Configuração Manual'],
-                required: true,
-                defaultValue: 'column'
-            )
-                ->withLabel('Tipo de Fonte de Dados')
-                ->withGroup('Dados'),
-
-            ServiceParameter::text(
-                name: 'data_column_x',
-                required: false
-            )
-                ->withLabel('Coluna Eixo X')
-                ->withGroup('Dados')
-                ->withPlaceholder('ex: category, name')
-                ->withDependencies(['data_source_type' => 'column']),
-
-            ServiceParameter::array(
-                name: 'series',
-                required: true,
-                defaultValue: []
-            )
-                ->withLabel('Séries')
-                ->withGroup('Dados'),
-
-            // Grupo: Aparência
-            ServiceParameter::text(
-                name: 'chart_title',
-                required: false
-            )
-                ->withLabel('Título do Gráfico')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::select(
-                name: 'orientation',
-                options: ['vertical' => 'Vertical', 'horizontal' => 'Horizontal'],
-                defaultValue: 'vertical'
-            )
-                ->withLabel('Orientação')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::boolean(
-                name: 'stacked',
-                defaultValue: false,
-                description: 'Empilhar barras'
-            )
-                ->withLabel('Barras Empilhadas')
-                ->withGroup('Aparência'),
-
             ServiceParameter::boolean(
                 name: 'show_legend',
                 defaultValue: true
             )
-                ->withLabel('Mostrar Legenda')
+                ->withLabel('Exibir Legenda')
                 ->withGroup('Aparência'),
 
-            ServiceParameter::select(
-                name: 'legend_position',
-                options: [
-                    'top' => 'Topo',
-                    'bottom' => 'Rodapé',
-                    'left' => 'Esquerda',
-                    'right' => 'Direita'
-                ],
-                defaultValue: 'bottom'
-            )
-                ->withLabel('Posição da Legenda')
-                ->withGroup('Aparência')
-                ->withDependencies(['show_legend' => true]),
-
             ServiceParameter::boolean(
-                name: 'show_data_labels',
+                name: 'enable_data_labels',
                 defaultValue: false
             )
-                ->withLabel('Mostrar Valores')
+                ->withLabel('Habilitar Rótulos de Dados')
                 ->withGroup('Aparência'),
 
-            // Grupo: Eixos
             ServiceParameter::text(
-                name: 'x_label',
-                required: false
+                name: 'x_axis_label',
+                description: 'Rótulo do eixo X'
             )
-                // explique oq é o Rótulo do Eixo X
-                ->withLabel('Rótulo Eixo X (Isso é: o título que aparece abaixo das categorias)')
-                ->withGroup('Eixos'),
-
-            ServiceParameter::text(
-                name: 'y_label',
-                required: false
-            )
-                ->withLabel('Rótulo Eixo Y (Isso é: o título que aparece ao lado dos valores)')
-                ->withGroup('Eixos'),
-
-        ]);
-    }
-
-    /**
-     * Parâmetros para gráfico de pizza
-     */
-    private static function getChartPieParameters(ServiceParameterManager $manager): ServiceParameterManager
-    {
-        return $manager->addMany([
-            // Grupo: Fonte de Dados
-            ServiceParameter::select(
-                name: 'data_source_type',
-                options: ['column' => 'Coluna Específica', 'custom' => 'Configuração Manual'],
-                required: true,
-                defaultValue: 'column'
-            )
-                ->withLabel('Tipo de Fonte de Dados')
-                ->withGroup('Dados'),
+                ->withLabel('Rótulo do Eixo X')
+                ->withGroup('Configuração de Dados')
+                ->withPlaceholder('ex: Tempo, Categorias'),
 
             ServiceParameter::text(
-                name: 'data_column_label',
-                required: false,
-                description: 'Coluna para os rótulos das fatias'
+                name: 'y_axis_label',
+                description: 'Rótulo do eixo Y'
             )
-                ->withLabel('Coluna de Rótulos')
-                ->withGroup('Dados')
-                ->withPlaceholder('ex: category, name')
-                ->withDependencies(['data_source_type' => 'column']),
+                ->withLabel('Rótulo do Eixo Y')
+                ->withGroup('Configuração de Dados')
+                ->withPlaceholder('ex: Vendas, Quantidade'),
 
-            ServiceParameter::text(
-                name: 'data_column_value',
-                required: false,
-                description: 'Coluna para os valores das fatias'
+            ServiceParameter::seriesConfig(
+                name: 'data_series',
+                description: 'Séries de dados para o gráfico'
             )
-                ->withLabel('Coluna de Valores')
-                ->withGroup('Dados')
-                ->withPlaceholder('ex: total, count')
-                ->withDependencies(['data_source_type' => 'column']),
-
-            ServiceParameter::array(
-                name: 'custom_data',
-                required: false,
-                defaultValue: [],
-                description: 'Dados personalizados: [{label: "A", value: 100}]'
-            )
-                ->withLabel('Dados Personalizados')
-                ->withGroup('Dados')
-                ->withDependencies(['data_source_type' => 'custom']),
-
-            // Grupo: Aparência
-            ServiceParameter::text(
-                name: 'chart_title',
-                required: false
-            )
-                ->withLabel('Título do Gráfico')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::select(
-                name: 'chart_type',
-                options: [
-                    'pie' => 'Pizza',
-                    'donut' => 'Rosca',
-                    'radialBar' => 'Barra Radial'
-                ],
-                defaultValue: 'pie'
-            )
-                ->withLabel('Tipo de Gráfico')
-                ->withGroup('Aparência'),
-
-
-            ServiceParameter::boolean(
-                name: 'show_legend',
-                defaultValue: true
-            )
-                ->withLabel('Mostrar Legenda')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::select(
-                name: 'legend_position',
-                options: [
-                    'top' => 'Topo',
-                    'bottom' => 'Rodapé',
-                    'left' => 'Esquerda',
-                    'right' => 'Direita'
-                ],
-                defaultValue: 'right'
-            )
-                ->withLabel('Posição da Legenda')
-                ->withGroup('Aparência')
-                ->withDependencies(['show_legend' => true]),
-
-            ServiceParameter::boolean(
-                name: 'show_data_labels',
-                defaultValue: true
-            )
-                ->withLabel('Mostrar Valores')
-                ->withGroup('Aparência'),
-
-            ServiceParameter::select(
-                name: 'data_labels_format',
-                options: [
-                    'percent' => 'Porcentagem',
-                    'value' => 'Valor Absoluto',
-                    'both' => 'Ambos'
-                ],
-                defaultValue: 'percent'
-            )
-                ->withLabel('Formato dos Rótulos')
-                ->withGroup('Aparência')
-                ->withDependencies(['show_data_labels' => true]),
-
+                ->withLabel('Séries de Dados')
+                ->withGroup('Configuração de Dados'),
         ]);
     }
 

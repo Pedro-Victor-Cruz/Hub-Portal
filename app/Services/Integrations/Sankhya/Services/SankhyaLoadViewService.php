@@ -9,7 +9,7 @@ use App\Services\Core\ApiResponse;
 use App\Services\Core\Integration\IntegrationService;
 use App\Services\Integrations\Sankhya\SankhyaHttpRequest;
 use App\Services\Parameter\ServiceParameter;
-use App\Services\Utils\ResponseFormatters\SankhyaResponseFormatter;
+use App\Services\Utils\ResponseFormatters\ResponseFormatter;
 use Exception;
 
 /**
@@ -99,7 +99,7 @@ class SankhyaLoadViewService extends IntegrationService
      */
     protected function formatQueryResponse(mixed $data): mixed
     {
-        return SankhyaResponseFormatter::formatLoadViewResponse($data);
+        return ResponseFormatter::formatLoadViewResponse($data);
     }
 
     /**

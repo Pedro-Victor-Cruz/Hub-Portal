@@ -35,8 +35,7 @@ class DynamicQueryController extends Controller
      */
     public function execute(Request $request, string $key): JsonResponse
     {
-        $params = $request->all();
-
+        $params = $request->input('params', []);
         $response = DynamicQueryManager::executeQuery($key, $params);
 
         return $response->toJson();

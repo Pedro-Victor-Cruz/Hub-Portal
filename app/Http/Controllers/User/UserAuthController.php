@@ -89,47 +89,14 @@ class UserAuthController extends Controller
 
     public function refresh(): JsonResponse
     {
-        $user = Auth::guard('auth')->user();
-
-        // Verifica se está autenticado antes de tentar refresh
-        if (!$user) {
-            // Log de tentativa de refresh sem autenticação
-            ActivityLog::log(
-                action: 'token_refresh_failed',
-                description: "Tentativa de refresh de token sem autenticação válida",
-                level: SystemLog::LEVEL_WARNING,
-                module: 'auth'
-            );
-
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
         $tokens = Auth::guard('auth')->attempt();
 
         if ($tokens) {
-            // Log de refresh de token bem-sucedido
-            ActivityLog::log(
-                action: 'token_refreshed',
-                description: "Token renovado com sucesso: {$user->name} ({$user->email})",
-                level: SystemLog::LEVEL_INFO,
-                module: 'auth',
-                model: $user
-            );
-
             return response()->json([
                 'message' => 'Token refreshed',
                 'data' => $tokens
             ]);
         }
-
-        // Log de falha no refresh do token
-        ActivityLog::log(
-            action: 'token_refresh_failed',
-            description: "Falha ao renovar token: {$user->name} ({$user->email})",
-            level: SystemLog::LEVEL_WARNING,
-            module: 'auth',
-            model: $user
-        );
 
         return response()->json(['message' => 'Unauthorized'], 401);
     }

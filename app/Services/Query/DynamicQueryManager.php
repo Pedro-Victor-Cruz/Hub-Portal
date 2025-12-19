@@ -7,7 +7,7 @@ use App\Models\DynamicQuery;
 use App\Models\Filter;
 use App\Repositories\Query\DynamicQueryRepository;
 use App\Services\Core\ApiResponse;
-use App\Services\Utils\ResponseFormatters\SankhyaResponseFormatter;
+use App\Services\Utils\ResponseFormatters\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
@@ -158,7 +158,7 @@ class DynamicQueryManager
                 $format = $query->getFieldFormat($fieldName);
                 if ($format) {
                     try {
-                        $value = SankhyaResponseFormatter::applyCustomFormat($value, $format);
+                        $value = ResponseFormatter::applyCustomFormat($value, $format);
                     } catch (\Throwable $e) {
                         Log::warning("Erro ao formatar campo {$fieldName}: " . $e->getMessage());
                     }
@@ -200,7 +200,7 @@ class DynamicQueryManager
                 $format = $metadata['format'] ?? null;
                 if ($format) {
                     try {
-                        $result = SankhyaResponseFormatter::applyCustomFormat($result, $format);
+                        $result = ResponseFormatter::applyCustomFormat($result, $format);
                     } catch (\Throwable $e) {
                         Log::warning("Erro ao formatar agregação do campo {$fieldName}: " . $e->getMessage());
                     }
@@ -496,7 +496,7 @@ class DynamicQueryManager
                     'query_config' => $query->query_config
                 ],
                 'processed_config' => $configWithVariables,
-                'filters_applied' => $query->processFilterValues($params),
+                'filters_applied' =>  $params,
                 'service_slug' => $query->service_slug,
                 'variables_found' => $this->extractVariablesFromConfig($query)
             ], 'Preview da consulta gerado com sucesso');

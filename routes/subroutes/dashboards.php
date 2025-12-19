@@ -97,7 +97,7 @@ Route::middleware(['auth'])->prefix('dashboards')->group(function () {
         Route::delete('/{widgetId}/delete', [DashboardController::class, 'deleteWidget']);
 
         // Obtém dados de um widget específico
-        Route::get('/{widgetId}/data', [DashboardController::class, 'getWidgetData']);
+        Route::post('/{widgetId}/data', [DashboardController::class, 'getWidgetData']);
 
         // Obtém os parâmetros do widget
         Route::get('/{widgetType}/parameters', [DashboardController::class, 'getParametersWidget']);

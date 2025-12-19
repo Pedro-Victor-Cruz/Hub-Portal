@@ -228,7 +228,7 @@ class DashboardController extends Controller
      */
     public function getWidgetData(Request $request, int $widgetId): JsonResponse
     {
-        $filterParams = $request->except(['_token', '_method']);
+        $filterParams = $request->input('params', []);
         return $this->service->getWidgetData($widgetId, $filterParams)->toJson();
     }
 

@@ -17,9 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/', [UserAuthController::class, 'auth']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
-    Route::middleware('auth')->group(function () {
-        Route::post('/refresh', [UserAuthController::class, 'refresh']);
-    });
+    Route::post('/refresh', [UserAuthController::class, 'refresh']);
 });
 
 require __DIR__ . '/subroutes/users.php';

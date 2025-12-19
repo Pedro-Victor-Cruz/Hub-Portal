@@ -46,7 +46,7 @@ class DashboardService
         }
     }
 
-    public function getDashboard(string $key, array $context = []): ApiResponse
+    public function getDashboard(string $key): ApiResponse
     {
         try {
             $dashboard = Dashboard::where('key', $key)->active()->first();
@@ -57,9 +57,6 @@ class DashboardService
 
             $structure = $dashboard->getFullStructure();
 
-            if (!empty($context)) {
-                $structure = $this->applyVisibilityRules($structure, $context);
-            }
 
             return ApiResponse::success($structure, "Dashboard '{$key}' carregado");
         } catch (\Exception $e) {
@@ -400,8 +397,7 @@ class DashboardService
                 return $queryResponse;
             }
 
-            $data = $widget->mapData($queryResponse->getData());
-            $data = $widget->transformData($data);
+            $data = $queryResponse->getData();
 
             return ApiResponse::success([
                 'widget' => [
@@ -419,66 +415,6 @@ class DashboardService
             Log::error("Erro ao carregar dados do widget {$widgetId}: " . $e->getMessage());
             return ApiResponse::error('Erro ao carregar dados do widget', [$e->getMessage()]);
         }
-    }
-
-    public function executeDrillDown(
-        int   $sourceSectionId,
-        int   $targetSectionId,
-        array $sourceData = [],
-        array $additionalFilters = []
-    ): ApiResponse
-    {
-        try {
-            $sourceSection = DashboardSection::find($sourceSectionId);
-            $targetSection = DashboardSection::find($targetSectionId);
-
-            if (!$sourceSection || !$targetSection) {
-                return ApiResponse::error('Seção não encontrada');
-            }
-
-            $drillDownParams = $sourceSection->prepareDrillDownParams($sourceData);
-            $allParams = array_merge($drillDownParams, $additionalFilters);
-
-            $response = $this->getSectionData($targetSection->id, $allParams);
-
-            if ($response->isSuccess()) {
-                $data = $response->getData();
-                $data['breadcrumb'] = $targetSection->getBreadcrumb();
-                $data['drill_down_params'] = $drillDownParams;
-
-                return ApiResponse::success($data, 'Drill down executado');
-            }
-
-            return $response;
-        } catch (\Exception $e) {
-            return ApiResponse::error('Erro ao executar drill down', [$e->getMessage()]);
-        }
-    }
-
-    private function applyVisibilityRules(array $structure, array $context): array
-    {
-        if (isset($structure['sections'])) {
-            $structure['sections'] = array_values(array_filter(
-                array_map(function ($sectionData) use ($context) {
-                    $section = DashboardSection::find($sectionData['section']['id']);
-
-                    if (!$section->shouldBeVisible($context)) {
-                        return null;
-                    }
-
-                    if (!empty($sectionData['children'])) {
-                        $sectionData['children'] = $this->applyVisibilityRules(
-                            ['sections' => $sectionData['children']],
-                            $context
-                        )['sections'];
-                    }
-
-                    return $sectionData;
-                }, $structure['sections'])
-            ));
-        }
-
-        return $structure;
     }
 
     public function listSectionWidgets(int $sectionId): ApiResponse
