@@ -35,8 +35,7 @@ class DashboardController extends Controller
      */
     public function show(Request $request, string $key): JsonResponse
     {
-        $context = $request->input('context', []);
-        return $this->service->getDashboard($key, $context)->toJson();
+        return $this->service->getDashboard($key)->toJson();
     }
 
     /**
@@ -51,7 +50,10 @@ class DashboardController extends Controller
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:50',
             'config' => 'nullable|array',
+            'visibility' => 'nullable|string|in:public,authenticated,restricted',
             'active' => 'nullable|boolean',
+            'is_navigable' => 'nullable|boolean',
+            'is_home' => 'nullable|boolean',
         ], [
             'key.unique' => 'A chave do dashboard já está em uso. Escolha outra chave.',
             'key.required' => 'A chave do dashboard é obrigatória.',
@@ -77,6 +79,9 @@ class DashboardController extends Controller
             'icon' => 'nullable|string|max:50',
             'config' => 'nullable|array',
             'active' => 'nullable|boolean',
+            'visibility' => 'nullable|string|in:public,authenticated,restricted',
+            'is_navigable' => 'nullable|boolean',
+            'is_home' => 'nullable|boolean',
         ], [
             'name.max' => 'O nome do dashboard não pode exceder 255 caracteres.',
             'icon.max' => 'O ícone do dashboard não pode exceder 50 caracteres.',
@@ -110,6 +115,24 @@ class DashboardController extends Controller
             $validated['new_key'],
             $validated['new_name']
         )->toJson();
+    }
+
+    /**
+     * Buscar dashboards que são navegáveis
+     * GET /api/dashboards/navigable/list
+     */
+    public function getNavigableDashboards(): JsonResponse
+    {
+        return $this->service->getNavigableDashboards()->toJson();
+    }
+
+    /**
+     * Buscar dashboard que será carregado na home
+     * GET /api/dashboards/home/list
+     */
+    public function getHomeDashboard(): JsonResponse
+    {
+        return $this->service->getHomeDashboard()->toJson();
     }
 
     /**
@@ -161,7 +184,7 @@ class DashboardController extends Controller
      */
     public function getSectionData(Request $request, int $sectionId): JsonResponse
     {
-        $filterParams = $request->except(['_token', '_method']);
+        $filterParams = $request->input('params', []);
         return $this->service->getSectionData($sectionId, $filterParams)->toJson();
     }
 

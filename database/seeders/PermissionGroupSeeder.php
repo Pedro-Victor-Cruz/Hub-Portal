@@ -17,7 +17,7 @@ class PermissionGroupSeeder extends Seeder
     private array $systemGroups = [
         [
             'name' => 'administrator',
-            'description' => 'Administrador do Técnico',
+            'description' => 'Administrador',
             'is_system' => true,
             'access_level' => PermissionStatus::ADMINISTRATOR,
             'permissions' => ['*']

@@ -28,15 +28,14 @@ class DashboardService
             $dashboards = $query->get()->map(function ($dashboard) {
                 $readiness = $dashboard->isReady();
                 return [
-                    'key'            => $dashboard->key,
-                    'name'           => $dashboard->name,
-                    'description'    => $dashboard->description,
-                    'icon'           => $dashboard->icon,
-                    'active'         => $dashboard->active,
-                    'sections_count' => $dashboard->sections()->count(),
-                    'widgets_count'  => $dashboard->allWidgets()->count(),
-                    'filters_count'  => $dashboard->filters()->count(),
-                    'ready'          => $readiness['ready'],
+                    'key'         => $dashboard->key,
+                    'name'        => $dashboard->name,
+                    'description' => $dashboard->description,
+                    'icon'        => $dashboard->icon,
+                    'active'      => $dashboard->active,
+                    'is_home'     => $dashboard->is_home,
+                    'is_navigable'=> $dashboard->is_navigable,
+                    'ready'       => $readiness['ready'],
                 ];
             });
 
@@ -49,10 +48,15 @@ class DashboardService
     public function getDashboard(string $key): ApiResponse
     {
         try {
+            /** @var Dashboard $dashboard */
             $dashboard = Dashboard::where('key', $key)->active()->first();
 
             if (!$dashboard) {
                 return ApiResponse::error("Dashboard '{$key}' não encontrado");
+            }
+
+            if (!$dashboard->userHasAccess()) {
+                return ApiResponse::error("Acesso negado ao dashboard '{$dashboard->name}'");
             }
 
             $structure = $dashboard->getFullStructure();
@@ -69,12 +73,15 @@ class DashboardService
         DB::beginTransaction();
         try {
             $dashboard = Dashboard::create([
-                'key'         => $data['key'],
-                'name'        => $data['name'],
-                'description' => $data['description'] ?? null,
-                'icon'        => $data['icon'] ?? null,
-                'config'      => $data['config'] ?? null,
-                'active'      => $data['active'] ?? true,
+                'key'          => $data['key'],
+                'name'         => $data['name'],
+                'description'  => $data['description'] ?? null,
+                'icon'         => $data['icon'] ?? null,
+                'config'       => $data['config'] ?? null,
+                'visibility'   => $data['visibility'] ?? null,
+                'active'       => $data['active'] ?? true,
+                'is_navigable' => $data['is_navigable'] ?? false,
+                'is_home'      => $data['is_home'] ?? false,
             ]);
 
             DB::commit();
@@ -96,11 +103,14 @@ class DashboardService
             }
 
             $dashboard->update(array_filter([
-                'name'        => $data['name'] ?? null,
-                'description' => $data['description'] ?? null,
-                'icon'        => $data['icon'] ?? null,
-                'config'      => $data['config'] ?? null,
-                'active'      => $data['active'] ?? null,
+                'name'         => $data['name'] ?? null,
+                'description'  => $data['description'] ?? null,
+                'icon'         => $data['icon'] ?? null,
+                'config'       => $data['config'] ?? null,
+                'active'       => $data['active'] ?? null,
+                'visibility'   => $data['visibility'] ?? null,
+                'is_navigable' => $data['is_navigable'] ?? false,
+                'is_home'      => $data['is_home'] ?? false,
             ], fn($value) => $value !== null));
 
             DB::commit();
@@ -245,29 +255,126 @@ class DashboardService
         }
     }
 
+    /**
+     * Carrega dados de uma seção com otimização de queries duplicadas
+     *
+     * @param int $sectionId
+     * @param array $filterParams
+     * @return ApiResponse
+     */
     public function getSectionData(int $sectionId, array $filterParams = []): ApiResponse
     {
         try {
-            $section = DashboardSection::with('widgets')->find($sectionId);
+            /** @var DashboardSection $section */
+            $section = DashboardSection::with([
+                'widgets' => function ($query) {
+                    $query->active()->with('dynamicQuery');
+                }
+            ])->find($sectionId);
+
 
             if (!$section) {
                 return ApiResponse::error('Seção não encontrada');
             }
 
+            /** @var Dashboard $dashboard */
+            $dashboard = $section->dashboard;
+
+            if (!$dashboard->userHasAccess()) {
+                return ApiResponse::error('Acesso negado para buscar dados da seção');
+            }
+
             $widgetsData = [];
             $errors = [];
 
-            foreach ($section->widgets()->active()->get() as $widget) {
-                if (!$widget->requiresData()) {
+            // Cache para armazenar resultados de queries já executadas
+            $queryCache = [];
+
+            foreach ($section->widgets as $widget) {
+
+                // Verifica se o widget tem dynamic_query_id
+                if (!$widget->dynamic_query_id || !$widget->dynamicQuery) {
+                    $errors[$widget->key] = ['Widget não possui consulta configurada'];
                     continue;
                 }
 
-                $response = $this->getWidgetData($widget->id, $filterParams);
+                $queryKey = $widget->dynamicQuery->key;
 
-                if ($response->isSuccess()) {
-                    $widgetsData[$widget->key] = $response->getData();
-                } else {
-                    $errors[$widget->key] = $response->getErrors();
+                // Cria uma chave única considerando a query e os filtros
+                $cacheKey = $queryKey . '_' . md5(json_encode($filterParams));
+
+                // Se a query já foi executada, reutiliza o resultado
+                if (isset($queryCache[$cacheKey])) {
+                    $cachedResult = $queryCache[$cacheKey];
+
+                    if ($cachedResult['success']) {
+                        $widgetsData[$widget->key] = [
+                            'widget' => [
+                                'id'    => $widget->id,
+                                'key'   => $widget->key,
+                                'title' => $widget->title,
+                                'type'  => $widget->widget_type,
+                            ],
+                            'data'   => $cachedResult['data'],
+                            'config' => [
+                                'chart_config' => $widget->chart_config,
+                            ],
+                            'cached' => true, // Flag opcional para debug
+                        ];
+                    } else {
+                        $errors[$widget->key] = $cachedResult['errors'];
+                    }
+
+                    continue;
+                }
+
+                // Executa a query pela primeira vez
+                try {
+                    $queryResponse = DynamicQueryManager::executeQuery($queryKey, $filterParams);
+
+                    if ($queryResponse->isSuccess()) {
+                        $data = $queryResponse->getData();
+
+                        // Armazena no cache
+                        $queryCache[$cacheKey] = [
+                            'success' => true,
+                            'data'    => $data,
+                        ];
+
+                        $widgetsData[$widget->key] = [
+                            'widget' => [
+                                'id'    => $widget->id,
+                                'key'   => $widget->key,
+                                'title' => $widget->title,
+                                'type'  => $widget->widget_type,
+                            ],
+                            'data'   => $data,
+                            'config' => [
+                                'chart_config' => $widget->chart_config,
+                            ],
+                        ];
+                    } else {
+                        $queryErrors = $queryResponse->getErrors();
+
+                        // Armazena o erro no cache
+                        $queryCache[$cacheKey] = [
+                            'success' => false,
+                            'errors'  => $queryErrors,
+                        ];
+
+                        $errors[$widget->key] = $queryErrors;
+                    }
+                } catch (\Exception $e) {
+                    $errorMessage = $e->getMessage();
+
+                    // Armazena o erro no cache
+                    $queryCache[$cacheKey] = [
+                        'success' => false,
+                        'errors'  => [$errorMessage],
+                    ];
+
+                    $errors[$widget->key] = [$errorMessage];
+                    Log::error("Erro ao executar query para widget {$widget->key}: " . $errorMessage);
                 }
             }
 
@@ -281,6 +388,7 @@ class DashboardService
                 'errors'  => $errors,
             ], 'Dados da seção carregados');
         } catch (\Exception $e) {
+            Log::error("Erro ao carregar dados da seção {$sectionId}: " . $e->getMessage());
             return ApiResponse::error('Erro ao carregar dados da seção', [$e->getMessage()]);
         }
     }
@@ -374,10 +482,18 @@ class DashboardService
     public function getWidgetData(int $widgetId, array $filterParams = []): ApiResponse
     {
         try {
+            /** @var DashboardWidget $widget */
             $widget = DashboardWidget::with(['dynamicQuery', 'section'])->find($widgetId);
 
             if (!$widget) {
                 return ApiResponse::error('Widget não encontrado');
+            }
+
+            /** @var Dashboard $dashboard */
+            $dashboard = $widget->section()->first()->dashboard;
+
+            if (!$dashboard->userHasAccess()) {
+                return ApiResponse::error('Acesso negado para buscar dados da seção');
             }
 
             if (!$widget->active) {
@@ -433,4 +549,71 @@ class DashboardService
             return ApiResponse::error('Erro ao carregar widgets da seção', [$e->getMessage()]);
         }
     }
+
+    public function getHomeDashboard(): ApiResponse
+    {
+        try {
+            /** @var Dashboard $dashboard */
+            $dashboard = Dashboard::home()
+                ->active()
+                ->first();
+
+            if (!$dashboard) {
+                return ApiResponse::error("Dashboard home não encontrado");
+            }
+
+            return ApiResponse::success([
+                'name' => $dashboard->name,
+                'key'  => $dashboard->key
+            ]);
+        } catch (\Exception $e) {
+            return ApiResponse::error('Erro ao carregar dashboard home', [$e->getMessage()]);
+        }
+    }
+
+    public function getNavigableDashboards(): ApiResponse
+    {
+        try {
+            $dashboards = Dashboard::query()
+                ->active()
+                ->navigable()
+                ->select([
+                    'id', // necessário para relação permission
+                    'key',
+                    'name',
+                    'description',
+                    'icon',
+                    'visibility',
+                    'permission_id',
+                ])
+                ->with('permission:id,name')
+                ->get();
+
+            $accessibleDashboards = $dashboards
+                ->filter(fn ($dashboard) => $dashboard->userHasAccess())
+                ->map(fn ($dashboard) => [
+                    'key'         => $dashboard->key,
+                    'name'        => $dashboard->name,
+                    'description' => $dashboard->description,
+                    'icon'        => $dashboard->icon,
+                ])
+                ->values();
+
+            return ApiResponse::success(
+                $accessibleDashboards,
+                'Dashboards navegáveis carregados'
+            );
+
+        } catch (\Throwable $e) {
+
+            report($e);
+
+            return ApiResponse::error(
+                'Erro ao carregar dashboards navegáveis'
+            );
+        }
+    }
+
+
+
 }

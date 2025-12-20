@@ -95,14 +95,6 @@ class DashboardWidget extends Model
     }
 
     /**
-     * Verifica se requer dados dinâmicos
-     */
-    public function requiresData(): bool
-    {
-        return !in_array($this->widget_type, ['custom', 'html']);
-    }
-
-    /**
      * Obtém a configuração completa do widget
      */
     public function getFullConfig(): array

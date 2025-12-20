@@ -18,8 +18,17 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('icon', 50)->nullable();
             $table->json('config')->nullable()->comment('Configurações gerais do dashboard');
+            $table->enum('visibility', ['public', 'authenticated', 'restricted'])
+                ->default('authenticated')
+                ->index();
+            $table->boolean('is_navigable')->default(false)->index();
+            $table->boolean('is_home')->default(false)->index();
+            $table->unsignedBigInteger('permission_id')->nullable();
             $table->boolean('active')->default(true)->index();
             $table->timestamps();
+
+            $table->foreign('permission_id')
+                ->references('id')->on('permissions')->onDelete('set null');
         });
 
         Schema::create('dashboard_sections', function (Blueprint $table) {

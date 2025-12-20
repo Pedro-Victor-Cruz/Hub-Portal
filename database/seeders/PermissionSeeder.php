@@ -187,6 +187,32 @@ class PermissionSeeder extends Seeder
             'access_level' => PermissionStatus::ADMINISTRATOR
         ],
 
+        // Dashboards
+        [
+            'name'         => 'dashboard.view',
+            'description'  => 'Visualizar dashboards',
+            'group'        => 'Dashboards',
+            'access_level' => PermissionStatus::USER
+        ],
+        [
+            'name'         => 'dashboard.create',
+            'description'  => 'Criar dashboards',
+            'group'        => 'Dashboards',
+            'access_level' => PermissionStatus::USER
+        ],
+        [
+            'name'         => 'dashboard.edit',
+            'description'  => 'Editar dashboards',
+            'group'        => 'Dashboards',
+            'access_level' => PermissionStatus::USER
+        ],
+        [
+            'name'         => 'dashboard.delete',
+            'description'  => 'Excluir dashboards',
+            'group'        => 'Dashboards',
+            'access_level' => PermissionStatus::USER
+        ],
+
         // System Performance
         [
             'name'         => 'system_performance.view',

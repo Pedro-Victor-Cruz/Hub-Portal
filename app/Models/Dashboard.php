@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Utils\PermissionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Model Dashboard
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $description
  * @property string|null $icon
  * @property array|null $config
+     * @property 'public' | 'authenticated' |'restricted' $visibility;
+ * @property int $permission_id;
  * @property bool $active
  */
 class Dashboard extends Model
@@ -31,18 +34,29 @@ class Dashboard extends Model
         'description',
         'icon',
         'config',
-        'active'
+        'active',
+        'visibility',
+        'is_navigable',
+        'is_home',
+        'permission_id',
     ];
 
     protected $casts = [
         'config' => 'array',
         'active' => 'boolean',
+        'is_navigable' => 'boolean',
+        'is_home' => 'boolean',
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
     ];
+
+    public function permission()
+    {
+        return $this->belongsTo(Permission::class);
+    }
 
     /**
      * Seções de primeiro nível (root sections)
@@ -69,19 +83,27 @@ class Dashboard extends Model
     }
 
     /**
-     * Todos os widgets do dashboard (através das seções)
-     */
-    public function allWidgets()
-    {
-        return DashboardWidget::whereIn('section_id', $this->sections->pluck('id'));
-    }
-
-    /**
      * Scope para dashboards ativos
      */
     public function scopeActive($query)
     {
         return $query->where('active', true);
+    }
+
+    /**
+     * Scope para dashboards navegáveis
+     */
+    public function scopeNavigable($query)
+    {
+        return $query->where('is_navigable', true);
+    }
+
+    /**
+     * Scope para dashboards definidos como home
+     */
+    public function scopeHome($query)
+    {
+        return $query->where('is_home', true);
     }
 
     /**
@@ -145,6 +167,41 @@ class Dashboard extends Model
         ];
     }
 
+
+    /**
+     * Verifica se o usuário atual tem permissão para visualizar o dashboard.
+     *
+     * Regras de acesso:
+     * - public         → acesso livre, não exige autenticação
+     * - authenticated  → exige usuário autenticado
+     * - restricted     → exige usuário autenticado E permissão explícita
+     *
+     * @return bool True se o usuário puder acessar o dashboard, false caso contrário
+     */
+    public function userHasAccess(): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::guard('auth')->user();
+
+        return match ($this->visibility) {
+
+            // Acesso público
+            'public' => true,
+
+            // Apenas usuário autenticado
+            'authenticated' => $user !== null,
+
+            // Autenticado + permissão específica
+            'restricted' => $user !== null
+                && $this->permission !== null
+                && $user->hasAnyPermission([$this->permission->name, 'dashboard.view']),
+
+            default => false,
+        };
+    }
+
+
+
     /**
      * Clona o dashboard com todas suas dependências
      */
@@ -196,4 +253,58 @@ class Dashboard extends Model
             $this->duplicateSections($newDashboardId, $section->id, $newSection->id);
         }
     }
+
+    public function syncPermission(): void
+    {
+        // Somente dashboards RESTRICTED possuem permissão
+        if ($this->visibility !== 'restricted') {
+
+            if ($this->permission_id && $this->permission) {
+                $this->permission->delete();
+
+                $this->forceFill([
+                    'permission_id' => null
+                ])->saveQuietly();
+            }
+
+            return;
+        }
+
+        // A partir daqui: visibility === 'restricted'
+        $permissionName = "dashboard.access.{$this->key}";
+        $permissionDescription = "Acesso ao dashboard: {$this->name}";
+
+        // Já existe permissão → apenas garante consistência
+        if ($this->permission_id && $this->permission) {
+
+            $updates = [];
+
+            if ($this->permission->name !== $permissionName) {
+                $updates['name'] = $permissionName;
+            }
+
+            if ($this->permission->description !== $permissionDescription) {
+                $updates['description'] = $permissionDescription;
+            }
+
+            if (!empty($updates)) {
+                $this->permission->update($updates);
+            }
+
+            return;
+        }
+
+        // Não existe permissão → cria
+        $permission = Permission::create([
+            'name' => $permissionName,
+            'description' => $permissionDescription,
+            'group' => 'Dashboards',
+            'access_level' => PermissionStatus::USER,
+        ]);
+
+        $this->forceFill([
+            'permission_id' => $permission->id
+        ])->saveQuietly();
+    }
+
 }
