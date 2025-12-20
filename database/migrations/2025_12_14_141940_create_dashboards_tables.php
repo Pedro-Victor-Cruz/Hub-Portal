@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('icon', 50)->nullable();
             $table->json('config')->nullable()->comment('Configurações gerais do dashboard');
-            $table->enum('visibility', ['public', 'authenticated', 'restricted'])
+            $table->enum('visibility', ['authenticated', 'restricted'])
                 ->default('authenticated')
                 ->index();
             $table->boolean('is_navigable')->default(false)->index();

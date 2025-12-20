@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
  * @property string|null $description
  * @property string|null $icon
  * @property array|null $config
-     * @property 'public' | 'authenticated' |'restricted' $visibility;
+ * @property 'authenticated' |'restricted' $visibility;
  * @property int $permission_id;
  * @property bool $active
  */
@@ -42,10 +42,10 @@ class Dashboard extends Model
     ];
 
     protected $casts = [
-        'config' => 'array',
-        'active' => 'boolean',
+        'config'       => 'array',
+        'active'       => 'boolean',
         'is_navigable' => 'boolean',
-        'is_home' => 'boolean',
+        'is_home'      => 'boolean',
     ];
 
     protected $hidden = [
@@ -83,6 +83,31 @@ class Dashboard extends Model
     }
 
     /**
+     * Convites do dashboard
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(DashboardInvitation::class);
+    }
+
+    /**
+     * Convites ativos e válidos
+     */
+    public function validInvitations(): HasMany
+    {
+        return $this->hasMany(DashboardInvitation::class)
+            ->active()
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('max_uses')
+                    ->orWhereRaw('uses_count < max_uses');
+            });
+    }
+
+    /**
      * Scope para dashboards ativos
      */
     public function scopeActive($query)
@@ -113,8 +138,8 @@ class Dashboard extends Model
     {
         return [
             'dashboard' => $this->makeHidden(['created_at', 'updated_at'])->toArray(),
-            'filters' => $this->filters()->get(),
-            'sections' => $this->buildSectionsTree(),
+            'filters'   => $this->filters()->get(),
+            'sections'  => $this->buildSectionsTree(),
         ];
     }
 
@@ -130,41 +155,11 @@ class Dashboard extends Model
 
         return $sections->map(function ($section) {
             return [
-                'section' => $section->makeHidden(['created_at', 'updated_at'])->toArray(),
-                'widgets' => $section->widgets()->where('active', true)->orderBy('order')->get(),
+                'section'  => $section->makeHidden(['created_at', 'updated_at'])->toArray(),
+                'widgets'  => $section->widgets()->where('active', true)->orderBy('order')->get(),
                 'children' => $this->buildSectionsTree($section->id),
             ];
         })->toArray();
-    }
-
-    /**
-     * Valida se o dashboard está pronto para uso
-     */
-    public function isReady(): array
-    {
-        $issues = [];
-
-        if (!$this->active) {
-            $issues[] = 'Dashboard está inativo';
-        }
-
-        if ($this->rootSections()->count() === 0) {
-            $issues[] = 'Dashboard não possui seções';
-        }
-
-        $sectionsWithoutWidgets = $this->sections()
-            ->whereDoesntHave('widgets')
-            ->where('active', true)
-            ->count();
-
-        if ($sectionsWithoutWidgets > 0) {
-            $issues[] = "{$sectionsWithoutWidgets} seção(ões) sem widgets";
-        }
-
-        return [
-            'ready' => empty($issues),
-            'issues' => $issues
-        ];
     }
 
 
@@ -172,7 +167,6 @@ class Dashboard extends Model
      * Verifica se o usuário atual tem permissão para visualizar o dashboard.
      *
      * Regras de acesso:
-     * - public         → acesso livre, não exige autenticação
      * - authenticated  → exige usuário autenticado
      * - restricted     → exige usuário autenticado E permissão explícita
      *
@@ -184,10 +178,6 @@ class Dashboard extends Model
         $user = Auth::guard('auth')->user();
 
         return match ($this->visibility) {
-
-            // Acesso público
-            'public' => true,
-
             // Apenas usuário autenticado
             'authenticated' => $user !== null,
 
@@ -199,7 +189,6 @@ class Dashboard extends Model
             default => false,
         };
     }
-
 
 
     /**
@@ -296,9 +285,9 @@ class Dashboard extends Model
 
         // Não existe permissão → cria
         $permission = Permission::create([
-            'name' => $permissionName,
-            'description' => $permissionDescription,
-            'group' => 'Dashboards',
+            'name'         => $permissionName,
+            'description'  => $permissionDescription,
+            'group'        => 'Dashboards',
             'access_level' => PermissionStatus::USER,
         ]);
 

@@ -4,9 +4,12 @@ namespace App\Services\Dashboard;
 
 use App\Facades\DynamicQueryManager;
 use App\Models\Dashboard;
+use App\Models\DashboardInvitation;
 use App\Models\DashboardSection;
 use App\Models\DashboardWidget;
+use App\Models\User;
 use App\Services\Core\ApiResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -26,7 +29,6 @@ class DashboardService
             }
 
             $dashboards = $query->get()->map(function ($dashboard) {
-                $readiness = $dashboard->isReady();
                 return [
                     'key'         => $dashboard->key,
                     'name'        => $dashboard->name,
@@ -35,7 +37,6 @@ class DashboardService
                     'active'      => $dashboard->active,
                     'is_home'     => $dashboard->is_home,
                     'is_navigable'=> $dashboard->is_navigable,
-                    'ready'       => $readiness['ready'],
                 ];
             });
 
@@ -45,8 +46,20 @@ class DashboardService
         }
     }
 
-    public function getDashboard(string $key): ApiResponse
-    {
+    /**
+     * Obtém um dashboard com suporte a acesso via convite
+     *
+     * @param string $key Chave do dashboard
+     * @param string|null $invitationToken Token do convite (opcional)
+     * @param string|null $ipAddress IP do usuário (para log)
+     * @param string|null $userAgent User agent (para log)
+     */
+    public function getDashboard(
+        string $key,
+        ?string $invitationToken = null,
+        ?string $ipAddress = null,
+        ?string $userAgent = null
+    ): ApiResponse {
         try {
             /** @var Dashboard $dashboard */
             $dashboard = Dashboard::where('key', $key)->active()->first();
@@ -55,15 +68,56 @@ class DashboardService
                 return ApiResponse::error("Dashboard '{$key}' não encontrado");
             }
 
-            if (!$dashboard->userHasAccess()) {
+            $accessGranted = false;
+            $accessMethod = null;
+            $invitationStatus = null;
+
+            // 1. Verifica acesso via convite
+            if ($invitationToken) {
+                $invitation = DashboardInvitation::where('token', $invitationToken)
+                    ->where('dashboard_id', $dashboard->id)
+                    ->first();
+
+                if ($invitation && $invitation->isValid()) {
+                    /** @var User $user * */
+                    $user = Auth::guard('auth')->user();
+
+                    // Registra o acesso
+                    $invitation->recordAccess(
+                        $user->id ?? null,
+                        $ipAddress,
+                        $userAgent
+                    );
+
+                    $accessGranted = true;
+                    $accessMethod = 'invitation';
+                    $invitationStatus = $invitation->getStatusInfo();
+                } else {
+                    $status = $invitation ? $invitation->getStatusInfo() : ['message' => 'Convite não encontrado'];
+                    return ApiResponse::error("Convite inválido: {$status['message']}");
+                }
+            }
+
+            // 2. Se não houver convite, verifica acesso normal
+            if (!$accessGranted && !$dashboard->userHasAccess()) {
                 return ApiResponse::error("Acesso negado ao dashboard '{$dashboard->name}'");
+            }
+
+            if (!$accessGranted) {
+                $accessMethod = 'normal';
             }
 
             $structure = $dashboard->getFullStructure();
 
+            // Adiciona informações de acesso à resposta
+            $structure['access_info'] = [
+                'method' => $accessMethod,
+                'invitation_status' => $invitationStatus,
+            ];
 
             return ApiResponse::success($structure, "Dashboard '{$key}' carregado");
         } catch (\Exception $e) {
+            Log::error("Erro ao carregar dashboard '{$key}': " . $e->getMessage());
             return ApiResponse::error('Erro ao carregar dashboard', [$e->getMessage()]);
         }
     }
@@ -262,8 +316,11 @@ class DashboardService
      * @param array $filterParams
      * @return ApiResponse
      */
-    public function getSectionData(int $sectionId, array $filterParams = []): ApiResponse
-    {
+    public function getSectionData(
+        int $sectionId,
+        array $filterParams = [],
+        ?string $invitationToken = null
+    ): ApiResponse {
         try {
             /** @var DashboardSection $section */
             $section = DashboardSection::with([
@@ -280,7 +337,18 @@ class DashboardService
             /** @var Dashboard $dashboard */
             $dashboard = $section->dashboard;
 
-            if (!$dashboard->userHasAccess()) {
+            // Valida acesso (normal ou via convite)
+            $hasAccess = $dashboard->userHasAccess();
+
+            if (!$hasAccess && $invitationToken) {
+                $invitation = DashboardInvitation::where('token', $invitationToken)
+                    ->where('dashboard_id', $dashboard->id)
+                    ->first();
+
+                $hasAccess = $invitation && $invitation->isValid();
+            }
+
+            if (!$hasAccess) {
                 return ApiResponse::error('Acesso negado para buscar dados da seção');
             }
 
@@ -479,7 +547,7 @@ class DashboardService
         );
     }
 
-    public function getWidgetData(int $widgetId, array $filterParams = []): ApiResponse
+    public function getWidgetData(int $widgetId, array $filterParams = [], ?string $invitationToken = null): ApiResponse
     {
         try {
             /** @var DashboardWidget $widget */
@@ -492,8 +560,19 @@ class DashboardService
             /** @var Dashboard $dashboard */
             $dashboard = $widget->section()->first()->dashboard;
 
-            if (!$dashboard->userHasAccess()) {
-                return ApiResponse::error('Acesso negado para buscar dados da seção');
+            // Valida acesso (normal ou via convite)
+            $hasAccess = $dashboard->userHasAccess();
+
+            if (!$hasAccess && $invitationToken) {
+                $invitation = DashboardInvitation::where('token', $invitationToken)
+                    ->where('dashboard_id', $dashboard->id)
+                    ->first();
+
+                $hasAccess = $invitation && $invitation->isValid();
+            }
+
+            if (!$hasAccess) {
+                return ApiResponse::error('Acesso negado para buscar dados do widget');
             }
 
             if (!$widget->active) {

@@ -31,11 +31,20 @@ class DashboardController extends Controller
 
     /**
      * Obtém a estrutura completa de um dashboard
-     * GET /api/dashboards/{key}
+     * Suporta acesso via convite através do parâmetro 'invitation_token'
+     *
+     * GET /api/dashboards/{key}?invitation_token={token}
      */
     public function show(Request $request, string $key): JsonResponse
     {
-        return $this->service->getDashboard($key)->toJson();
+        $invitationToken = $request->query('invitation_token');
+
+        return $this->service->getDashboard(
+            $key,
+            $invitationToken,
+            $request->ip(),
+            $request->userAgent()
+        )->toJson();
     }
 
     /**
@@ -50,7 +59,7 @@ class DashboardController extends Controller
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:50',
             'config' => 'nullable|array',
-            'visibility' => 'nullable|string|in:public,authenticated,restricted',
+            'visibility' => 'nullable|string|in:authenticated,restricted',
             'active' => 'nullable|boolean',
             'is_navigable' => 'nullable|boolean',
             'is_home' => 'nullable|boolean',
@@ -79,7 +88,7 @@ class DashboardController extends Controller
             'icon' => 'nullable|string|max:50',
             'config' => 'nullable|array',
             'active' => 'nullable|boolean',
-            'visibility' => 'nullable|string|in:public,authenticated,restricted',
+            'visibility' => 'nullable|string|in:authenticated,restricted',
             'is_navigable' => 'nullable|boolean',
             'is_home' => 'nullable|boolean',
         ], [
@@ -180,12 +189,20 @@ class DashboardController extends Controller
 
     /**
      * Obtém dados de todos os widgets de uma seção
-     * GET /api/dashboards/sections/{sectionId}/data
+     * Suporta acesso via convite através do parâmetro 'invitation_token'
+     *
+     * GET /api/dashboards/sections/{sectionId}/data?invitation_token={token}
      */
     public function getSectionData(Request $request, int $sectionId): JsonResponse
     {
         $filterParams = $request->input('params', []);
-        return $this->service->getSectionData($sectionId, $filterParams)->toJson();
+        $invitationToken = $request->query('invitation_token');
+
+        return $this->service->getSectionData(
+            $sectionId,
+            $filterParams,
+            $invitationToken
+        )->toJson();
     }
 
     /**
@@ -247,12 +264,20 @@ class DashboardController extends Controller
 
     /**
      * Obtém dados de um widget específico
-     * GET /api/dashboards/widgets/{widgetId}/data
+     * Suporta acesso via convite através do parâmetro 'invitation_token'
+     *
+     * GET /api/dashboards/widgets/{widgetId}/data?invitation_token={token}
      */
     public function getWidgetData(Request $request, int $widgetId): JsonResponse
     {
         $filterParams = $request->input('params', []);
-        return $this->service->getWidgetData($widgetId, $filterParams)->toJson();
+        $invitationToken = $request->query('invitation_token');
+
+        return $this->service->getWidgetData(
+            $widgetId,
+            $filterParams,
+            $invitationToken
+        )->toJson();
     }
 
     /**
