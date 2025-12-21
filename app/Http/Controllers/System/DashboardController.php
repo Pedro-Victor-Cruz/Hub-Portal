@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\Dashboard\DashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Controller para gerenciar dashboards dinâmicos
@@ -45,6 +47,29 @@ class DashboardController extends Controller
             $request->ip(),
             $request->userAgent()
         )->toJson();
+    }
+
+    /**
+     * Obtém todos os dashboard que um grupo tem
+     * GET /api/dashboards/group/{groupId}
+     */
+    public function getDashboardsByGroup(int $groupId): JsonResponse
+    {
+        return $this->service->getDashboardsByGroup($groupId)->toJson();
+    }
+
+    public function getAccessibleDashboardsForUser(): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::guard('auth')->user();
+        return $this->service->getAccessibleDashboardsForUser($user)->toJson();
+    }
+
+    public function setUserHomeDashboard(Request $request, string $key): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::guard('auth')->user();
+        return $this->service->setUserHomeDashboard($user, $key)->toJson();
     }
 
     /**

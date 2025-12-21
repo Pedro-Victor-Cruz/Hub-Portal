@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Utils\PermissionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
@@ -222,20 +223,6 @@ class Dashboard extends Model
                 $newWidget = $widget->replicate();
                 $newWidget->section_id = $newSection->id;
                 $newWidget->save();
-
-                // Clonar ações do widget
-                foreach ($widget->actions as $action) {
-                    $newAction = $action->replicate();
-                    $newAction->widget_id = $newWidget->id;
-                    $newAction->save();
-                }
-            }
-
-            // Clonar ações da seção
-            foreach ($section->actions as $action) {
-                $newAction = $action->replicate();
-                $newAction->section_id = $newSection->id;
-                $newAction->save();
             }
 
             // Recursivamente clonar subseções

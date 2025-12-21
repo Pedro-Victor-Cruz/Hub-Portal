@@ -44,6 +44,10 @@ Route::prefix('dashboards')->group(function () {
             Route::get('/navigable/list', [DashboardController::class, 'getNavigableDashboards']);
 
             Route::get('/home/list', [DashboardController::class, 'getHomeDashboard']);
+
+            Route::get('/group/{groupId}', [DashboardController::class, 'getDashboardsByGroup']);
+
+            Route::get('/user/accessible', [DashboardController::class, 'getAccessibleDashboardsForUser']);
         });
 
         Route::prefix('invitations')->group(function () {
@@ -65,6 +69,8 @@ Route::prefix('dashboards')->group(function () {
             // Remove um dashboard
             Route::delete('/delete', [DashboardController::class, 'destroy'])
                 ->middleware('permission:dashboard.delete');
+
+            Route::post('/set-home', [DashboardController::class, 'setUserHomeDashboard']);
 
             Route::prefix('/invitations')->group(function () {
                 Route::get('/', [DashboardInvitationController::class, 'index']);

@@ -8,6 +8,7 @@ use App\Utils\PermissionStatus;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
  * @property string $description
  * @property PermissionStatus $access_level
  * @property bool $is_system
+ * @property int $dashboard_home_id
  * @property-read Collection<int, Permission> $permissions
  * @property-read Collection<int, User> $users
  * @property-read Collection<int, PermissionGroup> $groups
@@ -28,12 +30,23 @@ class PermissionGroup extends Model
 
     protected $table = 'permission_groups';
 
-    protected $fillable = ['name', 'description', 'access_level', 'is_system'];
+    protected $fillable = [
+        'name',
+        'description',
+        'access_level',
+        'is_system',
+        'dashboard_home_id'
+    ];
 
     protected $casts = [
         'is_system' => 'boolean',
         'access_level' => PermissionStatusCast::class
     ];
+
+    public function dashboardHome(): BelongsTo
+    {
+        return $this->belongsTo(Dashboard::class, 'dashboard_home_id');
+    }
 
     public function permissions(): BelongsToMany
     {

@@ -16,11 +16,12 @@ class PermissionGroupRequest extends ApiRequest
         $user = Auth::guard('auth')->user();
 
         return [
-            'description'   => 'required|string|max:255',
-            'name'          => 'required|string|max:255',
-            'access_level'  => 'sometimes|in:' . implode(',', array_keys(PermissionStatus::getManageableLevelsArray($user->accessLevel()))),
-            'permissions'   => 'required|array',
-            'permissions.*' => 'string|exists:permissions,name',
+            'description'       => 'required|string|max:255',
+            'name'              => 'required|string|max:255',
+            'access_level'      => 'sometimes|in:' . implode(',', array_keys(PermissionStatus::getManageableLevelsArray($user->accessLevel()))),
+            'permissions'       => 'required|array',
+            'permissions.*'     => 'string|exists:permissions,name',
+            'dashboard_home_id' => 'sometimes|nullable|exists:dashboards,id',
         ];
     }
 
@@ -38,6 +39,7 @@ class PermissionGroupRequest extends ApiRequest
             'permissions.array'    => 'O campo permissões deve ser um array.',
             'permissions.*.string' => 'Cada permissão deve ser uma string.',
             'permissions.*.exists' => 'Uma ou mais permissões selecionadas não existem.',
+            'dashboard_home_id.exists' => 'O dashboard selecionado para página inicial não existe.',
         ];
     }
 }

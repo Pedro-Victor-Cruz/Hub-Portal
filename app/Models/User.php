@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $password
  * @property int $status
+ * @property int $dashboard_home_id
  * @property Carbon|null $last_login
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -52,6 +54,7 @@ class User extends Model implements Authenticatable
         'password',
         'status',
         'last_login',
+        'dashboard_home_id',
     ];
 
     /**
@@ -60,6 +63,11 @@ class User extends Model implements Authenticatable
     public function setPasswordAttribute($value): void
     {
         $this->attributes['password'] = bcrypt($value);
+    }
+
+    public function dashboardHome(): BelongsTo
+    {
+        return $this->belongsTo(Dashboard::class, 'dashboard_home_id');
     }
 
     /**

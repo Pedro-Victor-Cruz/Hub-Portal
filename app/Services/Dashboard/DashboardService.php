@@ -7,6 +7,7 @@ use App\Models\Dashboard;
 use App\Models\DashboardInvitation;
 use App\Models\DashboardSection;
 use App\Models\DashboardWidget;
+use App\Models\PermissionGroup;
 use App\Models\User;
 use App\Services\Core\ApiResponse;
 use Illuminate\Support\Facades\Auth;
@@ -30,13 +31,13 @@ class DashboardService
 
             $dashboards = $query->get()->map(function ($dashboard) {
                 return [
-                    'key'         => $dashboard->key,
-                    'name'        => $dashboard->name,
-                    'description' => $dashboard->description,
-                    'icon'        => $dashboard->icon,
-                    'active'      => $dashboard->active,
-                    'is_home'     => $dashboard->is_home,
-                    'is_navigable'=> $dashboard->is_navigable,
+                    'key'          => $dashboard->key,
+                    'name'         => $dashboard->name,
+                    'description'  => $dashboard->description,
+                    'icon'         => $dashboard->icon,
+                    'active'       => $dashboard->active,
+                    'is_home'      => $dashboard->is_home,
+                    'is_navigable' => $dashboard->is_navigable,
                 ];
             });
 
@@ -55,11 +56,12 @@ class DashboardService
      * @param string|null $userAgent User agent (para log)
      */
     public function getDashboard(
-        string $key,
+        string  $key,
         ?string $invitationToken = null,
         ?string $ipAddress = null,
         ?string $userAgent = null
-    ): ApiResponse {
+    ): ApiResponse
+    {
         try {
             /** @var Dashboard $dashboard */
             $dashboard = Dashboard::where('key', $key)->active()->first();
@@ -111,7 +113,7 @@ class DashboardService
 
             // Adiciona informações de acesso à resposta
             $structure['access_info'] = [
-                'method' => $accessMethod,
+                'method'            => $accessMethod,
                 'invitation_status' => $invitationStatus,
             ];
 
@@ -219,6 +221,53 @@ class DashboardService
         }
     }
 
+    public function getDashboardsByGroup(int $groupId): ApiResponse
+    {
+        try {
+            $dashboards = Dashboard::query()
+                ->whereHas('permission.groups', function ($query) use ($groupId) {
+                    $query->where('permission_groups.id', $groupId);
+                })
+                ->orWhere('permission_id', null)
+                ->active()
+                ->get();
+
+            $dashboards = $dashboards->map(function ($dashboard) {
+                return [
+                    'id'          => $dashboard->id,
+                    'key'         => $dashboard->key,
+                    'name'        => $dashboard->name,
+                    'description' => $dashboard->description,
+                    'icon'        => $dashboard->icon,
+                ];
+            });
+
+            return ApiResponse::success($dashboards, 'Dashboards acessíveis para o grupo carregados');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Erro ao carregar dashboards para o grupo', [$e->getMessage()]);
+        }
+    }
+
+    // Uma função que retorna todos os dashboards que o usuário possui acesso
+    public function getAccessibleDashboardsForUser(User $user): ApiResponse
+    {
+        $result = Dashboard::query()
+            ->active()
+            ->get()
+            ->filter(fn($dashboard) => $dashboard->userHasAccess($user))
+            ->map(fn($dashboard) => [
+                'id'          => $dashboard->id,
+                'key'         => $dashboard->key,
+                'name'        => $dashboard->name,
+                'description' => $dashboard->description,
+                'icon'        => $dashboard->icon,
+                'is_home'     => $user->dashboard_home_id && $user->dashboard_home_id === $dashboard->id,
+            ])
+            ->values();
+
+        return ApiResponse::success($result, 'Dashboards acessíveis para o usuário carregados');
+    }
+
 
     public function createSection(string $dashboardKey, array $data): ApiResponse
     {
@@ -317,10 +366,11 @@ class DashboardService
      * @return ApiResponse
      */
     public function getSectionData(
-        int $sectionId,
-        array $filterParams = [],
+        int     $sectionId,
+        array   $filterParams = [],
         ?string $invitationToken = null
-    ): ApiResponse {
+    ): ApiResponse
+    {
         try {
             /** @var DashboardSection $section */
             $section = DashboardSection::with([
@@ -632,23 +682,51 @@ class DashboardService
     public function getHomeDashboard(): ApiResponse
     {
         try {
-            /** @var Dashboard $dashboard */
-            $dashboard = Dashboard::home()
-                ->active()
-                ->first();
+            /** @var User|null $user */
+            $user = Auth::guard('auth')->user();
 
-            if (!$dashboard) {
-                return ApiResponse::error("Dashboard home não encontrado");
+            // 1️⃣ Dashboard definido no usuário
+            if ($user?->dashboard_home_id) {
+                $dashboard = Dashboard::active()->whereKey($user->dashboard_home_id)->first();
+
+                if ($dashboard) return ApiResponse::success($this->mapDashboard($dashboard));
             }
 
-            return ApiResponse::success([
-                'name' => $dashboard->name,
-                'key'  => $dashboard->key
-            ]);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Erro ao carregar dashboard home', [$e->getMessage()]);
+            // 2️⃣ Dashboard definido no grupo
+            $group = $user?->group();
+            if ($group?->dashboard_home_id) {
+                $dashboard = Dashboard::active()->whereKey($group->dashboard_home_id)->first();
+
+                if ($dashboard) return ApiResponse::success($this->mapDashboard($dashboard));
+            }
+
+            // 3️⃣ Dashboard home geral
+            $dashboard = Dashboard::home()->active()->first();
+
+            if (!$dashboard) return ApiResponse::error('Dashboard home não encontrado');
+
+
+            return ApiResponse::success($this->mapDashboard($dashboard));
+
+        } catch (\Throwable $e) {
+            return ApiResponse::error(
+                'Erro ao carregar dashboard home',
+                [$e->getMessage()]
+            );
         }
     }
+
+    /**
+     * Normaliza retorno do dashboard
+     */
+    private function mapDashboard(Dashboard $dashboard): array
+    {
+        return [
+            'name' => $dashboard->name,
+            'key'  => $dashboard->key,
+        ];
+    }
+
 
     public function getNavigableDashboards(): ApiResponse
     {
@@ -669,8 +747,8 @@ class DashboardService
                 ->get();
 
             $accessibleDashboards = $dashboards
-                ->filter(fn ($dashboard) => $dashboard->userHasAccess())
-                ->map(fn ($dashboard) => [
+                ->filter(fn($dashboard) => $dashboard->userHasAccess())
+                ->map(fn($dashboard) => [
                     'key'         => $dashboard->key,
                     'name'        => $dashboard->name,
                     'description' => $dashboard->description,
@@ -693,6 +771,23 @@ class DashboardService
         }
     }
 
+    public function setUserHomeDashboard(User $user, string $key): ApiResponse
+    {
+        $dashboard = Dashboard::where('key', $key)->first();
+
+        if (!$dashboard) {
+            return ApiResponse::error("Dashboard '{$key}' não encontrado");
+        }
+
+        if (!$dashboard->userHasAccess($user)) {
+            return ApiResponse::error("Acesso negado ao dashboard '{$dashboard->name}'");
+        }
+
+        $user->dashboard_home_id = $dashboard->id;
+        $user->save();
+
+        return ApiResponse::success(null, "Dashboard '{$dashboard->name}' definido como home do usuário");
+    }
 
 
 }

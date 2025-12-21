@@ -48,7 +48,7 @@ class UserCreateOrUpdateRequest extends ApiRequest
             'confirm_password.same' => 'As senhas não coincidem.',
             'name.required' => 'O nome é obrigatório.',
             'name.min' => 'O nome deve ter no mínimo 3 caracteres.',
-            'name.max' => 'O nome deve ter no máximo 50 caracteres.',
+            'name.max' => 'O nome deve ter no máximo 50 caracteres.'
         ];
     }
 }
