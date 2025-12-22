@@ -205,6 +205,13 @@ class Dashboard extends Model
         // Clonar seções e widgets recursivamente
         $this->duplicateSections($newDashboard->id);
 
+        // Clonar filtros
+        foreach ($this->filters as $filter) {
+            $newFilter = $filter->replicate();
+            $newFilter->dashboard_id = $newDashboard->id;
+            $newFilter->save();
+        }
+
         return $newDashboard;
     }
 
