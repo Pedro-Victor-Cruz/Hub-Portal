@@ -144,9 +144,45 @@ class DashboardInvitation extends Model
     }
 
     /**
-     * Registra um acesso usando este convite
+     * Registra um acesso usando este convite com cache para IPs únicos
      */
     public function recordAccess(?int $userId = null, ?string $ipAddress = null, ?string $userAgent = null): void
+    {
+        if (empty($ipAddress)) {
+            $this->incrementAccess($userId, $ipAddress, $userAgent);
+            return;
+        }
+
+        $cacheKey = "invitation_ip:{$this->id}:{$ipAddress}";
+
+        $isFirstAccess = cache()->remember($cacheKey, 86400, function () use ($ipAddress) {
+            // Se não estiver no cache, verifica no banco
+            return !DashboardInvitationLog::where('invitation_id', $this->id)
+                ->where('ip_address', $ipAddress)
+                ->exists();
+        });
+
+        // Se for o primeiro acesso deste IP, incrementa o contador
+        if ($isFirstAccess) {
+            $this->increment('uses_count');
+            // Atualiza o cache para false para próximos acessos
+            cache()->put($cacheKey, false, 86400);
+        }
+
+        // Cria o log
+        DashboardInvitationLog::create([
+            'invitation_id' => $this->id,
+            'user_id' => $userId,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'accessed_at' => now()
+        ]);
+    }
+
+    /**
+     * Método auxiliar para incrementar o acesso (mantido para compatibilidade)
+     */
+    private function incrementAccess(?int $userId = null, ?string $ipAddress = null, ?string $userAgent = null): void
     {
         $this->increment('uses_count');
 
@@ -155,7 +191,7 @@ class DashboardInvitation extends Model
             'user_id' => $userId,
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
-            'accessed_at' => now(),
+            'accessed_at' => now()
         ]);
     }
 
