@@ -1,10 +1,13 @@
 <ub-content title="Dashboards" [loading]="loading">
-  <ub-table
-    [config]="configTable"
-    [data]="data"
-    (reloadEvent)="loadData()"
-    (createEvent)="openConfig()"
-    (editEvent)="openConfig($event)"
-    (deleteEvent)="deleteDashboard($event)">
-  </ub-table>
+<!--  <ub-table-->
+<!--    [config]="configTable"-->
+<!--    [data]="data"-->
+<!--    (reloadEvent)="loadData()"-->
+<!--    (createEvent)="openConfig()"-->
+<!--    (editEvent)="openConfig($event)"-->
+<!--    (deleteEvent)="deleteDashboard($event)">-->
+<!--  </ub-table>-->
+  <ub-list [data]="data"
+           (refresh)="loadData()"
+           [config]="schamaCard" title="Lista de todos os dashboards"></ub-list>
 </ub-content>

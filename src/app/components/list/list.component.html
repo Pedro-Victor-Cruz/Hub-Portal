@@ -1,0 +1,150 @@
+<!-- ub-list.component.html -->
+<div class="ub-list-container">
+  <!-- Header -->
+  <div class="ub-list-header">
+    <div class="header-content">
+      <div class="header-info">
+        @if (config.display && config.display.title) {
+          <h2 class="list-title">{{ config.display.title }}</h2>
+        }
+        @if (config.display && config.display.subtitle) {
+          <p class="list-subtitle">{{ config.display.subtitle }}</p>
+        }
+      </div>
+
+      <div class="header-meta">
+        <div class="record-count">
+          <i class='bx bx-list-ul'></i>
+          <span>{{ recordCount }} registro{{ recordCount !== 1 ? 's' : '' }}</span>
+          @if (recordCount !== totalCount) {
+            <span class="total-hint">de {{ totalCount }}</span>
+          }
+        </div>
+
+        @if (hasRefreshListener) {
+          <button class="btn-refresh" (click)="onRefresh()" title="Recarregar">
+            <i class='bx bx-refresh'></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Ações Globais -->
+    @if (config && config.actions && config.actions.length > 0) {
+      <div class="header-actions">
+        @for (action of config.actions; track action.label) {
+          @if (isActionVisible(action)) {
+            <button
+              class="btn btn-action"
+              [class]="'btn-' + (action.color || 'primary')"
+              [disabled]="action.loading"
+              (click)="executeAction(action)"
+            >
+              @if (action.icon) {
+                <i [class]="action.icon"></i>
+              }
+              <span>{{ action.label }}</span>
+            </button>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Toolbar -->
+  <div class="ub-list-toolbar">
+    <div class="toolbar-left">
+      <!-- Busca -->
+      @if (config.searchable !== false) {
+        <div class="search-box">
+          <i class='bx bx-search search-icon'></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="filterData()"
+          />
+          @if (searchTerm) {
+            <button class="clear-search" (click)="searchTerm = ''; filterData()" title="Limpar busca">
+              <i class='bx bx-x'></i>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="toolbar-right">
+      <!-- Botões de Exportação -->
+      @if (config.exportable !== false) {
+        <div class="export-buttons">
+          <button class="btn btn-sm btn-outline" (click)="exportPDF()" title="Exportar PDF">
+            <i class='bx bxs-file-pdf'></i>
+            <span>PDF</span>
+          </button>
+          <button class="btn btn-sm btn-outline" (click)="exportExcel()" title="Exportar Excel">
+            <i class='bx bxs-file'></i>
+            <span>Excel</span>
+          </button>
+          <button class="btn btn-sm btn-outline" (click)="exportCSV()" title="Exportar CSV">
+            <i class='bx bx-table'></i>
+            <span>CSV</span>
+          </button>
+        </div>
+      }
+
+      <!-- Seletor de Visualização -->
+      <div class="view-selector">
+        <button
+          class="btn-view"
+          [class.active]="viewMode === 'card'"
+          (click)="changeView('card')"
+          title="Visualização em Cards"
+        >
+          <i class='bx bx-grid-alt'></i>
+        </button>
+        <button
+          class="btn-view"
+          [class.active]="viewMode === 'table'"
+          (click)="changeView('table')"
+          title="Visualização em Tabela"
+        >
+          <i class='bx bx-list-ul'></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="ub-list-content">
+    <!-- Card View -->
+    @if (viewMode === 'card') {
+      <ub-card-list
+        [data]="filteredData"
+        [fields]="processedFields"
+        [config]="config"
+        [itemActions]="config.itemActions ?? []"
+        (actionClick)="executeAction($event.action, $event.item)"
+      ></ub-card-list>
+    }
+
+    <!-- Table View -->
+    @if (viewMode === 'table') {
+      <ub-table-list
+        [data]="filteredData"
+        [fields]="processedFields"
+        [config]="config"
+        [itemActions]="config.itemActions ?? []"
+        (actionClick)="executeAction($event.action, $event.item)"
+      ></ub-table-list>
+    }
+
+    <!-- Empty State -->
+    @if (filteredData.length === 0) {
+      <div class="empty-state">
+        <i class='bx bx-search-alt'></i>
+        <p>Nenhum registro encontrado</p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<!-- ub-card-list.component.html -->
+<div class="ub-card-list" [class.compact]="config.card?.compact">
+  @for (item of data; track item) {
+    <div class="card-item">
+      <!-- Card Image -->
+      @if (getCardImage(item)) {
+        <div class="card-image">
+          <img [src]="getCardImage(item)" [alt]="getCardTitle(item)" />
+        </div>
+      }
+
+      <!-- Card Content -->
+      <div class="card-content">
+        <!-- Card Header -->
+        <div class="card-header">
+          <h3 class="card-title">{{ getCardTitle(item) }}</h3>
+          @if (getCardSubtitle(item)) {
+            <p class="card-subtitle">{{ getCardSubtitle(item) }}</p>
+          }
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          @for (field of getVisibleFields(item); track field.key) {
+            <div class="card-field">
+              <span class="field-label">{{ field.label }}:</span>
+              <span class="field-value" [style.color]="getFieldColor(item, field)">
+                @if (getFieldIcon(item, field)) {
+                  <i [class]="getFieldIcon(item, field)"></i>
+                }
+                {{ getFieldValue(item, field) }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Card Actions -->
+        @if (itemActions && itemActions.length > 0) {
+          <div class="card-actions">
+            @for (action of itemActions; track action.label) {
+              @if (isActionVisible(action, item)) {
+                <button
+                  class="btn btn-sm"
+                  [class]="'btn-' + (action.color || 'primary')"
+                  [disabled]="action.loading"
+                  (click)="onActionClick(action, item)"
+                >
+                  @if (action.icon) {
+                    <i [class]="action.icon"></i>
+                  }
+                  <span>{{ action.label }}</span>
+                </button>
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

@@ -1,19 +1,21 @@
 import {Component, OnInit} from '@angular/core';
 import {ContentComponent} from '../../components/content/content.component';
-import {TableComponent, TableConfig} from '../../components/table/table.component';
+import {TableConfig} from '../../components/table/table.component';
 import {DashboardService, Dashboard} from '../../services/dashboard.service';
 import {ToastService} from '../../components/toast/toast.service';
 import {Utils} from '../../services/utils.service';
 import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
 import {ConfirmationService} from '../../components/confirmation-modal/confirmation-modal.service';
+import {UbListComponent} from '../../components/list/list.component';
+import {ListConfig} from '../../components/list/list.types';
 
 @Component({
   selector: 'app-dashboards',
   imports: [
     CommonModule,
     ContentComponent,
-    TableComponent
+    UbListComponent
   ],
   templateUrl: './dashboards.page.html',
   standalone: true,
@@ -65,6 +67,70 @@ export class DashboardsPage implements OnInit {
         icon: 'bx bx-link-external',
         tooltip: 'Abrir Dashboard',
         action: (row: Dashboard) => this.openDashboard(row)
+      }
+    ]
+  };
+  schamaCard: ListConfig = {
+    display: {
+      title: 'Lista de dashboards',
+      subtitle: 'Veja todos os dashboards disponíveis'
+    },
+    actions: [
+      {
+        label: 'Adicionar Dashboard',
+        icon: 'bx bx-plus',
+        action: () => this.openConfig()
+      }
+    ],
+    itemActions: [
+      {
+        label: 'Editar',
+        icon: 'bx bx-edit',
+        action: (item: Dashboard) => this.openConfig(item)
+      },
+      {
+        label: 'Duplicar',
+        icon: 'bx bx-copy',
+        confirm: true,
+        action: (item: Dashboard) => this.duplicateDashboard(item)
+      },
+      {
+        label: 'Excluir',
+        icon: 'bx bx-trash',
+        color: 'danger',
+        confirm: true,
+        action: (item: Dashboard) => this.deleteDashboard(item)
+      }
+    ],
+    fields: [
+      {
+        label: 'Nome',
+        key: 'name',
+        isTitleCard: true
+      },
+      {
+        label: 'Chave',
+        key: 'key',
+        isSubtitleCard: true
+      },
+      {
+        label: 'Descrição',
+        key: 'description'
+      },
+      {
+        label: 'Ativo',
+        key: 'active',
+        type: 'boolean',
+      },
+      {
+        label: 'Página Inicial',
+        key: 'is_home',
+        type: 'boolean'
+      },
+      {
+        label: 'Navegável',
+        key: 'is_navigable',
+        type: 'boolean'
       }
     ]
   };

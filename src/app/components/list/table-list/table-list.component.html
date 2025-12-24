@@ -1,0 +1,159 @@
+<!-- ub-table-list.component.html -->
+<div class="ub-table-wrapper">
+  <!-- Filter Toggle -->
+  @if (tableConfig.columnFilters !== false) {
+    <div class="table-controls">
+      <button
+        class="btn-filter-toggle"
+        [class.active]="showColumnFilters"
+        (click)="toggleColumnFilters()"
+        title="Filtros por coluna"
+      >
+        <i class='bx bx-filter-alt'></i>
+        <span>Filtros</span>
+        @if (hasActiveFilters()) {
+          <span class="filter-badge">{{ Object.keys(columnFilters).length }}</span>
+        }
+      </button>
+
+      @if (showColumnFilters && hasActiveFilters()) {
+        <button
+          class="btn-clear-filters"
+          (click)="clearAllFilters()"
+          title="Limpar todos os filtros"
+        >
+          <i class='bx bx-x'></i>
+          <span>Limpar filtros</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Table Container -->
+  <div
+    class="table-container"
+    [class.striped]="tableConfig.striped !== false"
+    [class.hover]="tableConfig.hover !== false"
+    [class.bordered]="tableConfig.bordered"
+    [class.sticky-header]="tableConfig.stickyHeader"
+  >
+    <table class="ub-table">
+      <!-- Header -->
+      <thead>
+      <tr class="header-row">
+        @for (field of visibleFields; track field.key) {
+          <th
+            class="table-header"
+            [class.sortable]="field.sortable !== false"
+            [class.sorted]="sortState.field === field.key"
+            [style.width]="field.width"
+            (click)="field.sortable !== false && sortColumn(field)"
+          >
+            <div class="header-content">
+              <span class="header-label">{{ field.label }}</span>
+              @if (field.sortable !== false) {
+                <i class="bx sort-icon" [class]="getSortIcon(field)"></i>
+              }
+            </div>
+          </th>
+        }
+        @if (hasActions) {
+          <th class="table-header actions-header">
+            <div class="header-content">
+              <span class="header-label">Ações</span>
+            </div>
+          </th>
+        }
+      </tr>
+
+      <!-- Column Filters Row -->
+        @if (showColumnFilters) {
+          <tr class="filters-row">
+            @for (field of visibleFields; track field.key) {
+              <th class="filter-cell">
+                <div class="filter-wrapper">
+                  <i class='bx bx-search filter-icon'></i>
+                  <input
+                    type="text"
+                    class="filter-input"
+                    placeholder="Filtrar..."
+                    [(ngModel)]="columnFilters[field.key]"
+                    (ngModelChange)="onColumnFilterChange()"
+                  />
+                  @if (columnFilters[field.key]) {
+                    <button
+                      class="clear-filter"
+                      (click)="clearColumnFilter(field.key)"
+                      title="Limpar filtro"
+                    >
+                      <i class='bx bx-x'></i>
+                    </button>
+                  }
+                </div>
+              </th>
+            }
+            @if (hasActions) {
+              <th class="filter-cell"></th>
+            }
+          </tr>
+        }
+      </thead>
+
+      <!-- Body -->
+      <tbody>
+        @for (item of sortedData; track $index) {
+          <tr class="table-row">
+            @for (field of visibleFields; track field.key) {
+              <td
+                class="table-cell"
+                [class]="'cell-type-' + (field.type || 'text')"
+                [style.color]="getFieldColor(item, field)"
+              >
+                <div class="cell-content">
+                  @if (getFieldIcon(item, field)) {
+                    <i class="bx cell-icon" [class]="getFieldIcon(item, field)"></i>
+                  }
+                  <span class="cell-value">{{ getFieldValue(item, field) }}</span>
+                </div>
+              </td>
+            }
+            @if (hasActions) {
+              <td class="table-cell actions-cell">
+                <div class="action-buttons">
+                  @for (action of itemActions; track action.label) {
+                    @if (isActionVisible(action, item)) {
+                      <button
+                        class="btn-action"
+                        [class]="'btn-action-' + (action.color || 'primary')"
+                        [disabled]="action.loading"
+                        (click)="onActionClick(action, item, $event)"
+                        [title]="action.label"
+                      >
+                        @if (action.icon) {
+                          <i [class]="action.icon"></i>
+                        }
+                        <span class="action-label">{{ action.label }}</span>
+                      </button>
+                    }
+                  }
+                </div>
+              </td>
+            }
+          </tr>
+        }
+
+      <!-- Empty State -->
+        @if (sortedData.length === 0) {
+          <tr>
+            <td [attr.colspan]="visibleFields.length + (hasActions ? 1 : 0)" class="empty-cell">
+              <div class="empty-state">
+                <i class='bx bx-search-alt'></i>
+                <p>Nenhum registro encontrado</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
