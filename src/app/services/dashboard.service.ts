@@ -102,6 +102,12 @@ export class DashboardService {
     );
   }
 
+  getDashboardDetails(key: string): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/${key}/details`)
+    );
+  }
+
   getDashboardsByGroup(idGroup: string): Promise<any> {
     return firstValueFrom(
       this.http.get<any>(`${this.API_URL}/dashboards/group/${idGroup}`)

@@ -57,7 +57,7 @@ export class DashboardBuilderComponent implements OnInit {
   async loadDashboardStructure() {
     this.loading = true;
     try {
-      const response = await this.dashboardService.getDashboard(this.dashboardKey);
+      const response = await this.dashboardService.getDashboardDetails(this.dashboardKey);
       const structure = response.data;
 
       if (structure && structure.sections) {

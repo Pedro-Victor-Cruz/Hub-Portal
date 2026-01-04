@@ -87,7 +87,7 @@ export class DashboardModal implements OnInit {
   protected async loadDashboard() {
     if (this.dashboardKey) {
       try {
-        const response = await this.dashboardService.getDashboard(this.dashboardKey);
+        const response = await this.dashboardService.getDashboardDetails(this.dashboardKey);
         this.dashboard = response.data?.dashboard || null;
 
         if (!this.dashboard) {
