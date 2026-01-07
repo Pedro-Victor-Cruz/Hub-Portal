@@ -47,27 +47,40 @@
       align-items: center;
       gap: 16px;
 
-      h5 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 600;
-        background: linear-gradient(135deg, #1f2937, #4b5563);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -0.025em;
-        position: relative;
+      .title {
+        h2 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 600;
+          background: linear-gradient(135deg, #1f2937, #4b5563);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          letter-spacing: -0.025em;
+          position: relative;
 
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: -4px;
-          left: 0;
-          height: 2px;
-          width: 0;
-          background: linear-gradient(90deg, #6366f1, #8b5cf6);
-          border-radius: 1px;
-          transition: width 0.4s ease;
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            height: 2px;
+            width: 0;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 1px;
+            transition: width 0.4s ease;
+          }
+        }
+
+        p {
+          font-size: 0.9375rem;
+          color: var(--text-muted);
+          margin: 0;
+          line-height: 1.5;
+
+          @media (max-width: 768px) {
+            font-size: 0.875rem;
+          }
         }
       }
 
@@ -107,9 +120,8 @@
           background: linear-gradient(135deg, #ffffff, #f8fafc);
           border-color: rgba(99, 102, 241, 0.3);
           transform: translateY(-1px);
-          box-shadow:
-            0 4px 12px rgba(0, 0, 0, 0.08),
-            0 2px 4px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+          0 2px 4px rgba(0, 0, 0, 0.04);
 
           &::before {
             left: 100%;

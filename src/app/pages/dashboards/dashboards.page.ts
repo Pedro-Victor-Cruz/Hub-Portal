@@ -35,6 +35,12 @@ export class DashboardsPage implements OnInit {
         label: 'Adicionar Dashboard',
         icon: 'bx bx-plus',
         action: () => this.openConfig()
+      },
+      {
+        label: 'Modelos de Dashboards',
+        icon: 'bx bx-grid-alt',
+        color: 'secondary',
+        action: () => this.openTemplatesDashboards()
       }
     ],
     itemActions: [
@@ -170,5 +176,9 @@ export class DashboardsPage implements OnInit {
    */
   openDashboard(dashboard: Dashboard) {
     this.router.navigate([`/dashboards/${dashboard.key}`]);
+  }
+
+  private openTemplatesDashboards() {
+    this.router.navigate(['/dashboard-templates'])
   }
 }

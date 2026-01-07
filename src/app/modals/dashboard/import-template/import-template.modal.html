@@ -1,0 +1,119 @@
+<div class="import-modal">
+
+  <div class="modal-header">
+    <div class="header-content">
+      <div class="header-main">
+        <h1>{{ template.name }}</h1>
+        <p class="template-description">{{ template.description }}</p>
+        <div class="header-meta">
+          <div class="meta-item">
+            <i class="bx bx-category"></i>
+            <span>{{ template.category | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Formulário -->
+  <form class="import-form" (ngSubmit)="onSubmit()">
+
+    <!-- Informações importantes -->
+    <div class="info-box">
+      <div class="info-icon">
+        <i class="bx bx-info-circle"></i>
+      </div>
+      <div class="info-content">
+        <strong>Sobre a importação</strong>
+        <p>Um novo dashboard será criado com toda a estrutura deste template. Você poderá personalizá-lo depois.</p>
+      </div>
+    </div>
+
+    <!-- Nome do Dashboard -->
+    <div class="form-group">
+      <label for="dashboard_name" class="form-label">
+        Nome do Dashboard <span class="required">*</span>
+      </label>
+      <input
+        type="text"
+        id="dashboard_name"
+        class="form-control"
+        [(ngModel)]="formData.dashboard_name"
+        name="dashboard_name"
+        placeholder="Ex: Painel de Vendas - 2024"
+        [disabled]="loading"
+        required
+      />
+      <small class="form-hint">
+        <i class="bx bx-bulb"></i>
+        Este será o nome principal exibido no seu dashboard
+      </small>
+    </div>
+
+    <!-- Descrição -->
+    <div class="form-group">
+      <label for="dashboard_description" class="form-label">
+        Descrição (Opcional)
+      </label>
+      <textarea
+        id="dashboard_description"
+        class="form-control"
+        [(ngModel)]="formData.dashboard_description"
+        name="dashboard_description"
+        rows="3"
+        placeholder="Descreva o propósito ou informações relevantes deste dashboard"
+        [disabled]="loading"
+      ></textarea>
+      <small class="form-hint">
+        <i class="bx bx-info-circle"></i>
+        Ajuda a identificar o dashboard quando você tiver vários
+      </small>
+    </div>
+
+    <!-- Chave personalizada -->
+    <div class="form-group">
+      <label for="dashboard_key" class="form-label">
+        Identificador (Opcional)
+      </label>
+      <input
+        type="text"
+        id="dashboard_key"
+        class="form-control"
+        [(ngModel)]="formData.dashboard_key"
+        name="dashboard_key"
+        placeholder="Ex: vendas-2024"
+        [disabled]="loading"
+      />
+      <small class="form-hint">
+        <i class="bx bx-key"></i>
+        Deixe em branco para gerar automaticamente. Use apenas letras minúsculas, números e hífens.
+      </small>
+    </div>
+
+    <!-- Ações -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn-action btn-secondary"
+        (click)="onCancel()"
+        [disabled]="loading">
+        <i class="bx bx-x"></i>
+        <span>Cancelar</span>
+      </button>
+
+      <button
+        type="submit"
+        class="btn-action btn-primary"
+        [disabled]="loading || !formData.dashboard_name">
+        @if (loading) {
+          <i class="bx bx-loader-alt bx-spin"></i>
+          <span>Importando...</span>
+        } @else {
+          <i class="bx bx-download"></i>
+          <span>Importar Template</span>
+        }
+      </button>
+    </div>
+
+  </form>
+
+</div>

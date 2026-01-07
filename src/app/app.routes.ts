@@ -19,6 +19,7 @@ import {SystemPerformancePage} from './pages/system-performance/system-performan
 import {DashboardsPage} from './pages/dashboards/dashboards.page';
 import {DashboardViewPage} from './pages/dashboards/dashboard-view/dashboard-view.page';
 import {DashboardInvitePage} from './pages/dashboards/dashboard-invite/dashboard-invite.page';
+import {DashboardTemplatesPage} from './pages/dashboards/dashboard-templates/dashboard-templates.page';
 
 export const routes: Routes = [
   {
@@ -157,6 +158,10 @@ export const routes: Routes = [
       {
         path: 'dashboard/:key',
         component: DashboardViewPage
+      },
+      {
+        path: 'dashboard-templates',
+        component: DashboardTemplatesPage
       },
       {
         path: 'logs',

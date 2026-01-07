@@ -15,6 +15,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 export class ContentComponent implements OnInit {
 
   @Input() title: string = ''; // Título do conteúdo
+  @Input() description: string = ''; // Descrição do conteúdo
   @Input() showBackButton: boolean = false; // Controla a visibilidade do botão de voltar
   @Input() loading: boolean = false; // Estado de carregamento
   @Input() loadingMessage: string = 'Carregando...'; // Mensagem exibida durante o carregamento

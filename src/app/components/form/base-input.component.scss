@@ -111,6 +111,17 @@
       color: var(--success-color);
     }
   }
+
+  a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color var(--transition-speed) ease-in-out;
+
+    &:hover {
+      color: var(--secondary-color-light);
+      text-decoration: underline;
+    }
+  }
 }
 
 // input sugestão

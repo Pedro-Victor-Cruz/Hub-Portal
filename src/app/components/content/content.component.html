@@ -9,7 +9,12 @@
           <i class="bx bx-arrow-back"></i>
         </button>
       }
-      <h5>{{ title }}</h5>
+      <div class="title">
+        <h2>{{ title }}</h2>
+        @if (description) {
+          <p class="description">{{ description }}</p>
+        }
+      </div>
     </div>
 
   </div>

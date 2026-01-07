@@ -93,14 +93,9 @@
                       [formControlName]="param.name"
                       [required]="param.required"
                       [disabled]="disabled"
+                      [helpText]="param.description || ''"
                       type="number"
                       [error]="getFieldError(param.name)">
-
-                      @if (param.description) {
-                        <small class="help-text">
-                          <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
-                        </small>
-                      }
                     </ub-input>
                   }
 
@@ -112,14 +107,9 @@
                       [formControlName]="param.name"
                       [required]="param.required"
                       [disabled]="disabled"
+                      [helpText]="param.description || ''"
                       type="date"
                       [error]="getFieldError(param.name)">
-
-                      @if (param.description) {
-                        <small class="help-text">
-                          <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
-                        </small>
-                      }
                     </ub-input>
                   }
 
@@ -130,13 +120,8 @@
                       [formControlName]="param.name"
                       [required]="param.required"
                       [disabled]="disabled"
+                      [helpText]="param.description || 'Edite o objeto JSON aqui'"
                       [error]="getFieldError(param.name)">
-
-                      @if (param.description) {
-                        <small class="help-text">
-                          <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
-                        </small>
-                      }
                     </ub-object-editor>
                   }
 
@@ -148,14 +133,10 @@
                       [formControlName]="param.name"
                       [required]="param.required"
                       [disabled]="disabled"
+                      [helpText]="param.description || getComplexFieldHelp(param)"
                       type="textarea"
                       [rows]="4"
                       [error]="getFieldError(param.name)">
-
-                      <small class="help-text">
-                        <i class="pi pi-info-circle mr-1"></i>
-                        {{ param.description || getComplexFieldHelp(param) }}
-                      </small>
                     </ub-textarea>
                   }
 

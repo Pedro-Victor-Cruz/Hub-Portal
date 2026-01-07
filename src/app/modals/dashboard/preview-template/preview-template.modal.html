@@ -1,0 +1,159 @@
+<div class="preview-modal">
+
+  <!-- Header minimalista -->
+  <div class="modal-header">
+    <div class="header-content">
+      <div class="header-main">
+        <h1>{{ template.name }}</h1>
+        <p class="template-description">{{ template.description }}</p>
+        <div class="header-meta">
+          <div class="meta-item">
+            <i class="bx bx-category"></i>
+            <span>{{ template.category | titlecase }}</span>
+          </div>
+          @if (preview.statistics) {
+            <div class="meta-item">
+              <i class="bx bx-layer"></i>
+              <span>{{ preview.statistics.sections }} seções</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="header-status" [class.ready]="preview.requirements.met">
+      <div class="status-indicator">
+        <i class="bx" [ngClass]="preview.requirements.met ? 'bx-check-circle' : 'bx-x-circle'"></i>
+        <span>{{ preview.requirements.met ? 'Pronto para uso' : 'Requisitos pendentes' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- Resumo Rápido -->
+    <div class="quick-stats">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bx bx-data"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ preview.statistics.queries }}</span>
+          <span class="stat-label">Consultas</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bx bx-bar-chart-alt-2"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ preview.statistics.widgets }}</span>
+          <span class="stat-label">Widgets</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bx bx-filter-alt"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ preview.statistics.filters }}</span>
+          <span class="stat-label">Filtros</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status das Integrações -->
+    <div class="integrations-section">
+      <h3 class="section-title">
+        <i class="bx bx-plug"></i>
+        Integrações
+      </h3>
+
+      <div class="integrations-grid">
+        <div class="integration-tag" [class.active]="preview.requirements.details?.integrations?.sankhya">
+          <i class="bx" [ngClass]="preview.requirements.details?.integrations?.sankhya ? 'bx-check' : 'bx-x'"></i>
+          <span>Sankhya</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prévia das Seções -->
+    <div class="sections-preview">
+      <h3 class="section-title">
+        <i class="bx bx-layout"></i>
+        Layout do Dashboard
+      </h3>
+
+      <div class="sections-grid">
+        @for (section of preview.sections; track section.key) {
+          <div class="section-preview">
+            <div class="section-header">
+              <i class="bx bx-folder-open"></i>
+              <h4>{{ section.title }}</h4>
+              <span class="section-widgets">{{ section.widgets.total }} widgets</span>
+            </div>
+
+            <div class="widgets-grid">
+              @for (widget of section.widgets.details; track widget.key) {
+                <div class="widget-tag">
+                  <i class="bx" [ngClass]="getWidgetIcon(widget.type)"></i>
+                  {{ widget.title }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Prévia das Consultas -->
+    <div class="queries-preview">
+      <h3 class="section-title">
+        <i class="bx bx-list-check"></i>
+        Fontes de Dados
+      </h3>
+
+      <div class="queries-list">
+        @for (query of preview.queries | slice: 0: 4; track query.key) {
+          <div class="query-item">
+            <div class="query-info">
+              <i class="bx bx-table"></i>
+              <div>
+                <span class="query-name">{{ query.name }}</span>
+                <span class="query-description">{{ query.description }}</span>
+              </div>
+            </div>
+          </div>
+        }
+        @if (preview.queries.length > 4) {
+          <div class="view-all">
+            Ver todas as {{ preview.queries.length }} consultas
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer compacto -->
+  <div class="modal-footer">
+    <button
+      class="btn btn-secondary"
+      (click)="onCancel()">
+      <i class="bx bx-x"></i>
+      Cancelar
+    </button>
+
+    <button
+      class="btn btn-primary"
+      [class.disabled]="!preview.requirements.met"
+      [disabled]="!preview.requirements.met"
+      (click)="onImport()">
+      <i class="bx bx-download"></i>
+      {{ preview.requirements.met ? 'Importar Template' : 'Configurar requisitos' }}
+    </button>
+  </div>
+
+</div>

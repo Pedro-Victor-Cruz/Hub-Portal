@@ -80,6 +80,13 @@ export class LayoutService {
       category: 'dashboard'
     },
     {
+      title: 'Modelos de Dashboards',
+      path: '/dashboard-templates',
+      icon: 'bx bx-grid-alt',
+      description: 'Explore e importe modelos pré-definidos de dashboards',
+      category: 'dashboard'
+    },
+    {
       title: 'Logs do Sistema',
       path: '/logs',
       icon: 'bx bx-file',

@@ -16,7 +16,7 @@ import {Component, Input, ViewEncapsulation} from '@angular/core';
       }
       <ng-content></ng-content> <!-- Aqui o input específico será projetado -->
       @if (helpText) {
-        <small class="help">{{ helpText }}</small>
+        <small class="help" [innerHTML]="helpText"></small>
       }
       @if (error) {
         <div class="feedback error">{{ error }}</div>

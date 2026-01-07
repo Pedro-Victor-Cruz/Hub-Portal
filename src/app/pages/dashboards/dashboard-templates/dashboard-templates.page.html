@@ -1,0 +1,203 @@
+<ub-content title="Biblioteca de Templates" description="Acelere a criação dos seus dashboards com modelos prontos e personalizáveis">
+
+  <div class="templates-marketplace">
+
+    <!-- Overlay para mobile -->
+    @if (sidebarOpen) {
+      <div class="sidebar-overlay" (click)="toggleSidebar()"></div>
+    }
+
+    <!-- Sidebar de Filtros -->
+    <aside class="filters-sidebar" [class.open]="sidebarOpen">
+      <div class="sidebar-header">
+        <h3>
+          <i class="bx bx-filter-alt"></i>
+          Filtros
+        </h3>
+        <button class="btn-close-sidebar" (click)="toggleSidebar()">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+
+        <!-- Busca -->
+        <div class="filter-section">
+          <label class="filter-label">
+            <i class="bx bx-search"></i>
+            Buscar Templates
+          </label>
+          <div class="search-input-wrapper">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Digite para buscar..."
+              [value]="searchTerm"
+              (input)="onSearchChange($any($event.target).value)">
+            @if (searchTerm) {
+              <button class="btn-clear-search" (click)="onSearchChange('')">
+                <i class="bx bx-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Categorias -->
+        @if (categories.length > 0) {
+          <div class="filter-section">
+            <label class="filter-label">
+              <i class="bx bx-category"></i>
+              Categorias
+            </label>
+            <div class="filter-list">
+              @for (category of categories; track category) {
+                <button
+                  class="filter-item"
+                  [class.active]="selectedCategory === category"
+                  (click)="selectCategory(category)">
+                  <i class="bx" [ngClass]="getCategoryIcon(category)"></i>
+                  <span>{{ getCategoryName(category) }}</span>
+                  @if (selectedCategory === category) {
+                    <i class="bx bx-check check-icon"></i>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Integrações -->
+        @if (integrations.length > 0) {
+          <div class="filter-section">
+            <label class="filter-label">
+              <i class="bx bx-plug"></i>
+              Integrações
+            </label>
+            <div class="filter-list">
+              @for (integration of integrations; track integration.integration_name) {
+                <button
+                  class="filter-item integration-item"
+                  [class.active]="selectedIntegration === integration.integration_name"
+                  (click)="selectIntegration(integration.integration_name)">
+                  <div class="integration-icon">
+                    <img [src]="integration.img" [alt]="integration.name" />
+                  </div>
+                  <div class="integration-info">
+                    <span class="integration-name">{{ integration.name }}</span>
+                    <span class="integration-desc">{{ integration.description }}</span>
+                  </div>
+                  @if (selectedIntegration === integration.integration_name) {
+                    <i class="bx bx-check check-icon"></i>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Botão Limpar Filtros -->
+        @if (hasActiveFilters()) {
+          <div class="filter-section">
+            <button class="btn-clear-filters" (click)="clearFilters()">
+              <i class="bx bx-reset"></i>
+              <span>Limpar Filtros</span>
+            </button>
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="templates-content">
+
+      <!-- Header com botão de filtros mobile -->
+      <div class="content-header">
+        <button class="btn-toggle-filters" (click)="toggleSidebar()">
+          <i class="bx bx-filter-alt"></i>
+          <span>Filtros</span>
+          @if (hasActiveFilters()) {
+            <span class="filter-badge">{{ (searchTerm ? 1 : 0) + (selectedCategory ? 1 : 0) + (selectedIntegration ? 1 : 0) }}</span>
+          }
+        </button>
+
+        <div class="results-count">
+          <span>{{ templates.length }} {{ templates.length === 1 ? 'template encontrado' : 'templates encontrados' }}</span>
+        </div>
+      </div>
+
+      <!-- Grid de templates -->
+      @if (templates.length > 0) {
+        <div class="templates-grid">
+          @for (template of templates; track template.key) {
+            <div class="template-card">
+
+              <!-- Header do card -->
+              <div class="card-header">
+                <div class="template-category-badge">
+                  <i class="bx" [ngClass]="getCategoryIcon(template.category!)"></i>
+                  <span>{{ getCategoryName(template.category!) }}</span>
+                </div>
+              </div>
+
+              <!-- Conteúdo principal -->
+              <div class="card-body">
+                <div class="template-icon-wrapper">
+                  <div class="template-icon">
+                    <i class="bx" [ngClass]="'bx-' + (template.icon || 'grid-alt')"></i>
+                  </div>
+                </div>
+
+                <div class="template-info">
+                  <h3 class="template-name">{{ template.name }}</h3>
+                  <p class="template-description">{{ template.description }}</p>
+                </div>
+              </div>
+
+              <!-- Ações -->
+              <div class="card-footer">
+                <button
+                  class="btn-action btn-preview"
+                  (click)="showPreview(template)">
+                  <i class="bx bx-show"></i>
+                  <span>Visualizar</span>
+                </button>
+
+                <button
+                  class="btn-action btn-import"
+                  (click)="importTemplate(template)">
+                  <i class="bx bx-download"></i>
+                  <span>Importar</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Estado vazio -->
+      @if (templates.length === 0 && !loading) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="bx bx-search-alt"></i>
+          </div>
+          <h3>Nenhum template encontrado</h3>
+          <p>
+            @if (hasActiveFilters()) {
+              Nenhum template corresponde aos filtros aplicados. Tente ajustar os critérios de busca.
+            } @else {
+              Não há templates disponíveis no momento.
+            }
+          </p>
+          @if (hasActiveFilters()) {
+            <button class="btn-reset" (click)="clearFilters()">
+              <i class="bx bx-reset"></i>
+              <span>Limpar Filtros</span>
+            </button>
+          }
+        </div>
+      }
+
+    </main>
+  </div>
+
+</ub-content>
