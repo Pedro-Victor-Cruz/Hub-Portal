@@ -8,6 +8,16 @@ export interface User {
   last_login: string | null;
   group: PermissionGroup | null;
   permissions: Permission[];
+  client: Client | null;
+  available_clients: Client[] | null;
+}
+
+export interface Client {
+  id: number;
+  name: string;
+  slug: string;
+  domain: string;
+  active: boolean;
 }
 
 export interface PermissionGroup {

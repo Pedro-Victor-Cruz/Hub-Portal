@@ -266,7 +266,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     const page = this.allPages.find(p => p.path === path);
     if (page) {
       this.addToRecentSearches(page);
-      this.router.navigate([path]);
+      this.layoutService.addTab(page.path);
     }
     this.closeModal();
   }

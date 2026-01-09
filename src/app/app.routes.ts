@@ -37,7 +37,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/home',
+    redirectTo: 'home',
     pathMatch: 'full',
   },
   {
@@ -45,7 +45,7 @@ export const routes: Routes = [
     component: DashboardInvitePage
   },
   {
-    path: '',
+    path: ':client_key',
     canActivate: [AuthGuard],
     component: NavbarComponent,
     children: [

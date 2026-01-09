@@ -28,9 +28,7 @@ export class AuthGuard implements CanActivate {
 
     // Se não está autenticado mas tem refresh token, tenta renovar
     const refreshToken = this.authService.getRefreshToken();
-    if (refreshToken) {
-      return this.attemptTokenRefresh(state);
-    }
+    if (refreshToken) return this.attemptTokenRefresh(state);
 
     // Sem autenticação e sem refresh token - redireciona para login
     return this.redirectToLogin(state.url);
