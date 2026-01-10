@@ -1,0 +1,110 @@
+<div class="plan-list-container">
+
+  <!-- Header -->
+  <div class="list-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h2 class="list-title">
+          <i class="bx bx-package"></i>
+          Novo Projeto
+        </h2>
+      </div>
+
+      <div class="no-home-message">
+        <div class="message-content">
+          <p class="message-greeting">
+            Olá <strong>{{ auth.getUserName() }}</strong>! 👋
+          </p>
+          <p class="message-text">
+            Vamos te ajudar a escolher o melhor plano para você começar.<br>
+            Veja nossas opções abaixo e clique em <strong>Selecionar Plano</strong> para prosseguir.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando planos...</p>
+    </div>
+  }
+
+  <!-- Plans Grid -->
+  @else if (plans.length > 0) {
+    <div class="plans-grid">
+      @for (plan of plans; track plan.id) {
+        <div class="plan-card"
+             [class.highlighted]="plan.presentation.highlight"
+             (click)="onSelectPlan(plan)">
+
+          <!-- Tag de destaque -->
+          @if (plan.presentation.tag) {
+            <div class="plan-tag" [attr.data-color]="plan.presentation.color">
+              {{ plan.presentation.tag }}
+            </div>
+          }
+
+          <!-- Header do Card -->
+          <div class="plan-header">
+            <div class="plan-icon" [attr.data-color]="plan.presentation.color">
+              <i class="bx bx-{{ plan.presentation.icon }}"></i>
+            </div>
+            <h3 class="plan-name">{{ plan.name }}</h3>
+            <p class="plan-description">{{ plan.presentation.description }}</p>
+          </div>
+
+          <!-- Preço -->
+          <div class="plan-pricing">
+            <div class="price-wrapper">
+              @if (plan.is_free) {
+                <span class="price-amount free">{{ plan.formatted_price }}</span>
+              } @else {
+                <span class="price-amount">{{ plan.formatted_price }}</span>
+                <span class="price-period">/mês</span>
+              }
+            </div>
+          </div>
+
+          <!-- Features -->
+          <div class="plan-features">
+            <ul class="features-list">
+              @for (feature of plan.presentation.features; track $index) {
+                <li class="feature-item">
+                  <i class="bx bx-check-circle"></i>
+                  <span>{{ feature }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- CTA Button -->
+          <div class="plan-footer">
+            <button class="plan-button"
+                    [attr.data-color]="plan.presentation.color"
+                    (click)="onSelectPlan(plan); $event.stopPropagation()">
+              {{ plan.presentation.cta }}
+              <i class="bx bx-right-arrow-alt"></i>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bx bx-package"></i>
+      </div>
+      <h3>Nenhum plano disponível</h3>
+      <p>No momento não há planos disponíveis</p>
+    </div>
+  }
+
+</div>

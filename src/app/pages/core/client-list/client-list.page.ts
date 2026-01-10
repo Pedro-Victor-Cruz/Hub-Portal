@@ -49,14 +49,12 @@ export class ClientListPage implements OnInit {
     }
   }
 
-  getGridColumns(): string {
-    return `repeat(auto-fill, minmax(280px, 1fr))`;
+  onClientSelect(client: Client): void {
+    if (!client.active) return;
+    this.router.navigate([`/${client.slug}/home`]);
   }
 
-  onClientSelect(client: Client): void {
-    if (!client.active) {
-      return;
-    }
-    this.router.navigate([`/${client.slug}/home`]);
+  onNewProject() {
+    this.router.navigate([`/new-project`]);
   }
 }

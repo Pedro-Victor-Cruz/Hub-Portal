@@ -1,97 +1,105 @@
-  <div class="client-list-container">
+<div class="client-list-container">
 
-    <!-- Header Opcional -->
-    <div class="list-header">
-      <div class="header-content">
-        <div class="title-section">
-          <h2 class="list-title">
-            <i class="bx bx-grid-alt"></i>
-            Meus Proejtos
-          </h2>
-          @if (!loading && clients.length > 0) {
-            <span class="count-badge">{{ clients.length }}</span>
-          }
-        </div>
-
-        <div class="no-home-message">
-          <div class="message-content">
-            <p class="message-greeting">
-              Olá <strong>{{ auth.getUserName() }}</strong>! 👋
-            </p>
-            <p class="message-text">
-              Você tem
-              <strong>{{ clients.length }} {{ clients.length === 1 ? 'projeto disponível' : 'projetos disponíveis' }}</strong>,
-              clique em <strong>Acesssar</strong> para acessar.
-            </p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- Estado de Loading -->
-    @if (loading) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Carregando dashboards...</p>
-      </div>
-    }
-
-    <!-- Estado de Erro -->
-    @else if (error) {
-      <div class="error-state">
-        <div class="error-icon">
-          <i class="bx bx-error-circle"></i>
-        </div>
-        <h3 class="error-title">Não foi possível carregar</h3>
-        <p class="error-message">{{ error }}</p>
-        <button class="retry-button" (click)="loadClients()">
-          <i class="bx bx-refresh"></i>
-          Tentar Novamente
-        </button>
-      </div>
-    }
-
-    @else if (clients.length > 0) {
-      <div class="clients-grid" >
-        @for (client of clients; track client.slug) {
-          <div class="client-card" (click)="onClientSelect(client)">
-
-            <div class="card-header">
-              <!-- Ícone e Badge Principal -->
-              <div class="card-icon">
-                <i class="bx bx-building"></i>
-              </div>
-
-            </div>
-
-            <div class="card-content">
-              <h3 class="card-title">{{ client.name }}</h3>
-            </div>
-
-            <!-- Indicador de seleção -->
-            <div class="card-footer">
-            <span class="select-hint">
-              <i class="bx bx-chevron-right"></i>
-              Acessar
-            </span>
-            </div>
-          </div>
+  <!-- Header Opcional -->
+  <div class="list-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h2 class="list-title">
+          <i class="bx bx-grid-alt"></i>
+          Meus Proejtos
+        </h2>
+        @if (!loading && clients.length > 0) {
+          <span class="count-badge">{{ clients.length }}</span>
         }
       </div>
-    }
 
-    <!-- Estado Vazio -->
-    @else {
-      <div class="empty-state">
-        <div class="empty-icon">
-          <i class="bx bx-bar-chart-alt-2"></i>
+      <div class="no-home-message">
+        <div class="message-content">
+          <p class="message-greeting">
+            Olá <strong>{{ auth.getUserName() }}</strong>! 👋
+          </p>
+          <p class="message-text">
+            Você tem
+            <strong>{{ clients.length }} {{ clients.length === 1 ? 'projeto disponível' : 'projetos disponíveis' }}</strong>,
+            clique em <strong>Acesssar</strong> para acessar.
+          </p>
         </div>
-        <h3>Nenhum projeto disponível</h3>
-        <p>Você ainda não tem acesso a nenhum projeto</p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- Estado de Loading -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando dashboards...</p>
+    </div>
+  }
+
+  <!-- Estado de Erro -->
+  @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">
+        <i class="bx bx-error-circle"></i>
+      </div>
+      <h3 class="error-title">Não foi possível carregar</h3>
+      <p class="error-message">{{ error }}</p>
+      <button class="retry-button" (click)="loadClients()">
+        <i class="bx bx-refresh"></i>
+        Tentar Novamente
+      </button>
+    </div>
+  }
+
+  <div class="clients-grid">
+    @for (client of clients; track client.slug) {
+      <div class="client-card" (click)="onClientSelect(client)">
+
+        <div class="card-header">
+          <!-- Ícone e Badge Principal -->
+          <div class="card-icon">
+            <i class="bx bx-building"></i>
+          </div>
+
+        </div>
+
+        <div class="card-content">
+          <h3 class="card-title">{{ client.name }}</h3>
+        </div>
+
+        <!-- Indicador de seleção -->
+        <div class="card-footer">
+          <span class="select-hint">
+            <i class="bx bx-chevron-right"></i>
+            Acessar
+          </span>
+        </div>
       </div>
     }
 
+    <!-- Card Novo Projeto -->
+    <div class="client-card new-project-card" (click)="onNewProject()">
+      <div class="card-header">
+        <div class="card-icon new-project-icon">
+          <i class="bx bx-plus"></i>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <h3 class="card-title">Novo Projeto</h3>
+        <p class="card-description">Criar um novo projeto personalizado</p>
+      </div>
+
+      <div class="card-footer">
+          <span class="select-hint">
+            <i class="bx bx-plus-circle"></i>
+            Criar Projeto
+          </span>
+      </div>
+    </div>
   </div>
+
+</div>
 

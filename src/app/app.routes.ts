@@ -20,6 +20,7 @@ import {DashboardInvitePage} from './pages/dashboards/dashboard-invite/dashboard
 import {DashboardTemplatesPage} from './pages/dashboards/dashboard-templates/dashboard-templates.page';
 import {ClientListPage} from './pages/core/client-list/client-list.page';
 import {AuthPage} from './pages/auth/auth.page';
+import {PlansPage} from './pages/core/plans/plans.page';
 
 export const routes: Routes = [
   {
@@ -52,6 +53,10 @@ export const routes: Routes = [
       {
         path: 'home',
         component: ClientListPage,
+      },
+      {
+        path: 'new-project',
+        component: PlansPage
       },
     ]
   },

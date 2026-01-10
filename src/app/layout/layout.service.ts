@@ -194,6 +194,7 @@ export class LayoutService {
 
         this.addMultipleRoutes(dashboardRoutes);
       }
+
     } catch (error) {
       console.error('Erro ao recarregar dashboards:', error);
     }
@@ -286,7 +287,7 @@ export class LayoutService {
     const fullPath = this.buildUrlWithClientKey(targetRoute);
 
     if (Object.keys(queryParams).length > 0) {
-      this.router.navigate([fullPath], { queryParams });
+      this.router.navigate([fullPath], {queryParams});
     } else {
       this.router.navigate([fullPath]);
     }

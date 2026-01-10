@@ -6,7 +6,6 @@ import { environment } from '../../environments/environment';
 import { catchError, tap, switchMap } from 'rxjs/operators';
 import { LayoutService } from '../layout/layout.service';
 import { User } from '../models/user';
-import {ClientKeyService} from '../services/client-key.service';
 import {ClientService} from '../services/client.service';
 
 export interface LoginResponse {
@@ -41,7 +40,6 @@ export class AuthService {
     private http: HttpClient,
     private router: Router,
     private layoutService: LayoutService,
-    private clientKeyService: ClientKeyService,
     private clientService: ClientService
   ) {
     this.initializeAuth();
@@ -56,7 +54,6 @@ export class AuthService {
 
     if (token && !this.isTokenExpired() && user) {
       this.setAuthState(true, user);
-      this.initializeClientKey(user);
       this.scheduleTokenRefresh();
     } else if (token && this.getStoredRefreshToken()) {
       // Token expirado mas temos refresh token - tenta renovar
@@ -72,8 +69,6 @@ export class AuthService {
    * Inicializa o client_key baseado no usuário
    */
   private initializeClientKey(user: User): void {
-    const availableClients = user.available_clients || [];
-    this.clientKeyService.setAvailableClients(availableClients);
   }
 
   /**
@@ -100,17 +95,10 @@ export class AuthService {
       this.storeUser(user);
       this.setAuthState(true, user);
 
-      // Armazena os clientes disponíveis
-      this.initializeClientKey(user);
-
       this.scheduleTokenRefresh();
 
-      // Navega para home com o client_key do usuário
-      if (user.client?.slug) {
-        await this.router.navigate([user.client.slug, 'home']);
-      } else {
-        await this.router.navigate(['/home']);
-      }
+      await this.router.navigate(['/home']);
+
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -132,17 +120,9 @@ export class AuthService {
       this.storeUser(user);
       this.setAuthState(true, user);
 
-      // Armazena os clientes disponíveis
-      this.initializeClientKey(user);
-
       this.scheduleTokenRefresh();
 
-      // Navega para home com o client_key do usuário
-      if (user.client?.slug) {
-        await this.router.navigate([user.client.slug, 'home']);
-      } else {
-        await this.router.navigate(['/home']);
-      }
+      await this.router.navigate(['/home']);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
@@ -175,9 +155,6 @@ export class AuthService {
 
     // Limpa dados locais primeiro
     this.clearAuthData();
-
-    // Limpa os clientes disponíveis
-    this.clientKeyService.clearClients();
 
     // Limpa o cliente atual
     this.clientService.clearCurrentClient();

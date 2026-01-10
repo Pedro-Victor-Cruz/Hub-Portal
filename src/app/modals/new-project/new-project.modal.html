@@ -1,0 +1,148 @@
+<div class="new-project-modal">
+
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="header-icon">
+      <i class="bx bx-{{ plan.presentation.icon }}"></i>
+    </div>
+    <div class="header-content">
+      <h2 class="modal-title">Criar Novo Projeto</h2>
+      <p class="modal-subtitle">
+        Você selecionou o <strong>{{ plan.name }}</strong>.
+        Preencha os dados abaixo para começar.
+      </p>
+    </div>
+  </div>
+
+  <!-- Plan Summary -->
+  <div class="plan-summary">
+    <div class="summary-badge" [attr.data-color]="plan.presentation.color">
+      <i class="bx bx-{{ plan.presentation.icon }}"></i>
+      <span>{{ plan.name }}</span>
+    </div>
+    <div class="summary-price">
+      @if (plan.is_free) {
+        <span class="price-tag free">{{ plan.formatted_price }}</span>
+      } @else {
+        <span class="price-tag">{{ plan.formatted_price }}<small>/mês</small></span>
+      }
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="project-form">
+
+    <!-- Step Indicator -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-badge">
+          <i class="bx bx-info-circle"></i>
+          <span>Passo 1 de 1</span>
+        </div>
+        <h3 class="section-title">Informações do Projeto</h3>
+        <p class="section-description">
+          Dê um nome ao seu projeto para identificá-lo facilmente no sistema.
+        </p>
+      </div>
+
+      <div class="p-fluid p-formgrid grid">
+        <div class="col-12">
+          <ub-input
+            label="Nome do Projeto"
+            placeholder="Ex: Meu Dashboard de Vendas"
+            formControlName="name"
+            [error]="FormErrorHandlerService.getError('name', errors)"
+          ></ub-input>
+          <small class="field-hint">
+            <i class="bx bx-info-circle"></i>
+            Escolha um nome descritivo para facilitar a identificação
+          </small>
+        </div>
+
+        @if (user.is_reseller) {
+          <div class="col-12">
+            <div class="reseller-section">
+              <div class="reseller-header">
+                <i class="bx bx-briefcase"></i>
+                <h4>Opções de Revenda</h4>
+              </div>
+
+              <div class="reseller-content">
+                <ub-toggle-switch
+                  label="Este projeto é para revenda?"
+                  formControlName="is_resale"
+                  [error]="FormErrorHandlerService.getError('is_resale', errors)"
+                ></ub-toggle-switch>
+                <small class="field-hint toggle-hint">
+                  <i class="bx bx-info-circle"></i>
+                  Ative se este projeto será revendido para um cliente final
+                </small>
+
+                @if (form.get('is_resale')?.value) {
+                  <div class="client-email-wrapper">
+                    <ub-input
+                      label="Email do Cliente Final"
+                      placeholder="cliente@empresa.com"
+                      formControlName="client_email"
+                      [error]="FormErrorHandlerService.getError('client_email', errors)"
+                    ></ub-input>
+                    <small class="field-hint">
+                      <i class="bx bx-envelope"></i>
+                      O cliente receberá um email com instruções de acesso
+                    </small>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Features Recap -->
+    <div class="features-recap">
+      <h4 class="recap-title">
+        <i class="bx bx-check-shield"></i>
+        O que está incluído:
+      </h4>
+      <ul class="features-list">
+        @for (feature of plan.presentation.features; track $index) {
+          <li class="feature-item">
+            <i class="bx bx-check"></i>
+            <span>{{ feature }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+
+  </form>
+
+  <!-- Footer with CTA -->
+  <div class="modal-footer">
+    <div class="footer-info">
+      <i class="bx bx-lock-alt"></i>
+      <span>Seus dados estão seguros conosco</span>
+    </div>
+    <div class="footer-actions">
+      <button type="button" class="btn-cancel" (click)="modalRef.close()">
+        <i class="bx bx-x"></i>
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn-submit"
+        [class.loading]="loading"
+        [disabled]="form.invalid || loading"
+        (click)="onSubmit()">
+        @if (loading) {
+          <i class="bx bx-loader-alt bx-spin"></i>
+          <span>Criando projeto...</span>
+        } @else {
+          <i class="bx bx-check-circle"></i>
+          <span>{{ plan.presentation.cta }}</span>
+        }
+      </button>
+    </div>
+  </div>
+
+</div>

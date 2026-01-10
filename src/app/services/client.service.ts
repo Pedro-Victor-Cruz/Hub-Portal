@@ -58,7 +58,14 @@ export class ClientService {
    * Obtém a lista de clientes disponíveis
    */
   public getClients() {
-    return firstValueFrom(this.http.get<any>(`${this.API_URL}/clients`));
+    return firstValueFrom(this.http.get<any>(`${this.API_URL}/client`));
+  }
+
+  /**
+   * Cria um novo cliente via API
+   */
+  public newClient(data: any) {
+    return firstValueFrom(this.http.post<any>(`${this.API_URL}/client`, data));
   }
 
   /**

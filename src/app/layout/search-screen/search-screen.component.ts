@@ -228,25 +228,8 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   }
 
   private async loadDashboardsNavigable(): Promise<void> {
-    try {
-      this.isLoadingDashboards = true;
-      const response = await this.dashboardService.getNavigableDashboards();
-
-      if (response && response.data) {
-        const dashboardRoutes: Tab[] = response.data.map((dash: any) => ({
-          title: dash.name,
-          description: dash.description || 'Dashboard personalizado',
-          icon: dash.icon ? 'bx ' + dash.icon : 'bx bx-bar-chart-alt-2',
-          path: `/dashboard/${dash.key}`,
-          category: 'dashboard' as const
-        }));
-
-        this.layoutService.addMultipleRoutes(dashboardRoutes);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dashboards navegáveis:', error);
-    } finally {
-      this.isLoadingDashboards = false;
+    if (this.currentClient) {
+      await this.layoutService.reloadDashboards();
     }
   }
 

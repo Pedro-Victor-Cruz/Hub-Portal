@@ -3,13 +3,17 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  company_name: string | null;
+  phone: string;
+  cpf: string | null;
+  cnpj: string | null;
+  birth_date: string;
   status: string;
   is_super_admin: boolean;
   last_login: string | null;
   group: PermissionGroup | null;
   permissions: Permission[];
-  client: Client | null;
-  available_clients: Client[] | null;
+  is_reseller: boolean;
 }
 
 export interface Client {
