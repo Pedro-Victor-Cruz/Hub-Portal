@@ -37,7 +37,7 @@
         </div>
 
         <!-- Loading State -->
-        @if (loading) {
+        @if (loading && !accepting) {
           <div class="loading-state">
             <div class="spinner"></div>
             <p class="loading-text">Carregando convite...</p>
@@ -74,7 +74,7 @@
                   <i class='bx bx-buildings'></i>
                 </div>
                 <div class="detail-info">
-                  <span class="detail-label">Empresa</span>
+                  <span class="detail-label">Projeto</span>
                   <span class="detail-value">{{ infoData.client_name }}</span>
                 </div>
               </div>
@@ -90,28 +90,71 @@
               </div>
             </div>
 
-            <div class="invite-message">
-              @if (!infoData.existing_user) {
-                <p>
-                  <i class='bx bx-info-circle'></i>
-                  Como você ainda não possui uma conta, precisamos que se registre primeiro.
-                </p>
-              }
-              @if (infoData.existing_user) {
-                <p>
-                  <i class='bx bx-info-circle'></i>
-                  Faça login para aceitar o convite e acessar o projeto.
-                </p>
-              }
-            </div>
+            <!-- Mensagem informativa baseada no estado -->
+            @if (!infoData.is_authenticated && !infoData.existing_user) {
+              <div class="invite-message info">
+                <div class="message-icon">
+                  <i class='bx bx-user-plus'></i>
+                </div>
+                <div class="message-content">
+                  <h3>Bem-vindo!</h3>
+                  <p>Como é a primeira vez que você acessa nossa plataforma, precisamos que você crie uma conta primeiro. É rápido e fácil!</p>
+                </div>
+              </div>
+            }
 
+            @if (!infoData.is_authenticated && infoData.existing_user) {
+              <div class="invite-message info">
+                <div class="message-icon">
+                  <i class='bx bx-log-in'></i>
+                </div>
+                <div class="message-content">
+                  <h3>Olá novamente!</h3>
+                  <p>Identificamos que você já possui uma conta. Faça login para continuar e aceitar o convite do projeto <strong>{{ infoData.client_name }}</strong>.</p>
+                </div>
+              </div>
+            }
+
+            @if (infoData.is_authenticated) {
+              <div class="invite-message success">
+                <div class="message-icon">
+                  <i class='bx bx-check-shield'></i>
+                </div>
+                <div class="message-content">
+                  <h3>Tudo pronto!</h3>
+                  <p>Você está autenticado e pode aceitar o convite agora. Ao aceitar, você terá acesso aos projetos e recursos do projeto <strong>{{ infoData.client_name }}</strong>.</p>
+                </div>
+              </div>
+            }
+
+            <!-- Botões de ação -->
             <div class="action-buttons">
+              @if (!infoData.is_authenticated && !infoData.existing_user) {
+                <button class="btn-primary" (click)="goToRegister()">
+                  <i class='bx bx-user-plus'></i>
+                  Criar Conta
+                </button>
+              }
+
+              @if (!infoData.is_authenticated && infoData.existing_user) {
+                <button class="btn-primary" (click)="goToLogin()">
+                  <i class='bx bx-log-in'></i>
+                  Fazer Login
+                </button>
+              }
+
               @if (infoData.is_authenticated) {
                 <button
                   class="btn-accept"
-                  (click)="acceptInvite()">
-                  <i class='bx bx-check'></i>
-                  Aceitar Convite
+                  (click)="acceptInvite()"
+                  [disabled]="accepting">
+                  @if (accepting) {
+                    <div class="btn-spinner"></div>
+                    <span>Aceitando...</span>
+                  } @else {
+                    <i class='bx bx-check'></i>
+                    <span>Aceitar Convite</span>
+                  }
                 </button>
               }
             </div>

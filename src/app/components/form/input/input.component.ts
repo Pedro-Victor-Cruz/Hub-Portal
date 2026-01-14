@@ -36,14 +36,14 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
   @Input() required: boolean = false;
   @Input() error: string = '';
   @Input() success: string = '';
-  @Input() suggestions: string[] = []; // Lista de sugestões
+  @Input() suggestions: string[] = [];
   @Output() valueChange = new EventEmitter<string>();
   @Output() blur = new EventEmitter<FocusEvent>();
   @Output() input = new EventEmitter<Event>();
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();
 
-  @ViewChild('inputElement') inputElement!: ElementRef; // Acessa o elemento input
+  @ViewChild('inputElement') inputElement!: ElementRef;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['disabled']) {
@@ -53,8 +53,8 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
     }
   }
 
-  showSuggestions: boolean = false; // Controla a visibilidade das sugestões
-  filteredSuggestions: string[] = []; // Sugestões filtradas
+  showSuggestions: boolean = false;
+  filteredSuggestions: string[] = [];
 
   onChange: any = () => {
   };
@@ -73,7 +73,17 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
     this.onTouched = fn;
   }
 
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
+
   onInput(event: Event): void {
+    // Se o campo está disabled, não permite alteração
+    if (this.disabled) {
+      event.preventDefault();
+      return;
+    }
+
     const value = (event.target as HTMLInputElement).value;
     this.value = value;
     this.onChange(value);
@@ -84,12 +94,18 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
   }
 
   onChangeEvent(event: Event): void {
-    this.change.emit(event);
+    if (!this.disabled) {
+      this.change.emit(event);
+    }
   }
 
   onClick(event: Event): void {
+    if (this.disabled) {
+      return;
+    }
+
     this.click.emit(event);
-    this.showSuggestions = true; // Mostra as sugestões ao clicar no input
+    this.showSuggestions = true;
     this.filterSuggestions();
   }
 
@@ -99,32 +115,34 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
       suggestion.toLowerCase().includes(value)
     );
     if (this.filteredSuggestions.length === 0) {
-      this.filteredSuggestions = this.suggestions; // Se não houver sugestões filtradas, mostra todas
+      this.filteredSuggestions = this.suggestions;
     }
   }
 
   onBlur(event: FocusEvent): void {
-    // Verifica se o clique foi dentro do modal de sugestões
     const relatedTarget = event.relatedTarget as HTMLElement;
     if (relatedTarget && this.inputElement.nativeElement.contains(relatedTarget)) {
-      return; // Não fecha o modal se o clique foi dentro do modal
+      return;
     }
 
     this.onTouched();
     this.blur.emit(event);
-    this.showSuggestions = false; // Esconde as sugestões ao perder o foco
+    this.showSuggestions = false;
   }
 
   selectSuggestion(suggestion: string): void {
+    if (this.disabled) {
+      return;
+    }
+
     this.value = suggestion;
     this.onChange(suggestion);
     this.valueChange.emit(suggestion);
 
-    // Atualiza o valor do campo de entrada manualmente
     if (this.inputElement && this.inputElement.nativeElement) {
       this.inputElement.nativeElement.value = suggestion;
     }
 
-    this.showSuggestions = false; // Esconde as sugestões após a seleção
+    this.showSuggestions = false;
   }
 }

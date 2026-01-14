@@ -44,6 +44,7 @@ import {InputmaskComponent} from '../../../components/form/inputmask/inputmask.c
             type="email"
             placeholder="seu@email.com"
             formControlName="email"
+            [disabled]="emailReadonly"
             [error]="FormErrorHandlerService.getError('email', errors)">
           </ub-input>
         </div>
@@ -318,6 +319,7 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
   loading = false;
   errors: { [key: string]: string } = {};
   personType: 'fisica' | 'juridica' = 'fisica';
+  emailReadonly = false; // Controla se o email é somente leitura
   private returnUrl: string = '/home';
 
   private destroy$ = new Subject<void>();
@@ -335,7 +337,14 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupFormValidation();
-    this.getReturnUrl();
+
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+
+    const suggestedEmail = this.route.snapshot.queryParams['suggestedEmail'];
+    if (suggestedEmail) {
+      this.registerForm.get('email')?.setValue(suggestedEmail);
+      this.emailReadonly = true; // Marca como readonly ao invés de disabled
+    }
   }
 
   ngOnDestroy(): void {
@@ -430,7 +439,8 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
     this.errors = {};
 
     try {
-      const formData = {...this.registerForm.value};
+      // Pega os valores do formulário, incluindo campos disabled
+      const formData = this.registerForm.getRawValue();
 
       if (this.personType === 'fisica') {
         delete formData.cnpj;
@@ -466,10 +476,6 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
     } finally {
       this.loading = false;
     }
-  }
-
-  private getReturnUrl(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
   }
 
   private navigateToReturnUrl(): void {
