@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {
   HttpEvent,
   HttpHandler,
@@ -6,32 +6,38 @@ import {
   HttpRequest,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { Router } from '@angular/router';
-import { environment } from '../../environments/environment';
-import { catchError } from 'rxjs/operators';
-import { ClientService } from '../services/client.service';
+import {Observable, throwError} from 'rxjs';
+import {Router} from '@angular/router';
+import {environment} from '../../environments/environment';
+import {catchError} from 'rxjs/operators';
+import {ClientService} from '../services/client.service';
 
 @Injectable()
 export class ClientInterceptor implements HttpInterceptor {
 
+  private blacklistUrls: string[] = [
+    'client-info'
+  ]
+
   constructor(
     private router: Router,
     private clientService: ClientService
-  ) {}
+  ) {
+  }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Verifica se a requisição é para a API configurada no environment
-    if (!request.url.startsWith(environment.api)) {
+    if (!request.url.startsWith(environment.api) || this.blacklistUrls.some(url => request.url.includes(url))) {
       return next.handle(request);
     }
 
     // Extrai o client_key da URL atual
-    const clientKey = this.extractClientKeyFromUrl();
+    const client = this.clientService.getCurrentClient();
 
     // Se temos um client_key, adiciona ao cabeçalho
     let modifiedRequest = request;
-    if (clientKey) {
+    if (client) {
+      const clientKey = client.slug;
       modifiedRequest = request.clone({
         setHeaders: {
           'X-Client-Key': clientKey
@@ -57,25 +63,5 @@ export class ClientInterceptor implements HttpInterceptor {
     );
   }
 
-  /**
-   * Extrai o client_key da URL atual
-   * URL: /:client_key/users -> retorna o client_key
-   */
-  private extractClientKeyFromUrl(): string | null {
-    const url = this.router.url;
-    const segments = url.split('/').filter(Boolean);
 
-    // O client_key é o primeiro segmento após a barra inicial
-    if (segments.length > 0) {
-      const firstSegment = segments[0].split('?')[0]; // Remove query params
-
-      // Verifica se não é uma rota pública (auth, dashboard/invite, home principal)
-      const publicRoutes = ['auth', 'dashboard', 'home'];
-      if (!publicRoutes.includes(firstSegment)) {
-        return firstSegment;
-      }
-    }
-
-    return null;
-  }
 }

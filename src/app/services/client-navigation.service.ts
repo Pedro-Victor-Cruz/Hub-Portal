@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ClientService } from './client.service';
-import { UserService } from './user.service';
 import { LayoutService } from '../layout/layout.service';
 import { AuthService } from '../security/auth.service';
 import { ReuseStrategyService } from './reuse-strategy.service';
@@ -15,7 +14,6 @@ export class ClientNavigationService {
   constructor(
     private router: Router,
     private clientService: ClientService,
-    private userService: UserService,
     private layoutService: LayoutService,
     private authService: AuthService,
     private reuseStrategy: ReuseStrategyService
@@ -36,10 +34,7 @@ export class ClientNavigationService {
       this.layoutService.setOpenTabs([]);
 
       // 4. Atualiza informações do usuário
-      const user = await this.userService.me();
-      if (user) {
-        this.authService.storeUser(user);
-      }
+      this.authService.refreshUserData();
 
       // 5. Recarrega os dashboards navegáveis
       await this.layoutService.reloadDashboards();
@@ -68,14 +63,11 @@ export class ClientNavigationService {
 
     try {
       // Busca informações do cliente via API
-      const client = await this.clientService.getClientInfo();
+      const client = await this.clientService.getClientInfo(clientKey);
 
       if (client) {
         // Atualiza informações do usuário
-        const user = await this.userService.me();
-        if (user) {
-          this.authService.storeUser(user);
-        }
+        this.authService.refreshUserData();
 
         // Recarrega dashboards
         await this.layoutService.reloadDashboards();

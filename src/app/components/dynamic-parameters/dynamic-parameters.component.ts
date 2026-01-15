@@ -13,6 +13,7 @@ import {ToggleSwitchComponent} from '../form/toggle-switch/toggle-switch.compone
 import {ColumnMappingComponent} from '../column-mapping/column-mapping.component';
 import {SeriesConfigComponent} from '../series-config/series-config.component';
 import {ColorPickerComponent} from '../color-picker/color-picker.component';
+import {OauthConnectComponent} from './ub-oauth-connect.component';
 
 export interface DynamicParameter {
   name: string;
@@ -27,7 +28,7 @@ export interface DynamicParameter {
   group?: string;
   order: number;
   sensitive: boolean;
-  dependsOn?: string[] | { [key: string]: any }; // Corrigido: pode ser array ou objeto
+  dependsOn?: string[] | { [key: string]: any };
   arrayItemType?: any;
 }
 
@@ -50,6 +51,7 @@ export interface DynamicParams {
     ColorPickerComponent,
     SeriesConfigComponent,
     ColumnMappingComponent,
+    OauthConnectComponent,
     ReactiveFormsModule
   ],
   templateUrl: './dynamic-parameters.component.html',
@@ -64,12 +66,14 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   @Input({required: true}) dynamicParams!: DynamicParams;
   @Input() paramsValue: any = {};
   @Input() submitButtonText: string = 'Salvar';
+  @Input() integrationName?: string;
 
   @Output() save = new EventEmitter<any>();
   @Output() formChange = new EventEmitter<any>();
   @Output() formValid = new EventEmitter<boolean>();
 
   form!: FormGroup;
+  oauthResources: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -165,6 +169,9 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     switch (param.type) {
       case 'boolean':
         return param.defaultValue ?? false;
+      case 'oauth_connect':
+        // OAuth sempre começa como false até conectar
+        return false;
       case 'array':
       case 'multiselect':
       case 'column_mapping':
@@ -178,7 +185,12 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   }
 
   private getValidators(param: DynamicParameter): any[] {
-    const validators = [];
+    const validators: any[] = [];
+
+    // OAuth connect não precisa de validação required tradicional
+    if (param.type === 'oauth_connect') {
+      return validators;
+    }
 
     if (param.required) {
       validators.push((control: any) => {
@@ -191,7 +203,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       });
     }
 
-    // Validações específicas
     if (param.validation) {
       if (param.validation.min !== undefined) {
         validators.push((control: any) => {
@@ -217,7 +228,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     return validators;
   }
 
-  // Template methods
   getGroupNames(): string[] {
     if (!this.dynamicParams) return [];
     return Object.keys(this.dynamicParams).sort();
@@ -233,15 +243,13 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       return true;
     }
 
-    // Se dependsOn é um array
     if (Array.isArray(param.dependsOn)) {
       return param.dependsOn.every(dependency => {
         const dependencyValue = this.form.get(dependency)?.value;
-        return dependencyValue !== null && dependencyValue !== undefined && dependencyValue !== '';
+        return dependencyValue !== null && dependencyValue !== undefined && dependencyValue !== '' && dependencyValue !== false;
       });
     }
 
-    // Se dependsOn é um objeto com condições específicas
     if (typeof param.dependsOn === 'object') {
       return Object.entries(param.dependsOn).every(([key, expectedValue]) => {
         const actualValue = this.form.get(key)?.value;
@@ -253,7 +261,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   }
 
   getColumnClass(param: DynamicParameter): string {
-    if (['object', 'array', 'sql', 'javascript', 'column_mapping', 'series_config'].includes(param.type)) {
+    if (['object', 'array', 'sql', 'javascript', 'column_mapping', 'series_config', 'oauth_connect'].includes(param.type)) {
       return 'col-12';
     }
     if (param.type === 'color') {
@@ -300,6 +308,21 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   }
 
   getSelectOptions(param: DynamicParameter): any[] {
+    // Se tem recursos OAuth e o parâmetro depende deles, atualiza as opções
+    if (this.oauthResources && param.dependsOn && Array.isArray(param.dependsOn)) {
+      const dependsOnOAuth = param.dependsOn.some(dep => dep.includes('oauth'));
+      if (dependsOnOAuth && this.oauthResources.ad_accounts) {
+        const options: any[] = [];
+        this.oauthResources.ad_accounts.forEach((account: any) => {
+          options.push({
+            label: `${account.name} (${account.id})`,
+            value: account.id
+          });
+        });
+        return options;
+      }
+    }
+
     if (Array.isArray(param.options)) {
       return param.options.map(option =>
         typeof option === 'string' ?
@@ -308,7 +331,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       );
     }
 
-    // Se é um objeto, a key é o value e o value é o label
     if (param.options && typeof param.options === 'object') {
       return Object.keys(param.options).map(key => ({
         label: param.options[key],
@@ -346,12 +368,10 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   }
 
   getFieldError(fieldName: string): string {
-    // Primeiro verifica se há erro customizado
     if (this.errors[fieldName]) {
       return this.errors[fieldName];
     }
 
-    // Depois verifica erros de validação do formulário
     const control = this.form.get(fieldName);
     if (control && control.invalid && (control.dirty || control.touched)) {
       if (control.errors?.['required']) {
@@ -373,9 +393,49 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     return '';
   }
 
+  getOAuthProvider(param: DynamicParameter): string {
+    return param.validation?.provider || 'oauth';
+  }
+
+  // Handlers para eventos OAuth
+  onOAuthConnected(resources: any, param: DynamicParameter) {
+    this.oauthResources = resources;
+    this.form.patchValue({ [param.name]: true });
+
+    // Se tem Ad Accounts, seleciona automaticamente a primeira se não houver seleção
+    if (resources?.ad_accounts?.length > 0) {
+      const adAccountControl = this.form.get('ad_account_id');
+      if (adAccountControl && !adAccountControl.value) {
+        adAccountControl.setValue(resources.ad_accounts[0].id);
+      }
+    }
+
+    this.toast.success('Conectado! Recursos disponíveis atualizados.');
+  }
+
+  onOAuthDisconnected(param: DynamicParameter) {
+    this.oauthResources = null;
+    this.form.patchValue({ [param.name]: false });
+
+    // Limpa campos dependentes
+    const dependentFields = Object.values(this.dynamicParams)
+      .flat()
+      .filter(p => p.dependsOn && Array.isArray(p.dependsOn) && p.dependsOn.includes(param.name));
+
+    dependentFields.forEach(field => {
+      this.form.patchValue({ [field.name]: this.getDefaultValue(field) });
+    });
+
+    this.toast.info('Desconectado. Campos dependentes foram limpos.');
+  }
+
+  onResourcesUpdated(resources: any) {
+    this.oauthResources = resources;
+    this.toast.success('Recursos atualizados!');
+  }
+
   onSubmit() {
     if (this.form.invalid) {
-      // Marca todos os campos como touched para mostrar os erros
       Object.keys(this.form.controls).forEach(key => {
         this.form.get(key)?.markAsTouched();
       });
@@ -387,10 +447,10 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     this.save.emit(this.form.value);
   }
 
-  // Métodos públicos para controle externo
   public resetForm(): void {
     this.form.reset();
     this.updateFormValues();
+    this.oauthResources = null;
   }
 
   public markAllAsTouched(): void {

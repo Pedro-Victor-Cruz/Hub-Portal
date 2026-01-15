@@ -11,8 +11,7 @@ import {UbListComponent} from '../../components/list/list.component';
     UbListComponent
   ],
   templateUrl: './users-page.component.html',
-  standalone: true,
-  styleUrl: './users-page.component.scss'
+  standalone: true
 })
 export class UsersPage implements OnInit {
 

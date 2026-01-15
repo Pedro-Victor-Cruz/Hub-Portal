@@ -4,6 +4,7 @@ import {BehaviorSubject} from 'rxjs';
 import {ReuseStrategyService} from '../services/reuse-strategy.service';
 import {DashboardService} from '../services/dashboard.service';
 import {ClientService} from '../services/client.service';
+import {AuthService} from '../security/auth.service';
 
 export interface Tab {
   title: string;
@@ -24,6 +25,7 @@ export interface TabOpen extends Tab {
   providedIn: 'root',
 })
 export class LayoutService {
+
   private availableRoutes: Tab[] = [
     {
       title: 'Usuários',
@@ -106,7 +108,7 @@ export class LayoutService {
     }
   ];
 
-  private availableRoutesSubject = new BehaviorSubject<Tab[]>(this.availableRoutes);
+  private availableRoutesSubject = new BehaviorSubject<void>(undefined);
   public availableRoutes$ = this.availableRoutesSubject.asObservable();
 
   private open_tabs: TabOpen[] = [];
@@ -115,7 +117,10 @@ export class LayoutService {
   private dashboardService = inject(DashboardService);
   private injector?: Injector;
 
-  constructor(private router: Router, injector: Injector) {
+  constructor(
+    private router: Router,
+    injector: Injector
+  ) {
     this.injector = injector;
 
     this.router.events.subscribe((event) => {
@@ -130,6 +135,7 @@ export class LayoutService {
     if (open_tabs) {
       this.open_tabs = JSON.parse(open_tabs);
     }
+
   }
 
   public setOpenTabs(tabs: TabOpen[]): void {
@@ -160,7 +166,7 @@ export class LayoutService {
     });
 
     if (hasChanges) {
-      this.availableRoutesSubject.next([...this.availableRoutes]);
+      this.availableRoutesSubject.next();
     }
   }
 
@@ -169,7 +175,7 @@ export class LayoutService {
    */
   public removeDynamicRoutes(): void {
     this.availableRoutes = this.availableRoutes.filter(r => r.category !== 'dashboard' || r.path === '/dashboards' || r.path === '/dashboard-templates');
-    this.availableRoutesSubject.next([...this.availableRoutes]);
+    this.availableRoutesSubject.next();
   }
 
   /**

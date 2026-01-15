@@ -18,8 +18,7 @@ import {Utils} from '../../../services/utils.service';
     HasPermissionDirective
   ],
   templateUrl: './user-access-settings.component.html',
-  standalone: true,
-  styleUrl: './user-access-settings.component.scss'
+  standalone: true
 })
 export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges {
 

@@ -29,8 +29,7 @@ import {User} from '../../../models/user';
     UserAccessSettingsComponent,
   ],
   templateUrl: './manage-user.page.html',
-  standalone: true,
-  styleUrl: './manage-user.page.scss',
+  standalone: true
 })
 export class ManageUserPage {
   protected idUser: string | undefined = undefined;

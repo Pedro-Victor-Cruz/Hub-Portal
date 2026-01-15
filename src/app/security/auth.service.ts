@@ -66,12 +66,6 @@ export class AuthService {
   }
 
   /**
-   * Inicializa o client_key baseado no usuário
-   */
-  private initializeClientKey(user: User): void {
-  }
-
-  /**
    * Verifica se o usuário está autenticado
    */
   isAuthenticated(): boolean {

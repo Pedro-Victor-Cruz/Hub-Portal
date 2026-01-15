@@ -71,10 +71,14 @@ export class ClientService {
   /**
    * Obtém informações do cliente atual via API
    */
-  public async getClientInfo(): Promise<Client | null> {
+  public async getClientInfo(client_key: string): Promise<Client | null> {
     try {
       const response = await firstValueFrom(
-        this.http.get<any>(`${this.API_URL}/client-info`)
+        this.http.get<any>(`${this.API_URL}/client-info`, {
+          headers: {
+            'X-Client-Key': client_key
+          }
+        })
       );
 
       if (response.data) {

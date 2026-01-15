@@ -80,6 +80,26 @@
   opacity: 0.6;
 }
 
+.oauth-connect-container {
+  margin-bottom: 1.5rem;
+
+  .oauth-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .oauth-connected {
+    animation: fadeInSuccess 0.5s ease-out;
+  }
+
+  .oauth-disconnected {
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
 // Responsividade aprimorada
 @media (max-width: 768px) {
   .param-group {
@@ -88,6 +108,17 @@
 
   .group-header h4 {
     font-size: 1rem;
+  }
+}
+
+@keyframes fadeInSuccess {
+  from {
+    opacity: 0;
+    background: #f8fafc;
+  }
+  to {
+    opacity: 1;
+    background: #f0fdf4;
   }
 }
 

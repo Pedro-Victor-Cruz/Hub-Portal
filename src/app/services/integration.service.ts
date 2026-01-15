@@ -2,11 +2,11 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
-import {first, firstValueFrom} from 'rxjs';
+import {firstValueFrom} from 'rxjs';
 import {Utils} from './utils.service';
 import {ModalService} from '../modals/modal/modal.service';
 import {ConfigIntegrationModal} from '../modals/config-integration/config-integration.modal';
-import {DynamicParameter, DynamicParams} from '../components/dynamic-parameters/dynamic-parameters.component';
+import {DynamicParams} from '../components/dynamic-parameters/dynamic-parameters.component';
 import {TestIntegrationModal} from '../modals/test-integration/test-integration.modal';
 
 export interface Integration {
@@ -48,7 +48,7 @@ export class IntegrationService {
         });
       }
 
-      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/integration`, { params }));
+      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/integration`, {params}));
       return response.data as Integration[];
     } catch (err: any) {
       this.toast.error(Utils.getErrorMessage(err));
@@ -127,4 +127,5 @@ export class IntegrationService {
   }) {
     return firstValueFrom(this.http.post<any>(`${this.API_URL}/integration/suggestion`, suggestionForm));
   }
+
 }

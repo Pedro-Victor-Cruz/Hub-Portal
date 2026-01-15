@@ -114,7 +114,7 @@ export class AuthInterceptor implements HttpInterceptor {
    * Verifica se a URL é um endpoint de autenticação
    */
   private isAuthEndpoint(url: string): boolean {
-    const authEndpoints = ['/auth', '/auth/login', '/auth/register'];
+    const authEndpoints = ['/auth/refresh', '/auth/login', '/auth/register'];
     return authEndpoints.some(endpoint => url.includes(endpoint));
   }
 

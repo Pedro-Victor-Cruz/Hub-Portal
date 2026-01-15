@@ -75,6 +75,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   private searchTimeout?: number;
   private routesSubscription?: Subscription;
   private clientSubscription?: Subscription;
+  private authSubscription?: Subscription;
 
   constructor(
     private router: Router,
@@ -154,12 +155,21 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     if (this.clientSubscription) {
       this.clientSubscription.unsubscribe();
     }
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
   }
 
   private subscribeToClient(): void {
     this.clientSubscription = this.clientService.currentClient$.subscribe(client => {
       this.currentClient = client;
     });
+  }
+
+  private subscribeAuthUser(): void {
+    this.authSubscription = this.auth.user$.subscribe(user => {
+      this.loadAllPages();
+    })
   }
 
   private async loadClients(): Promise<void> {
@@ -229,7 +239,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToRouteChanges(): void {
-    this.routesSubscription = this.layoutService.availableRoutes$.subscribe(routes => {
+    this.routesSubscription = this.layoutService.availableRoutes$.subscribe(() => {
       this.loadAllPages();
       if (this.searchQuery.trim()) {
         this.performSearch();

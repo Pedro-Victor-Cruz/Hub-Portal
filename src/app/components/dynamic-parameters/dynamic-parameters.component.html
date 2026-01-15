@@ -27,6 +27,20 @@
               @if (shouldShowParameter(param)) {
                 <div [class]="getColumnClass(param)">
 
+                  <!-- OAuth Connect -->
+                  @if (param.type === 'oauth_connect') {
+                    <ub-oauth-connect
+                      [label]="param.label || getDefaultLabel(param.name)"
+                      [description]="param.description"
+                      [provider]="getOAuthProvider(param)"
+                      [disabled]="disabled"
+                      [integrationName]="integrationName || ''"
+                      (connected)="onOAuthConnected($event, param)"
+                      (disconnected)="onOAuthDisconnected(param)"
+                      (resourcesUpdated)="onResourcesUpdated($event)"
+                    ></ub-oauth-connect>
+                  }
+
                   <!-- Input de Texto/URL/Email -->
                   @if (isTextInput(param)) {
                     <ub-input
@@ -140,7 +154,7 @@
                     </ub-textarea>
                   }
 
-                  <!-- Column Mapping (Mapeamento de Colunas) -->
+                  <!-- Column Mapping -->
                   @if (param.type === 'column_mapping') {
                     <ub-column-mapping
                       [label]="param.label || getDefaultLabel(param.name)"
@@ -152,7 +166,7 @@
                     </ub-column-mapping>
                   }
 
-                  <!-- Series Config (Configuração de Séries) -->
+                  <!-- Series Config -->
                   @if (param.type === 'series_config') {
                     <ub-series-config
                       [label]="param.label || getDefaultLabel(param.name)"

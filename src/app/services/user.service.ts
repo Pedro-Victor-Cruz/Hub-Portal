@@ -3,7 +3,6 @@ import {environment} from "../../environments/environment";
 import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
-import {AuthService} from '../security/auth.service';
 import {User} from '../models/user';
 import {Utils} from './utils.service';
 import {ModalService} from '../modals/modal/modal.service';
@@ -73,16 +72,6 @@ export class UserService {
     } catch (err: any) {
       this.toast.error(Utils.getErrorMessage(err));
       throw err;
-    }
-  }
-
-  async me() {
-    try {
-      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/me`));
-      return response.data as User;
-    } catch (err: any) {
-      this.toast.error(Utils.getErrorMessage(err));
-      return null;
     }
   }
 

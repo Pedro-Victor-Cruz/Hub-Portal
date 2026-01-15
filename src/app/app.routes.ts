@@ -2,6 +2,7 @@ import {Routes} from '@angular/router';
 import {HomePage} from './pages/home/home.page';
 import {ProfilePage} from './pages/profile/profile.page';
 import {AuthGuard} from './security/auth.guard';
+import {ClientGuard} from './security/client.guard';
 import {NavbarComponent} from './layout/navbar/navbar.component';
 import {UsersPage} from './pages/users/users-page.component';
 import {ManageUserPage} from './pages/users/manage/manage-user.page';
@@ -71,6 +72,7 @@ export const routes: Routes = [
     children: [
       {
         path: ':client_key',
+        canActivate: [ClientGuard], // Guard aplicado aqui
         children: [
           {
             path: 'home',

@@ -53,77 +53,79 @@
     </div>
   }
 
-  <div class="clients-grid">
-    @for (client of clients; track client.slug) {
-      <div class="client-card" (click)="onClientSelect(client)">
+  @if (!loading && !error) {
+    <div class="clients-grid">
+      @for (client of clients; track client.slug) {
+        <div class="client-card" (click)="onClientSelect(client)">
 
-        <div class="card-header">
-          <!-- Ícone e Badge Principal -->
-          <div class="card-icon">
-            <i class="bx bx-building"></i>
+          <div class="card-header">
+            <!-- Ícone e Badge Principal -->
+            <div class="card-icon">
+              <i class="bx bx-building"></i>
+            </div>
+
           </div>
 
-        </div>
+          <div class="card-content">
+            <h3 class="card-title">{{ client.name }}</h3>
 
-        <div class="card-content">
-          <h3 class="card-title">{{ client.name }}</h3>
-
-          <!-- Informações Adicionais -->
-          <div class="card-info">
-            @if (client.role) {
-              <div class="info-item role-info"
-                   [class.role-owner]="client.role === 'Proprietário'"
-                   [class.role-collaborator]="client.role === 'Colaborador'"
-                   [class.role-reseller]="client.role === 'Revendedor'">
-                <i class="bx" [ngClass]="{
+            <!-- Informações Adicionais -->
+            <div class="card-info">
+              @if (client.role) {
+                <div class="info-item role-info"
+                     [class.role-owner]="client.role === 'Proprietário'"
+                     [class.role-collaborator]="client.role === 'Colaborador'"
+                     [class.role-reseller]="client.role === 'Revendedor'">
+                  <i class="bx" [ngClass]="{
                   'bx-crown': client.role === 'Proprietário',
                   'bx-user-check': client.role === 'Colaborador',
                   'bx-store': client.role === 'Revendedor'
                 }"></i>
-                <span>{{ client.role }}</span>
-              </div>
-            }
+                  <span>{{ client.role }}</span>
+                </div>
+              }
 
-            @if (client.plan_name) {
-              <div class="info-item plan-info" [class.inactive-plan]="!client.has_active_plan">
-                <i class="bx" [ngClass]="client.has_active_plan ? 'bx-check-shield' : 'bx-shield-x'"></i>
-                <span>{{ client.plan_name }}</span>
-              </div>
-            }
+              @if (client.plan_name) {
+                <div class="info-item plan-info" [class.inactive-plan]="!client.has_active_plan">
+                  <i class="bx" [ngClass]="client.has_active_plan ? 'bx-check-shield' : 'bx-shield-x'"></i>
+                  <span>{{ client.plan_name }}</span>
+                </div>
+              }
+            </div>
           </div>
-        </div>
 
-        <!-- Indicador de seleção -->
-        <div class="card-footer">
+          <!-- Indicador de seleção -->
+          <div class="card-footer">
           <span class="select-hint">
             <i class="bx bx-chevron-right"></i>
             Acessar
           </span>
+          </div>
         </div>
-      </div>
-    }
+      }
 
-    <!-- Card Novo Projeto -->
-    <div class="client-card new-project-card" (click)="onNewProject()">
-      <div class="card-header">
-        <div class="card-icon new-project-icon">
-          <i class="bx bx-plus"></i>
+      <!-- Card Novo Projeto -->
+      <div class="client-card new-project-card" (click)="onNewProject()">
+        <div class="card-header">
+          <div class="card-icon new-project-icon">
+            <i class="bx bx-plus"></i>
+          </div>
         </div>
-      </div>
 
-      <div class="card-content">
-        <h3 class="card-title">Novo Projeto</h3>
-        <p class="card-description">Criar um novo projeto personalizado</p>
-      </div>
+        <div class="card-content">
+          <h3 class="card-title">Novo Projeto</h3>
+          <p class="card-description">Criar um novo projeto personalizado</p>
+        </div>
 
-      <div class="card-footer">
+        <div class="card-footer">
           <span class="select-hint">
             <i class="bx bx-plus-circle"></i>
             Criar Projeto
           </span>
+        </div>
       </div>
     </div>
-  </div>
+  }
 
 </div>
 
